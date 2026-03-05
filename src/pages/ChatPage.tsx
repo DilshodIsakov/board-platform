@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
 import type { Profile, Organization } from "../lib/profile";
 import {
-  fetchContacts,
+  fetchContactsWithUnread,
   fetchConversation,
   sendMessage,
   markAsRead,
+  markMessagesReadFrom,
   subscribeToMessages,
   unsubscribeFromMessages,
   fetchGroups,
@@ -89,10 +90,11 @@ export default function ChatPage({ profile, org }: Props) {
     selectedContactRef.current = selectedContact;
   }, [selectedContact]);
 
-  // Load contacts
+  // Load contacts along with unread counters
   useEffect(() => {
     if (!profile) return;
-    fetchContacts(profile.id).then((data) => {
+    setLoadingContacts(true);
+    fetchContactsWithUnread(profile.id).then((data) => {
       setContacts(data);
       setLoadingContacts(false);
     });
@@ -111,6 +113,10 @@ export default function ChatPage({ profile, org }: Props) {
   useEffect(() => {
     if (!profile || !selectedContact) return;
     setLoadingMessages(true);
+
+    // пометим ВСЕ непрочитанные сообщения от этого контакта прочитанными
+    markMessagesReadFrom(profile.id, selectedContact.id).catch((e) => console.error(e));
+
     fetchConversation(profile.id, selectedContact.id).then((data) => {
       setMessages(data);
       setLoadingMessages(false);
@@ -118,6 +124,11 @@ export default function ChatPage({ profile, org }: Props) {
         .filter((m) => m.receiver_id === profile.id && !m.is_read)
         .map((m) => String(m.id));
       markAsRead(unread);
+      setContacts((prev) =>
+        prev.map((c) =>
+          c.id === selectedContact.id ? { ...c, unread_count: 0 } : c
+        )
+      );
     });
   }, [profile, selectedContact]);
 
@@ -158,6 +169,15 @@ export default function ChatPage({ profile, org }: Props) {
       if (current && msg.sender_id === current.id) {
         setMessages((prev) => [...prev, msg]);
         markAsRead([String(msg.id)]);
+      } else {
+        // при поступлении сообщения от другого контакта увеличиваем счётчик
+        setContacts((prev) =>
+          prev.map((c) =>
+            c.id === msg.sender_id
+              ? { ...c, unread_count: (c.unread_count || 0) + 1 }
+              : c
+          )
+        );
       }
     });
     return () => unsubscribeFromMessages(channel);
@@ -220,7 +240,7 @@ export default function ChatPage({ profile, org }: Props) {
     try {
       let fileInfo: { file_name: string; file_size: number; mime_type: string; storage_path: string } | undefined;
       if (pendingGroupFile) {
-        const storagePath = await uploadChatFile(pendingGroupFile, profile.organization_id || "");
+        const storagePath = await uploadChatFile(pendingGroupFile, "default");
         fileInfo = {
           file_name: pendingGroupFile.name,
           file_size: pendingGroupFile.size,
@@ -364,6 +384,7 @@ export default function ChatPage({ profile, org }: Props) {
     return true;
   });
 
+
   const filteredGroups = groups.filter((g) => {
     if (searchQuery.trim()) {
       return g.name.toLowerCase().includes(searchQuery.trim().toLowerCase());
@@ -374,7 +395,7 @@ export default function ChatPage({ profile, org }: Props) {
   const availableRoles = [...new Set(contacts.map((c) => c.role))];
 
   const canManageGroup = (g: ChatGroup) =>
-    profile && (g.created_by === profile.id || profile.role === "admin" || profile.role === "chairman");
+    profile && (g.created_by === profile.id || profile.role === "admin");
 
   return (
     <div style={{ display: "flex", height: "calc(100vh - 64px)" }}>
@@ -465,7 +486,12 @@ export default function ChatPage({ profile, org }: Props) {
                     background: selectedContact?.id === c.id ? "#dbeafe" : "transparent",
                   }}
                 >
-                  <div style={{ fontWeight: 500, fontSize: 15 }}>{c.full_name || t("chat.noName")}</div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ fontWeight: 500, fontSize: 15 }}>{c.full_name || t("chat.noName")}</div>
+                    {c.unread_count && c.unread_count > 0 && (
+                      <span style={contactBadgeStyle}>{c.unread_count}</span>
+                    )}
+                  </div>
                   <div style={{ fontSize: 12, color: "#6b7280" }}>
                     {t(`chat.roles.${c.role}`, c.role)}
                   </div>
@@ -838,6 +864,21 @@ const contactItemStyle: React.CSSProperties = {
   cursor: "pointer",
   borderBottom: "1px solid #f3f4f6",
   transition: "background 0.15s",
+};
+
+// badge for unread messages next to contact
+const contactBadgeStyle: React.CSSProperties = {
+  background: "#EF4444",
+  color: "#FFFFFF",
+  borderRadius: "50%",
+  minWidth: 18,
+  height: 18,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 11,
+  fontWeight: 600,
+  padding: "0 5px",
 };
 
 const chatPanelStyle: React.CSSProperties = {

@@ -6,6 +6,8 @@ import { getMyProfile, getMyOrg, type Profile, type Organization } from "./lib/p
 import type { User } from "@supabase/supabase-js";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
+import ConfirmEmailPage from "./pages/ConfirmEmailPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 import DashboardPage from "./pages/DashboardPage";
 import MeetingPage from "./pages/MeetingPage";
 import ChatPage from "./pages/ChatPage";
@@ -34,11 +36,16 @@ export default function App() {
   const loadProfileAndOrg = async () => {
     try {
       const [p, o] = await Promise.all([getMyProfile(), getMyOrg()]);
+      console.log("[DEBUG] Loaded profile:", p);
+      console.log("[DEBUG] Profile role:", p?.role);
       setProfile(p);
       // Sync locale from profile
-      if (p?.locale && p.locale !== i18n.language) {
-        i18n.changeLanguage(p.locale);
-        localStorage.setItem("locale", p.locale);
+      if (p?.created_at && p.created_at !== i18n.language) {
+        // Try to load locale from localStorage or user preferences
+        const savedLocale = localStorage.getItem("locale");
+        if (savedLocale && savedLocale !== i18n.language) {
+          i18n.changeLanguage(savedLocale);
+        }
       }
       setOrg(o);
     } catch (e) {
@@ -55,11 +62,11 @@ export default function App() {
       const u = session?.user ?? null;
       setUser(u);
 
-      // Снимаем loading сразу — не ждём загрузки профиля
+      // Remove loading immediately — don't wait for profile load
       setLoading(false);
 
       if (u) {
-        // Загружаем профиль фоново — не блокируем рендер
+        // Load profile in background — don't block render
         loadProfileAndOrg();
       } else {
         setProfile(null);
@@ -87,9 +94,25 @@ export default function App() {
   // Auth guard helper
   const auth = (page: React.ReactNode) =>
     user ? (
+      profile ? (
+        <Layout profile={profile} org={org} onSignOut={handleSignOut}>
+          {page}
+        </Layout>
+      ) : (
+        <ConfirmEmailPage user={user} />
+      )
+    ) : (
+      <Navigate to="/login" replace />
+    );
+
+  // Admin guard helper - only show if user is admin
+  const adminAuth = (page: React.ReactNode) =>
+    user && profile && profile.role === "admin" ? (
       <Layout profile={profile} org={org} onSignOut={handleSignOut}>
         {page}
       </Layout>
+    ) : user && profile ? (
+      <Navigate to="/" replace />
     ) : (
       <Navigate to="/login" replace />
     );
@@ -114,6 +137,7 @@ export default function App() {
         <Route path="/tasks" element={auth(<TasksListPage profile={profile} org={org} />)} />
         <Route path="/tasks/:id" element={auth(<TaskDetailsPage profile={profile} org={org} />)} />
         <Route path="/board-work-plan" element={auth(<BoardWorkPlanPage profile={profile} org={org} />)} />
+        <Route path="/admin/users" element={adminAuth(<AdminUsersPage />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

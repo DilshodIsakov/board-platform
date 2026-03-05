@@ -32,7 +32,7 @@ interface Props {
 
 export default function NSMeetingsPage({ profile, org }: Props) {
   const { t } = useTranslation();
-  const isAdmin = profile?.role === "admin" || profile?.role === "chairman";
+  const isAdmin = profile?.role === "admin";
 
   const [meetings, setMeetings] = useState<NSMeeting[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);

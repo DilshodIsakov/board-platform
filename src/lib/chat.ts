@@ -19,6 +19,7 @@ export interface ContactProfile {
   id: string;
   full_name: string;
   role: string;
+  unread_count?: number; // количество непрочитанных сообщений от этого контакта
 }
 
 /** Загрузить список контактов (все активные профили в организации) */
@@ -35,6 +36,36 @@ export async function fetchContacts(excludeProfileId: string): Promise<ContactPr
   }
 
   return data as ContactProfile[];
+}
+
+// Fetch contacts along with unread counts for messages addressed to us.
+// Reuses the existing messages table and does not create any new structures.
+export async function fetchContactsWithUnread(
+  excludeProfileId: string
+): Promise<ContactProfile[]> {
+  const contacts = await fetchContacts(excludeProfileId);
+
+  const { data: msgs, error } = await supabase
+    .from("messages")
+    .select("sender_id")
+    .eq("receiver_id", excludeProfileId)
+    .eq("is_read", false);
+
+  if (error) {
+    console.error("fetchContactsWithUnread error:", error);
+    return contacts;
+  }
+
+  const counts = new Map<string, number>();
+  msgs?.forEach((m: any) => {
+    const sid = m.sender_id;
+    counts.set(sid, (counts.get(sid) || 0) + 1);
+  });
+
+  return contacts.map((c) => ({
+    ...c,
+    unread_count: counts.get(c.id) || 0,
+  }));
 }
 
 /** Загрузить переписку между двумя пользователями */
@@ -73,7 +104,7 @@ export async function sendMessage(
     organization_id: orgId,
     sender_id: senderProfileId,
     receiver_id: receiverProfileId,
-    body: content.trim() || null,
+    body: fileInfo ? fileInfo.file_name : (content.trim() || " "),
   };
   if (fileInfo) {
     row.file_name = fileInfo.file_name;
@@ -108,6 +139,27 @@ export async function markAsRead(messageIds: string[]): Promise<void> {
   if (error) {
     console.error("markAsRead error:", error);
   }
+}
+
+// Пометить все непрочитанные сообщения от указанного собеседника прочитанными
+export async function markMessagesReadFrom(
+  myProfileId: string,
+  otherProfileId: string
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id")
+    .eq("sender_id", otherProfileId)
+    .eq("receiver_id", myProfileId)
+    .eq("is_read", false);
+
+  if (error) {
+    console.error("markMessagesReadFrom error:", error);
+    return;
+  }
+
+  const ids = (data || []).map((m: any) => String(m.id));
+  await markAsRead(ids);
 }
 
 /** Подписка на новые входящие сообщения через Supabase Realtime */
@@ -296,7 +348,7 @@ export async function sendGroupMessage(
   const row: Record<string, unknown> = {
     group_id: groupId,
     sender_id: senderId,
-    content: content.trim() || null,
+    content: fileInfo ? fileInfo.file_name : (content.trim() || " "),
   };
   if (fileInfo) {
     row.file_name = fileInfo.file_name;
@@ -396,4 +448,54 @@ export function subscribeToGroupMessages(
     .subscribe();
 
   return channel;
+}
+
+// ============================================================
+// Счетчик непрочитанных сообщений
+// ============================================================
+
+/** Получить количество непрочитанных сообщений в чате */
+export async function loadUnreadChatCount(): Promise<number> {
+  const { data, error } = await supabase.rpc('get_unread_chat_count');
+
+  if (error) {
+    console.error("loadUnreadChatCount error:", error);
+    return 0;
+  }
+
+  // Суммируем результаты из UNION ALL
+  return Array.isArray(data) ? data.reduce((sum: number, count: number) => sum + count, 0) : 0;
+}
+
+/** Пометить личные сообщения как прочитанные */
+export async function markPersonalMessagesAsRead(): Promise<void> {
+  const { error } = await supabase.rpc('mark_personal_messages_as_read');
+
+  if (error) {
+    console.error("markPersonalMessagesAsRead error:", error);
+  }
+}
+
+/** Пометить группу как прочитанную */
+export async function markGroupAsRead(groupId: string): Promise<void> {
+  const { error } = await supabase.rpc('mark_group_as_read', { group_id_param: groupId });
+
+  if (error) {
+    console.error("markGroupAsRead error:", error);
+  }
+}
+
+/** Пометить все сообщения в чате как прочитанные */
+export async function markAllChatAsRead(): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return;
+
+  // Пометить личные сообщения
+  await markPersonalMessagesAsRead();
+
+  // Пометить все группы, где пользователь участник
+  const groups = await fetchGroups();
+  for (const group of groups) {
+    await markGroupAsRead(group.id);
+  }
 }

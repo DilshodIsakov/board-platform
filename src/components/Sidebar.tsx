@@ -7,6 +7,7 @@ import { updateProfileLocale } from "../lib/profile";
 interface Props {
   profile: Profile | null;
   onSignOut: () => void;
+  unreadNotificationsCount?: number;
 }
 
 
@@ -54,10 +55,16 @@ function getInitials(name: string): string {
   return name[0].toUpperCase();
 }
 
-export default function Sidebar({ profile, onSignOut }: Props) {
+export default function Sidebar({ profile, onSignOut, unreadNotificationsCount = 0 }: Props) {
   const { t } = useTranslation();
 
-  const menuItems = [
+  type MenuItem = {
+    to: string;
+    label: string;
+    icon: string;
+  };
+
+  const menuItems: MenuItem[] = [
     { to: "/company", label: t("sidebar.company"), icon: "info" },
     { to: "/", label: t("sidebar.dashboard"), icon: "dashboard" },
     { to: "/calendar", label: t("sidebar.calendar"), icon: "calendar" },
@@ -70,6 +77,7 @@ export default function Sidebar({ profile, onSignOut }: Props) {
     { to: "/videoconference", label: t("sidebar.videoconference"), icon: "video" },
     { to: "/stats", label: t("sidebar.stats"), icon: "stats" },
     { to: "/shareholder-meeting", label: t("sidebar.shareholders"), icon: "shareholders" },
+    ...(profile?.role === "admin" ? [{ to: "/admin/users", label: "Управление пользователями", icon: "info" }] : []),
   ];
 
   return (
@@ -120,7 +128,26 @@ export default function Sidebar({ profile, onSignOut }: Props) {
             })}
           >
             <SidebarIcon name={item.icon} />
-            <span>{item.label}</span>
+            <span style={{ flex: 1 }}>{item.label}</span>
+            {item.to === "/chat" && unreadNotificationsCount > 0 && (
+              <span
+                style={{
+                  background: "#EF4444",
+                  color: "#FFFFFF",
+                  borderRadius: "50%",
+                  width: 18,
+                  height: 18,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  flexShrink: 0,
+                }}
+              >
+                {unreadNotificationsCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>
@@ -129,7 +156,7 @@ export default function Sidebar({ profile, onSignOut }: Props) {
       {profile && (
         <div style={userSection}>
           <div style={userAvatarStyle}>
-            {getInitials(profile.full_name)}
+            {getInitials(profile.full_name || profile.email)}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>

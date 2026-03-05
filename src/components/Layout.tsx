@@ -92,7 +92,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
 
   return (
     <div style={containerStyle}>
-      <Sidebar profile={profile} onSignOut={onSignOut} />
+      <Sidebar profile={profile} onSignOut={onSignOut} unreadNotificationsCount={unreadCount} />
 
       <div style={mainStyle}>
         {/* Top Header Bar */}
@@ -185,7 +185,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
             {/* User avatar */}
             {profile && (
               <div style={headerAvatarStyle}>
-                {getInitials(profile.full_name)}
+                {getInitials(profile.full_name || profile.email)}
               </div>
             )}
           </div>

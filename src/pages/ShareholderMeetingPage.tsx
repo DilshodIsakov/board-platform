@@ -146,7 +146,8 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
   const handleVote = async (agendaItemId: string, choice: "for" | "against" | "abstain") => {
     if (!profile) return;
     try {
-      const vote = await castShareholderVote(agendaItemId, profile.id, choice, profile.shares_count || 0);
+      // TODO: Fetch shares_count from shareholder_shares table based on profile.id
+      const vote = await castShareholderVote(agendaItemId, profile.id, choice, 0);
       if (vote) {
         setVotesMap((prev) => {
           const existing = prev[agendaItemId] || [];

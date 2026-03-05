@@ -191,17 +191,24 @@ AS $$
 DECLARE
   _sender_name text;
   _receiver_user_id uuid;
+  _body_text text;
 BEGIN
   SELECT full_name INTO _sender_name FROM public.profiles WHERE id = NEW.sender_id;
   SELECT user_id INTO _receiver_user_id FROM public.profiles WHERE id = NEW.receiver_id;
 
-  IF _receiver_user_id IS NOT NULL THEN
+  -- Используем имя файла если есть файл, иначе текст сообщения
+  _body_text := CASE
+    WHEN NEW.file_name IS NOT NULL THEN NEW.file_name
+    ELSE left(NEW.body, 100)
+  END;
+
+  IF _receiver_user_id IS NOT NULL AND trim(_body_text) <> '' THEN
     INSERT INTO public.notifications (recipient_id, type, title, body, related_entity_type, related_entity_id)
     VALUES (
       _receiver_user_id,
       'personal_message',
       'Сообщение от ' || coalesce(_sender_name, 'Пользователь'),
-      left(NEW.body, 100),
+      _body_text,
       'message',
       NEW.id::text
     );
@@ -228,28 +235,37 @@ DECLARE
   _sender_name text;
   _group_name text;
   _sender_user_id uuid;
+  _body_text text;
 BEGIN
   SELECT full_name, user_id INTO _sender_name, _sender_user_id FROM public.profiles WHERE id = NEW.sender_id;
   SELECT name INTO _group_name FROM public.chat_groups WHERE id = NEW.group_id;
 
-  FOR _rec IN
-    SELECT p.user_id
-    FROM public.chat_group_members cgm
-    JOIN public.profiles p ON p.id = cgm.profile_id
-    WHERE cgm.group_id = NEW.group_id
-  LOOP
-    IF _rec.user_id <> _sender_user_id THEN
-      INSERT INTO public.notifications (recipient_id, type, title, body, related_entity_type, related_entity_id)
-      VALUES (
-        _rec.user_id,
-        'group_message',
-        _group_name || ': ' || coalesce(_sender_name, 'Пользователь'),
-        left(NEW.content, 100),
-        'group_message',
-        NEW.group_id::text
-      );
-    END IF;
-  END LOOP;
+  -- Используем имя файла если есть файл, иначе текст сообщения
+  _body_text := CASE
+    WHEN NEW.file_name IS NOT NULL THEN NEW.file_name
+    ELSE left(NEW.content, 100)
+  END;
+
+  IF trim(_body_text) <> '' THEN
+    FOR _rec IN
+      SELECT p.user_id
+      FROM public.chat_group_members cgm
+      JOIN public.profiles p ON p.id = cgm.profile_id
+      WHERE cgm.group_id = NEW.group_id
+    LOOP
+      IF _rec.user_id <> _sender_user_id THEN
+        INSERT INTO public.notifications (recipient_id, type, title, body, related_entity_type, related_entity_id)
+        VALUES (
+          _rec.user_id,
+          'group_message',
+          _group_name || ': ' || coalesce(_sender_name, 'Пользователь'),
+          _body_text,
+          'group_message',
+          NEW.group_id::text
+        );
+      END IF;
+    END LOOP;
+  END IF;
 
   RETURN NEW;
 END;

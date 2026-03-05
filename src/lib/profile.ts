@@ -2,12 +2,11 @@ import { supabase } from "./supabaseClient";
 
 export interface Profile {
   id: string;
-  organization_id: string;
-  role: string;
-  full_name: string;
-  shares_count: number;
-  locale: string;
+  email: string;
+  full_name: string | null;
+  role: "admin" | "corp_secretary" | "board_member" | "management";
   created_at: string;
+  updated_at?: string;
 }
 
 export interface Organization {
@@ -28,7 +27,7 @@ export async function getMyProfile(): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", user.id) // ВАЖНО: id, а не user_id
+    .eq("id", user.id)
     .single();
 
   if (error) {
@@ -40,39 +39,85 @@ export async function getMyProfile(): Promise<Profile | null> {
 }
 
 /**
- * Загрузить организацию текущего пользователя.
+ * Получить список всех профилей (для админ-панели).
  */
-export async function getMyOrg(): Promise<Organization | null> {
-  const profile = await getMyProfile();
-  if (!profile) return null;
-
+export async function getAllProfiles(): Promise<Profile[]> {
   const { data, error } = await supabase
-    .from("organizations")
+    .from("profiles")
     .select("*")
-    .eq("id", profile.organization_id)
-    .single();
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("getMyOrg error:", error);
-    return null;
+    console.error("getAllProfiles error:", error);
+    return [];
   }
 
-  return data as Organization;
+  return data as Profile[];
 }
 
 /**
- * Сохранить выбранный язык в профиль.
+ * Обновить роль пользователя (только для админов).
  */
-export async function updateProfileLocale(locale: string): Promise<void> {
+export async function updateUserRole(userId: string, role: Profile["role"]): Promise<boolean> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ role })
+    .eq("id", userId);
+
+  if (error) {
+    console.error("updateUserRole error:", error);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Обновить свой профиль (имя, фото и т.д., но не роль).
+ */
+export async function updateMyProfile(updates: { full_name?: string }): Promise<boolean> {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) return;
+  if (!session?.user) return false;
 
   const { error } = await supabase
     .from("profiles")
-    .update({ locale })
+    .update({ ...updates, updated_at: new Date().toISOString() })
     .eq("id", session.user.id);
 
   if (error) {
-    console.error("updateProfileLocale error:", error);
+    console.error("updateMyProfile error:", error);
+    return false;
   }
+
+  return true;
+}
+
+/**
+ * Запросить повторно письмо с подтверждением.
+ */
+export async function resendConfirmationEmail(email: string): Promise<boolean> {
+  try {
+    await supabase.auth.resend({
+      type: "signup",
+      email,
+    });
+    return true;
+  } catch (error) {
+    console.error("resendConfirmationEmail error:", error);
+    return false;
+  }
+}
+
+/**
+ * Загрузить организацию текущего пользователя (оставлена для совместимости, возвращает null).
+ */
+export async function getMyOrg(): Promise<Organization | null> {
+  return null;
+}
+
+/**
+ * Сохранить выбранный язык в профиль (оставлена для совместимости, ничего не делает).
+ */
+export async function updateProfileLocale(_locale: string): Promise<void> {
+  // В однокомпанийной системе на данный момент не используется
 }

@@ -1,5 +1,4 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useTranslation } from "react-i18next";
 import type { Profile, Organization } from "../lib/profile";
 import {
   fetchDocLinks,
@@ -18,7 +17,6 @@ interface Props {
 }
 
 export default function DocumentsPage({ profile, org }: Props) {
-  const { t } = useTranslation();
   const [links, setLinks] = useState<DocLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

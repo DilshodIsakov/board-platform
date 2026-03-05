@@ -367,6 +367,8 @@ function MeetingCard({
   const quorumPercent = meeting.total_shares > 0
     ? Math.round((meeting.voted_shares / meeting.total_shares) * 100)
     : 0;
+  const totalShares = Number(meeting?.total_shares ?? 0);
+  const votedShares = Number(meeting?.voted_shares ?? 0);
 
   return (
     <div style={cardStyle}>
@@ -430,8 +432,8 @@ function MeetingCard({
           </span>
         </div>
         <div style={{ display: "flex", gap: 24, fontSize: 14, color: "#6B7280" }}>
-          <span>{t("shareholder.totalShares", { count: meeting.total_shares.toLocaleString(getIntlLocale()) })}</span>
-          <span>{t("shareholder.votedShares", { count: meeting.voted_shares.toLocaleString(getIntlLocale()) })}</span>
+          <span>{t("shareholder.totalShares", { count: totalShares })}</span>
+          <span>{t("shareholder.votedShares", { count: votedShares })}</span>
         </div>
       </div>
 

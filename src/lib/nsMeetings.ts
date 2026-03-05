@@ -359,5 +359,5 @@ export async function generateBrief(agendaId: string, lang: BriefLang = "ru"): P
     throw new Error(parts.join(" — "));
   }
 
-  return result as GenerateBriefResult;
+  return result as unknown as GenerateBriefResult;
 }

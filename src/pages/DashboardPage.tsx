@@ -14,8 +14,7 @@ import {
   type ShareholderVote,
 } from "../lib/shareholderVoting";
 import { useTranslation } from "react-i18next";
-import { formatDateTime, formatDate } from "../lib/format";
-import { getIntlLocale } from "../i18n";
+import { formatDateTime } from "../lib/format";
 
 const CAN_CREATE_MEETING = ["admin", "chairman"];
 

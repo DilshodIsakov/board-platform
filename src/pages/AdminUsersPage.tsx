@@ -1,20 +1,32 @@
-import { useEffect, useState } from "react";
-import { getAllProfiles, updateUserRole, type Profile } from "../lib/profile";
-
-const roleOptions: Array<Profile["role"]> = ["admin", "corp_secretary", "board_member", "management"];
-
-const roleLabels: Record<Profile["role"], string> = {
-  admin: "Администратор",
-  corp_secretary: "Секретарь",
-  board_member: "Член совета",
-  management: "Менеджмент",
-};
+import { useEffect, useState, type FormEvent } from "react";
+import {
+  getAllProfiles,
+  updateUserProfile,
+  adminCreateUser,
+  adminDeleteUser,
+  ROLE_OPTIONS,
+  ROLE_LABELS,
+  type Profile,
+  type UserRole,
+} from "../lib/profile";
 
 export default function AdminUsersPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [updating, setUpdating] = useState<string | null>(null);
+  const [success, setSuccess] = useState("");
+
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Form fields
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formPassword, setFormPassword] = useState("");
+  const [formRole, setFormRole] = useState<UserRole>("board_member");
+  const [formRoleDetails, setFormRoleDetails] = useState("");
 
   useEffect(() => {
     loadProfiles();
@@ -27,44 +39,123 @@ export default function AdminUsersPage() {
     setLoading(false);
   };
 
-  const handleRoleChange = async (userId: string, newRole: Profile["role"]) => {
-    setUpdating(userId);
-    const success = await updateUserRole(userId, newRole);
-    if (success) {
-      setProfiles(profiles.map(p => p.id === userId ? { ...p, role: newRole } : p));
-      setError("");
-    } else {
-      setError("Ошибка при обновлении роли");
+  const clearMessages = () => { setError(""); setSuccess(""); };
+
+  const openCreateModal = () => {
+    clearMessages();
+    setEditingProfile(null);
+    setFormName("");
+    setFormEmail("");
+    setFormPassword("");
+    setFormRole("board_member");
+    setFormRoleDetails("");
+    setShowModal(true);
+  };
+
+  const openEditModal = (p: Profile) => {
+    clearMessages();
+    setEditingProfile(p);
+    setFormName(p.full_name || "");
+    setFormEmail(p.email);
+    setFormPassword("");
+    setFormRole(p.role);
+    setFormRoleDetails(p.role_details || "");
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingProfile(null);
+  };
+
+  const handleSave = async (e: FormEvent) => {
+    e.preventDefault();
+    clearMessages();
+    setSaving(true);
+
+    try {
+      if (editingProfile) {
+        const ok = await updateUserProfile(editingProfile.id, {
+          full_name: formName.trim() || undefined,
+          role: formRole,
+          role_details: formRole === "admin" ? null : (formRoleDetails.trim() || null),
+        });
+        if (!ok) throw new Error("Ошибка при обновлении пользователя");
+
+        setProfiles((prev) =>
+          prev.map((p) =>
+            p.id === editingProfile.id
+              ? {
+                  ...p,
+                  full_name: formName.trim() || null,
+                  role: formRole,
+                  role_details: formRole === "admin" ? null : (formRoleDetails.trim() || null),
+                }
+              : p
+          )
+        );
+        setSuccess("Пользователь обновлён");
+      } else {
+        if (!formEmail.trim()) throw new Error("Введите email");
+        if (!formPassword || formPassword.length < 6) throw new Error("Пароль должен быть не менее 6 символов");
+
+        await adminCreateUser(
+          formEmail.trim(),
+          formPassword,
+          formName.trim(),
+          formRole,
+          formRole === "admin" ? null : (formRoleDetails.trim() || null)
+        );
+
+        await loadProfiles();
+        setSuccess("Пользователь создан");
+      }
+      closeModal();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка");
+    } finally {
+      setSaving(false);
     }
-    setUpdating(null);
+  };
+
+  const handleDelete = async (p: Profile) => {
+    clearMessages();
+    const msg = `Удалить пользователя «${p.full_name || p.email}»?\n\nЭто действие необратимо.`;
+    if (!confirm(msg)) return;
+
+    try {
+      await adminDeleteUser(p.id);
+      setProfiles((prev) => prev.filter((x) => x.id !== p.id));
+      setSuccess("Пользователь удалён");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка удаления");
+    }
   };
 
   if (loading) {
-    return (
-      <div style={{ color: "#9CA3AF" }}>
-        Загрузка...
-      </div>
-    );
+    return <div style={{ color: "#9CA3AF" }}>Загрузка...</div>;
   }
 
   return (
     <div>
-      <h1 style={{ marginBottom: 4 }}>Управление пользователями</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+        <h1 style={{ margin: 0 }}>Управление пользователями</h1>
+        <button onClick={openCreateModal} style={createBtnStyle}>+ Создать пользователя</button>
+      </div>
       <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 20px" }}>
-        Просмотр и изменение ролей пользователей
+        Создание, редактирование и удаление пользователей системы
       </p>
 
       {error && (
-        <div style={{
-          background: "#FEF2F2",
-          border: "1px solid #FECACA",
-          borderRadius: 8,
-          padding: 12,
-          color: "#DC2626",
-          fontSize: 13,
-          marginBottom: 16,
-        }}>
+        <div style={msgStyle("#FEF2F2", "#FECACA", "#DC2626")}>
           {error}
+          <button onClick={() => setError("")} style={msgCloseBtnStyle}>&times;</button>
+        </div>
+      )}
+      {success && (
+        <div style={msgStyle("#F0FDF4", "#BBF7D0", "#16A34A")}>
+          {success}
+          <button onClick={() => setSuccess("")} style={msgCloseBtnStyle}>&times;</button>
         </div>
       )}
 
@@ -72,50 +163,46 @@ export default function AdminUsersPage() {
         <p style={{ color: "#9CA3AF" }}>Нет пользователей</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
-          <table style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            border: "1px solid #E5E7EB",
-            borderRadius: 8,
-            overflow: "hidden",
-          }}>
+          <table style={tableStyle}>
             <thead>
               <tr style={{ background: "#F3F4F6", borderBottom: "1px solid #E5E7EB" }}>
-                <th style={{ padding: 12, textAlign: "left", fontSize: 13, fontWeight: 600, color: "#6B7280" }}>Email</th>
-                <th style={{ padding: 12, textAlign: "left", fontSize: 13, fontWeight: 600, color: "#6B7280" }}>ФИО</th>
-                <th style={{ padding: 12, textAlign: "left", fontSize: 13, fontWeight: 600, color: "#6B7280" }}>Роль</th>
-                <th style={{ padding: 12, textAlign: "left", fontSize: 13, fontWeight: 600, color: "#6B7280" }}>Дата создания</th>
+                <th style={thStyle}>Email</th>
+                <th style={thStyle}>ФИО</th>
+                <th style={thStyle}>Основная роль</th>
+                <th style={thStyle}>Дополнение к роли</th>
+                <th style={thStyle}>Дата создания</th>
+                <th style={{ ...thStyle, textAlign: "center", width: 100 }}>Действия</th>
               </tr>
             </thead>
             <tbody>
-              {profiles.map((profile) => (
-                <tr key={profile.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                  <td style={{ padding: 12, fontSize: 14, color: "#111827" }}>{profile.email}</td>
-                  <td style={{ padding: 12, fontSize: 14, color: "#111827" }}>{profile.full_name || "—"}</td>
-                  <td style={{ padding: 12 }}>
-                    <select
-                      value={profile.role}
-                      onChange={(e) => handleRoleChange(profile.id, e.target.value as Profile["role"])}
-                      disabled={updating === profile.id}
-                      style={{
-                        padding: "6px 10px",
-                        fontSize: 13,
-                        border: "1px solid #D1D5DB",
-                        borderRadius: 4,
-                        background: "#fff",
-                        cursor: updating === profile.id ? "not-allowed" : "pointer",
-                        opacity: updating === profile.id ? 0.6 : 1,
-                      }}
-                    >
-                      {roleOptions.map(role => (
-                        <option key={role} value={role}>
-                          {roleLabels[role]}
-                        </option>
-                      ))}
-                    </select>
+              {profiles.map((p) => (
+                <tr key={p.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                  <td style={tdStyle}>{p.email}</td>
+                  <td style={tdStyle}>{p.full_name || "—"}</td>
+                  <td style={tdStyle}>
+                    <span style={roleBadge(p.role)}>{ROLE_LABELS[p.role] || p.role}</span>
                   </td>
-                  <td style={{ padding: 12, fontSize: 13, color: "#6B7280" }}>
-                    {new Date(profile.created_at).toLocaleDateString("ru-RU")}
+                  <td style={{ ...tdStyle, color: "#6B7280", fontSize: 13 }}>
+                    {p.role !== "admin" && p.role_details ? p.role_details : "—"}
+                  </td>
+                  <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>
+                    {new Date(p.created_at).toLocaleDateString("ru-RU")}
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: "center" }}>
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                      <button onClick={() => openEditModal(p)} style={actBtnStyle} title="Редактировать">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                      <button onClick={() => handleDelete(p)} style={delBtnStyle} title="Удалить">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -123,6 +210,154 @@ export default function AdminUsersPage() {
           </table>
         </div>
       )}
+
+      {/* ===== Create / Edit Modal ===== */}
+      {showModal && (
+        <div style={overlayStyle} onClick={closeModal}>
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 18 }}>
+                {editingProfile ? "Редактировать пользователя" : "Создать пользователя"}
+              </h3>
+              <button onClick={closeModal} style={closeBtnStyle}>&times;</button>
+            </div>
+
+            <form onSubmit={handleSave}>
+              <div style={fldStyle}>
+                <label style={lblStyle}>ФИО</label>
+                <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Иванов Иван Иванович" style={inpStyle} />
+              </div>
+
+              {!editingProfile && (
+                <>
+                  <div style={fldStyle}>
+                    <label style={lblStyle}>Email *</label>
+                    <input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="user@example.com" style={inpStyle} required />
+                  </div>
+                  <div style={fldStyle}>
+                    <label style={lblStyle}>Пароль *</label>
+                    <input type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} placeholder="Минимум 6 символов" style={inpStyle} required minLength={6} />
+                  </div>
+                </>
+              )}
+
+              <div style={fldStyle}>
+                <label style={lblStyle}>Основная роль *</label>
+                <select value={formRole} onChange={(e) => setFormRole(e.target.value as UserRole)} style={selStyle}>
+                  {ROLE_OPTIONS.map((r) => (
+                    <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                  ))}
+                </select>
+              </div>
+
+              {formRole !== "admin" && (
+                <div style={fldStyle}>
+                  <label style={lblStyle}>Дополнение к роли</label>
+                  <input value={formRoleDetails} onChange={(e) => setFormRoleDetails(e.target.value)} placeholder="Например: Председатель Комитета по аудиту" style={inpStyle} />
+                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>Уточнение должности или статуса</div>
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
+                <button type="button" onClick={closeModal} style={cancelBtnStyle}>Отмена</button>
+                <button type="submit" disabled={saving} style={{ ...saveBtnStyle, opacity: saving ? 0.6 : 1 }}>
+                  {saving ? "Сохранение..." : "Сохранить"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+// ============================================================
+// Styles
+// ============================================================
+
+const createBtnStyle: React.CSSProperties = {
+  padding: "10px 20px", fontSize: 14, fontWeight: 600, borderRadius: 8,
+  border: "none", background: "#111827", color: "#FFFFFF", cursor: "pointer",
+};
+
+const tableStyle: React.CSSProperties = {
+  width: "100%", borderCollapse: "collapse", border: "1px solid #E5E7EB", borderRadius: 8, overflow: "hidden",
+};
+
+const thStyle: React.CSSProperties = {
+  padding: "12px 14px", textAlign: "left", fontSize: 13, fontWeight: 600, color: "#6B7280",
+};
+
+const tdStyle: React.CSSProperties = {
+  padding: "12px 14px", fontSize: 14, color: "#111827",
+};
+
+function roleBadge(role: string): React.CSSProperties {
+  const c: Record<string, { bg: string; fg: string }> = {
+    admin: { bg: "#FEF3C7", fg: "#92400E" },
+    board_member: { bg: "#DBEAFE", fg: "#1E40AF" },
+    executive: { bg: "#E0E7FF", fg: "#3730A3" },
+    employee: { bg: "#F3F4F6", fg: "#374151" },
+    corp_secretary: { bg: "#FDE68A", fg: "#78350F" },
+    auditor: { bg: "#D1FAE5", fg: "#065F46" },
+    management: { bg: "#E0E7FF", fg: "#3730A3" },
+  };
+  const v = c[role] || { bg: "#F3F4F6", fg: "#374151" };
+  return { display: "inline-block", padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600, background: v.bg, color: v.fg };
+}
+
+const actBtnStyle: React.CSSProperties = {
+  width: 32, height: 32, borderRadius: 6, border: "1px solid #D1D5DB",
+  background: "#FFFFFF", color: "#6B7280", cursor: "pointer",
+  display: "flex", alignItems: "center", justifyContent: "center",
+};
+
+const delBtnStyle: React.CSSProperties = {
+  ...actBtnStyle, border: "1px solid #FECACA", background: "#FEF2F2", color: "#DC2626",
+};
+
+function msgStyle(bg: string, bdr: string, txt: string): React.CSSProperties {
+  return { background: bg, border: `1px solid ${bdr}`, borderRadius: 8, padding: "10px 14px", color: txt, fontSize: 13, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" };
+}
+
+const msgCloseBtnStyle: React.CSSProperties = {
+  background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "inherit", padding: "0 4px", lineHeight: 1,
+};
+
+const overlayStyle: React.CSSProperties = {
+  position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
+  display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+};
+
+const modalStyle: React.CSSProperties = {
+  background: "#FFFFFF", borderRadius: 14, padding: 28, width: 480, maxWidth: "90vw",
+  maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+};
+
+const closeBtnStyle: React.CSSProperties = {
+  background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "#9CA3AF", padding: 0, lineHeight: 1,
+};
+
+const fldStyle: React.CSSProperties = { marginBottom: 16 };
+
+const lblStyle: React.CSSProperties = {
+  display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 4,
+};
+
+const inpStyle: React.CSSProperties = {
+  width: "100%", padding: "9px 12px", fontSize: 14, border: "1px solid #D1D5DB",
+  borderRadius: 8, outline: "none", boxSizing: "border-box", fontFamily: "inherit",
+};
+
+const selStyle: React.CSSProperties = { ...inpStyle, cursor: "pointer", background: "#FFFFFF" };
+
+const cancelBtnStyle: React.CSSProperties = {
+  padding: "10px 20px", fontSize: 14, fontWeight: 500, borderRadius: 8,
+  border: "1px solid #D1D5DB", background: "#FFFFFF", color: "#374151", cursor: "pointer",
+};
+
+const saveBtnStyle: React.CSSProperties = {
+  padding: "10px 24px", fontSize: 14, fontWeight: 600, borderRadius: 8,
+  border: "none", background: "#3B82F6", color: "#FFFFFF", cursor: "pointer",
+};

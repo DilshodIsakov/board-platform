@@ -1,13 +1,35 @@
-import { supabase } from "./supabaseClient";
+import { supabase, supabaseAnonKey } from "./supabaseClient";
+
+export type UserRole = "admin" | "corp_secretary" | "board_member" | "management" | "executive" | "employee" | "auditor";
 
 export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
-  role: "admin" | "corp_secretary" | "board_member" | "management";
+  role: UserRole;
+  role_details?: string | null;
   created_at: string;
   updated_at?: string;
 }
+
+export const ROLE_OPTIONS: UserRole[] = [
+  "admin",
+  "board_member",
+  "executive",
+  "employee",
+  "corp_secretary",
+  "auditor",
+];
+
+export const ROLE_LABELS: Record<UserRole, string> = {
+  admin: "Администратор",
+  board_member: "Член НС",
+  executive: "Член Правления",
+  employee: "Сотрудник",
+  corp_secretary: "Секретарь",
+  auditor: "Внутренний аудитор",
+  management: "Менеджмент",
+};
 
 export interface Organization {
   id: string;
@@ -16,9 +38,6 @@ export interface Organization {
   created_at: string;
 }
 
-/**
- * Загрузить профиль текущего пользователя.
- */
 export async function getMyProfile(): Promise<Profile | null> {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
@@ -38,9 +57,6 @@ export async function getMyProfile(): Promise<Profile | null> {
   return data as Profile;
 }
 
-/**
- * Получить список всех профилей (для админ-панели).
- */
 export async function getAllProfiles(): Promise<Profile[]> {
   const { data, error } = await supabase
     .from("profiles")
@@ -55,26 +71,27 @@ export async function getAllProfiles(): Promise<Profile[]> {
   return data as Profile[];
 }
 
-/**
- * Обновить роль пользователя (только для админов).
- */
-export async function updateUserRole(userId: string, role: Profile["role"]): Promise<boolean> {
+export async function updateUserProfile(
+  userId: string,
+  updates: { full_name?: string; role?: UserRole; role_details?: string | null }
+): Promise<boolean> {
   const { error } = await supabase
     .from("profiles")
-    .update({ role })
+    .update({ ...updates, updated_at: new Date().toISOString() })
     .eq("id", userId);
 
   if (error) {
-    console.error("updateUserRole error:", error);
+    console.error("updateUserProfile error:", error);
     return false;
   }
-
   return true;
 }
 
-/**
- * Обновить свой профиль (имя, фото и т.д., но не роль).
- */
+// Legacy alias
+export async function updateUserRole(userId: string, role: Profile["role"]): Promise<boolean> {
+  return updateUserProfile(userId, { role });
+}
+
 export async function updateMyProfile(updates: { full_name?: string }): Promise<boolean> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return false;
@@ -88,19 +105,58 @@ export async function updateMyProfile(updates: { full_name?: string }): Promise<
     console.error("updateMyProfile error:", error);
     return false;
   }
-
   return true;
 }
 
-/**
- * Запросить повторно письмо с подтверждением.
- */
+// ============================================================
+// Admin user management via Edge Function (uses service_role)
+// ============================================================
+
+async function callAdminUsersFunction(body: Record<string, unknown>): Promise<{ success?: boolean; error?: string; user_id?: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Not authenticated");
+
+  const url = `${(import.meta.env.VITE_SUPABASE_URL as string)}/functions/v1/admin-users`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${session.access_token}`,
+      "apikey": supabaseAnonKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error || `HTTP ${res.status}`);
+  return result;
+}
+
+export async function adminCreateUser(
+  email: string,
+  password: string,
+  fullName: string,
+  role: UserRole,
+  roleDetails: string | null
+): Promise<string> {
+  const result = await callAdminUsersFunction({
+    action: "create",
+    email,
+    password,
+    full_name: fullName,
+    role,
+    role_details: role === "admin" ? null : roleDetails,
+  });
+  return result.user_id!;
+}
+
+export async function adminDeleteUser(userId: string): Promise<void> {
+  await callAdminUsersFunction({ action: "delete", user_id: userId });
+}
+
 export async function resendConfirmationEmail(email: string): Promise<boolean> {
   try {
-    await supabase.auth.resend({
-      type: "signup",
-      email,
-    });
+    await supabase.auth.resend({ type: "signup", email });
     return true;
   } catch (error) {
     console.error("resendConfirmationEmail error:", error);
@@ -108,16 +164,8 @@ export async function resendConfirmationEmail(email: string): Promise<boolean> {
   }
 }
 
-/**
- * Загрузить организацию текущего пользователя (оставлена для совместимости, возвращает null).
- */
 export async function getMyOrg(): Promise<Organization | null> {
   return null;
 }
 
-/**
- * Сохранить выбранный язык в профиль (оставлена для совместимости, ничего не делает).
- */
-export async function updateProfileLocale(_locale: string): Promise<void> {
-  // В однокомпанийной системе на данный момент не используется
-}
+export async function updateProfileLocale(_locale: string): Promise<void> {}

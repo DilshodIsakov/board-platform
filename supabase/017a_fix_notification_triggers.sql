@@ -135,7 +135,7 @@ BEGIN
       NEW.receiver_id,
       'personal_message',
       'Сообщение от ' || coalesce(_sender_name, 'Пользователь'),
-      left(NEW.body, 100),
+      left(NEW.content, 100),
       'message',
       NEW.id::text
     );

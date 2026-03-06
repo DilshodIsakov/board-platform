@@ -6,8 +6,7 @@ import {
   fetchContactsWithUnread,
   fetchConversation,
   sendMessage,
-  markAsRead,
-  markMessagesReadFrom,
+  markConversationAndNotificationsAsRead,
   subscribeToMessages,
   unsubscribeFromMessages,
   fetchGroups,
@@ -29,6 +28,9 @@ import {
   type GroupMessage,
   type ChatGroupMember,
 } from "../lib/chat";
+import { markNotificationsByMessageIds } from "../lib/notifications";
+
+import { useNotifications } from "../components/Layout";
 
 interface Props {
   profile: Profile | null;
@@ -39,6 +41,7 @@ type SidebarTab = "personal" | "groups";
 
 export default function ChatPage({ profile, org }: Props) {
   const { t } = useTranslation();
+  const { refresh } = useNotifications();
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("personal");
 
   // --- Personal chat state ---
@@ -109,27 +112,30 @@ export default function ChatPage({ profile, org }: Props) {
     });
   }, [profile]);
 
-  // Load personal conversation
+  // Load personal conversation — sequential: mark read → load → refresh badge
   useEffect(() => {
     if (!profile || !selectedContact) return;
     setLoadingMessages(true);
 
-    // пометим ВСЕ непрочитанные сообщения от этого контакта прочитанными
-    markMessagesReadFrom(profile.id, selectedContact.id).catch((e) => console.error(e));
+    (async () => {
+      // 1. Mark all unread messages from this contact as read (messages + notifications)
+      await markConversationAndNotificationsAsRead(profile.id, selectedContact.id);
 
-    fetchConversation(profile.id, selectedContact.id).then((data) => {
+      // 2. Load conversation
+      const data = await fetchConversation(profile.id, selectedContact.id);
       setMessages(data);
       setLoadingMessages(false);
-      const unread = data
-        .filter((m) => m.receiver_id === profile.id && !m.is_read)
-        .map((m) => String(m.id));
-      markAsRead(unread);
+
+      // 3. Zero out the local per-contact badge
       setContacts((prev) =>
         prev.map((c) =>
           c.id === selectedContact.id ? { ...c, unread_count: 0 } : c
         )
       );
-    });
+
+      // 4. Refresh sidebar badge from DB (notifications are already marked)
+      refresh();
+    })();
   }, [profile, selectedContact]);
 
   // Load group messages + subscribe
@@ -167,10 +173,20 @@ export default function ChatPage({ profile, org }: Props) {
     const channel = subscribeToMessages(profile.id, (msg) => {
       const current = selectedContactRef.current;
       if (current && msg.sender_id === current.id) {
+        // Message from currently open conversation — show it and mark as read
         setMessages((prev) => [...prev, msg]);
-        markAsRead([String(msg.id)]);
+        // Mark this single message + its notification as read sequentially
+        (async () => {
+          try {
+            await markConversationAndNotificationsAsRead(profile.id, msg.sender_id);
+          } catch (e) {
+            // fallback: mark notification directly by message ID
+            await markNotificationsByMessageIds(profile.id, [String(msg.id)]);
+          }
+          refresh();
+        })();
       } else {
-        // при поступлении сообщения от другого контакта увеличиваем счётчик
+        // Message from another contact — increment unread badge
         setContacts((prev) =>
           prev.map((c) =>
             c.id === msg.sender_id
@@ -488,7 +504,7 @@ export default function ChatPage({ profile, org }: Props) {
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ fontWeight: 500, fontSize: 15 }}>{c.full_name || t("chat.noName")}</div>
-                    {c.unread_count && c.unread_count > 0 && (
+                    {(c.unread_count ?? 0) > 0 && (
                       <span style={contactBadgeStyle}>{c.unread_count}</span>
                     )}
                   </div>
@@ -564,7 +580,7 @@ export default function ChatPage({ profile, org }: Props) {
                   return (
                     <div key={m.id} style={{ display: "flex", justifyContent: isMine ? "flex-end" : "flex-start", marginBottom: 8 }}>
                       <div style={{ ...bubbleBaseStyle, background: isMine ? "#2563eb" : "#f3f4f6", color: isMine ? "#fff" : "#111827" }}>
-                        {m.body && <div>{m.body}</div>}
+                        {m.content && <div>{m.content}</div>}
                         {m.storage_path && m.file_name && (
                           <AttachmentBubble
                             storagePath={m.storage_path}

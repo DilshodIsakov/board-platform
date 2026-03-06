@@ -32,8 +32,10 @@ export default function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [org, setOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const loadProfileAndOrg = async () => {
+    setProfileLoading(true);
     try {
       const [p, o] = await Promise.all([getMyProfile(), getMyOrg()]);
       console.log("[DEBUG] Loaded profile:", p);
@@ -41,7 +43,6 @@ export default function App() {
       setProfile(p);
       // Sync locale from profile
       if (p?.created_at && p.created_at !== i18n.language) {
-        // Try to load locale from localStorage or user preferences
         const savedLocale = localStorage.getItem("locale");
         if (savedLocale && savedLocale !== i18n.language) {
           i18n.changeLanguage(savedLocale);
@@ -52,6 +53,8 @@ export default function App() {
       console.error("loadProfileAndOrg error:", e);
       setProfile(null);
       setOrg(null);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -62,11 +65,9 @@ export default function App() {
       const u = session?.user ?? null;
       setUser(u);
 
-      // Remove loading immediately — don't wait for profile load
       setLoading(false);
 
       if (u) {
-        // Load profile in background — don't block render
         loadProfileAndOrg();
       } else {
         setProfile(null);
@@ -94,7 +95,11 @@ export default function App() {
   // Auth guard helper
   const auth = (page: React.ReactNode) =>
     user ? (
-      profile ? (
+      profileLoading ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "#9CA3AF" }}>
+          {t("common.loading")}
+        </div>
+      ) : profile ? (
         <Layout profile={profile} org={org} onSignOut={handleSignOut}>
           {page}
         </Layout>

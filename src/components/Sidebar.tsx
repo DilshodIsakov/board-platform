@@ -8,6 +8,7 @@ interface Props {
   profile: Profile | null;
   onSignOut: () => void;
   unreadNotificationsCount?: number;
+  unreadChatCount?: number;
 }
 
 
@@ -55,7 +56,7 @@ function getInitials(name: string): string {
   return name[0].toUpperCase();
 }
 
-export default function Sidebar({ profile, onSignOut, unreadNotificationsCount = 0 }: Props) {
+export default function Sidebar({ profile, onSignOut, unreadNotificationsCount: _unc = 0, unreadChatCount = 0 }: Props) {
   const { t } = useTranslation();
 
   type MenuItem = {
@@ -129,7 +130,7 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
           >
             <SidebarIcon name={item.icon} />
             <span style={{ flex: 1 }}>{item.label}</span>
-            {item.to === "/chat" && unreadNotificationsCount > 0 && (
+            {item.to === "/chat" && (unreadChatCount ?? 0) > 0 && (
               <span
                 style={{
                   background: "#EF4444",
@@ -145,7 +146,7 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
                   flexShrink: 0,
                 }}
               >
-                {unreadNotificationsCount}
+                {unreadChatCount}
               </span>
             )}
           </NavLink>

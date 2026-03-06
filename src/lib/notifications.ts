@@ -42,6 +42,26 @@ export async function fetchUnreadCount(): Promise<number> {
   return count ?? 0;
 }
 
+// Count unread chat messages directly from messages table (source of truth).
+// Previously counted from notifications table, but notification related_entity_id
+// format didn't always match message IDs, causing badge to never decrease.
+export async function fetchUnreadChatCount(): Promise<number> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return 0;
+
+  const { count, error } = await supabase
+    .from("messages")
+    .select("*", { count: "exact", head: true })
+    .eq("receiver_id", session.user.id)
+    .eq("is_read", false);
+
+  if (error) {
+    console.error("fetchUnreadChatCount error:", error);
+    return 0;
+  }
+  return count ?? 0;
+}
+
 /** Пометить одно уведомление прочитанным */
 export async function markNotificationRead(id: string): Promise<void> {
   const { error } = await supabase
@@ -86,9 +106,52 @@ export function subscribeToNotifications(
   return channel;
 }
 
+/** Realtime-подписка на обновления уведомлений (используется для синхронизации при прочтении сообщений в чате) */
+export function subscribeToNotificationUpdates(
+  userId: string,
+  onUpdate: (n: Notification) => void
+): RealtimeChannel {
+  const channel = supabase
+    .channel("notifications-updates-" + userId)
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "notifications",
+        filter: `recipient_id=eq.${userId}`,
+      },
+      (payload) => {
+        onUpdate(payload.new as Notification);
+      }
+    )
+    .subscribe();
+
+  return channel;
+}
+
 /** Отписка от канала */
 export function unsubscribeFromNotifications(channel: RealtimeChannel): void {
   supabase.removeChannel(channel);
+}
+
+/** Пометить notifications прочитанными по message IDs */
+export async function markNotificationsByMessageIds(
+  recipientId: string,
+  messageIds: string[]
+): Promise<void> {
+  if (messageIds.length === 0) return;
+
+  const { error } = await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("recipient_id", recipientId)
+    .eq("related_entity_type", "message")
+    .in("related_entity_id", messageIds);
+
+  if (error) {
+    console.error("markNotificationsByMessageIds error:", error);
+  }
 }
 
 /** Определить маршрут для навигации по клику на уведомление */

@@ -199,7 +199,7 @@ BEGIN
   -- Используем имя файла если есть файл, иначе текст сообщения
   _body_text := CASE
     WHEN NEW.file_name IS NOT NULL THEN NEW.file_name
-    ELSE left(NEW.body, 100)
+    ELSE left(NEW.content, 100)
   END;
 
   IF _receiver_user_id IS NOT NULL AND trim(_body_text) <> '' THEN

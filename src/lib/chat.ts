@@ -2,11 +2,11 @@ import { supabase } from "./supabaseClient";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 export interface Message {
-  id: number;
-  organization_id: string;
+  id: string;
+  org_id: string;
   sender_id: string;
   receiver_id: string;
-  body: string;
+  content: string;
   is_read: boolean;
   created_at: string;
   file_name?: string | null;
@@ -101,10 +101,10 @@ export async function sendMessage(
   fileInfo?: { file_name: string; file_size: number; mime_type: string; storage_path: string }
 ): Promise<Message | null> {
   const row: Record<string, unknown> = {
-    organization_id: orgId,
+    org_id: orgId,
     sender_id: senderProfileId,
     receiver_id: receiverProfileId,
-    body: fileInfo ? fileInfo.file_name : (content.trim() || " "),
+    content: fileInfo ? fileInfo.file_name : (content.trim() || " "),
   };
   if (fileInfo) {
     row.file_name = fileInfo.file_name;
@@ -142,10 +142,12 @@ export async function markAsRead(messageIds: string[]): Promise<void> {
 }
 
 // Пометить все непрочитанные сообщения от указанного собеседника прочитанными
-export async function markMessagesReadFrom(
+// одновременно синхронизируя related notifications.
+export async function markConversationAndNotificationsAsRead(
   myProfileId: string,
   otherProfileId: string
-): Promise<void> {
+): Promise<string[]> { // returns array of message ids marked
+  // 1. Find all unread messages from this sender to me
   const { data, error } = await supabase
     .from("messages")
     .select("id")
@@ -154,12 +156,31 @@ export async function markMessagesReadFrom(
     .eq("is_read", false);
 
   if (error) {
-    console.error("markMessagesReadFrom error:", error);
-    return;
+    console.error("markConversationAndNotificationsAsRead error:", error);
+    return [];
   }
 
   const ids = (data || []).map((m: any) => String(m.id));
-  await markAsRead(ids);
+  if (ids.length === 0) return [];
+
+  // 2. Mark messages as read
+  const { error: msgErr } = await supabase
+    .from("messages")
+    .update({ is_read: true })
+    .in("id", ids);
+  if (msgErr) console.error("markConversationAndNotificationsAsRead messages update error:", msgErr);
+
+  // 3. Mark related notifications as read (by message IDs)
+  const { error: notifErr } = await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("recipient_id", myProfileId)
+    .eq("related_entity_type", "message")
+    .eq("is_read", false)
+    .in("related_entity_id", ids);
+  if (notifErr) console.error("markConversationAndNotificationsAsRead notification update error:", notifErr);
+
+  return ids;
 }
 
 /** Подписка на новые входящие сообщения через Supabase Realtime */

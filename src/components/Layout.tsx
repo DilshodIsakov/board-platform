@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useEffect, useRef, useCallback } from "react";
+import { type ReactNode, useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Sidebar from "./Sidebar";
@@ -6,9 +6,11 @@ import type { Profile, Organization } from "../lib/profile";
 import {
   fetchNotifications,
   fetchUnreadCount,
+  fetchUnreadChatCount,
   markNotificationRead,
   markAllNotificationsRead,
   subscribeToNotifications,
+  subscribeToNotificationUpdates,
   unsubscribeFromNotifications,
   getNotificationRoute,
   type Notification,
@@ -21,14 +23,27 @@ interface Props {
   onSignOut: () => void;
 }
 
+export const NotificationContext = createContext({ refresh: () => {} });
+
+export function useNotifications() {
+  return useContext(NotificationContext);
+}
+
 export default function Layout({ children, profile, org, onSignOut }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const bellRef = useRef<HTMLButtonElement>(null);
+
+  const refreshNotifications = useCallback(() => {
+    fetchUnreadCount().then(setUnreadCount).catch(console.error);
+    // также обновляем количество непрочитанных чатов
+    fetchUnreadChatCount().then(setUnreadChatCount).catch(console.error);
+  }, []);
 
   // Загрузка уведомлений и подписка на realtime
   useEffect(() => {
@@ -36,14 +51,33 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
 
     fetchNotifications().then(setNotifications);
     fetchUnreadCount().then(setUnreadCount);
+    fetchUnreadChatCount().then(setUnreadChatCount);
 
-    const channel = subscribeToNotifications(profile.id, (n) => {
+    // Подписка на новые уведомления
+    const insertChannel = subscribeToNotifications(profile.id, (n) => {
       setNotifications((prev) => [n, ...prev]);
       setUnreadCount((prev) => prev + 1);
+      // Re-fetch chat unread count from messages table (authoritative source)
+      if (n.related_entity_type === "message") {
+        fetchUnreadChatCount().then(setUnreadChatCount).catch(console.error);
+      }
+    });
+
+    // Подписка на обновления уведомлений (для синхронизации при прочтении в чате)
+    const updateChannel = subscribeToNotificationUpdates(profile.id, (updatedNotification) => {
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === updatedNotification.id ? updatedNotification : n
+        )
+      );
+      // Always re-fetch authoritative counts from DB
+      fetchUnreadCount().then(setUnreadCount).catch(console.error);
+      fetchUnreadChatCount().then(setUnreadChatCount).catch(console.error);
     });
 
     return () => {
-      unsubscribeFromNotifications(channel);
+      unsubscribeFromNotifications(insertChannel);
+      unsubscribeFromNotifications(updateChannel);
     };
   }, [profile]);
 
@@ -77,6 +111,9 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
           prev.map((item) => (item.id === n.id ? { ...item, is_read: true } : item))
         );
         setUnreadCount((prev) => Math.max(0, prev - 1));
+        if (n.related_entity_type === "message") {
+          setUnreadChatCount((prev) => Math.max(0, prev - 1));
+        }
       }
       setDropdownOpen(false);
       navigate(getNotificationRoute(n));
@@ -91,10 +128,11 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
   }, []);
 
   return (
-    <div style={containerStyle}>
-      <Sidebar profile={profile} onSignOut={onSignOut} unreadNotificationsCount={unreadCount} />
+    <NotificationContext.Provider value={{ refresh: refreshNotifications }}>
+      <div style={containerStyle}>
+        <Sidebar profile={profile} onSignOut={onSignOut} unreadNotificationsCount={unreadCount} unreadChatCount={unreadChatCount} />
 
-      <div style={mainStyle}>
+        <div style={mainStyle}>
         {/* Top Header Bar */}
         <header style={headerStyle}>
           <div style={{ fontSize: 14, color: "#6B7280", fontWeight: 500 }}>
@@ -197,6 +235,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
         </div>
       </div>
     </div>
+    </NotificationContext.Provider>
   );
 }
 

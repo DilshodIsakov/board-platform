@@ -34,7 +34,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   cancelled: { bg: "#FEE2E2", color: "#991B1B" },
 };
 
-const CAN_CREATE = ["admin", "chairman"];
+const CAN_CREATE = ["admin", "corp_secretary"];
 
 export default function ShareholderMeetingPage({ profile, org }: Props) {
   const { t } = useTranslation();

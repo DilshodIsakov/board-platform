@@ -78,7 +78,7 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount: 
     { to: "/videoconference", label: t("sidebar.videoconference"), icon: "video" },
     { to: "/stats", label: t("sidebar.stats"), icon: "stats" },
     { to: "/shareholder-meeting", label: t("sidebar.shareholders"), icon: "shareholders" },
-    ...(profile?.role === "admin" ? [{ to: "/admin/users", label: "Управление пользователями", icon: "info" }] : []),
+    ...(profile?.role === "admin" ? [{ to: "/admin/users", label: t("admin.title"), icon: "info" }] : []),
   ];
 
   return (

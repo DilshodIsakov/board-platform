@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, type FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { getIntlLocale } from "../i18n";
 import type { Profile, Organization } from "../lib/profile";
 import {
   getTask,
@@ -25,13 +27,7 @@ interface Props {
   org: Organization | null;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  open: "Открыто",
-  in_progress: "В работе",
-  done: "Выполнено",
-  canceled: "Отменено",
-  overdue: "Просрочено",
-};
+const STATUS_KEYS = ["open", "in_progress", "done", "canceled", "overdue"];
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   open: { bg: "#DBEAFE", color: "#1E40AF" },
@@ -41,25 +37,13 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   overdue: { bg: "#FEE2E2", color: "#991B1B" },
 };
 
-const PRIORITY_LABELS: Record<string, string> = {
-  low: "Низкий",
-  medium: "Средний",
-  high: "Высокий",
-};
-
 const PRIORITY_COLORS: Record<string, { bg: string; color: string }> = {
   low: { bg: "#F3F4F6", color: "#6B7280" },
   medium: { bg: "#FEF3C7", color: "#92400E" },
   high: { bg: "#FEE2E2", color: "#991B1B" },
 };
 
-const ROLE_IN_TASK_LABELS: Record<string, string> = {
-  executor: "Главный исполнитель",
-  co_executor: "Со-исполнитель",
-  controller: "Контролёр",
-};
-
-const MANAGE_ROLES = ["admin", "chairman"];
+const MANAGE_ROLES = ["admin", "corp_secretary"];
 const AVATAR_COLORS = ["#7C3AED", "#059669", "#DC2626", "#2563EB", "#D97706", "#0891B2"];
 
 function getInitials(name: string) {
@@ -69,6 +53,7 @@ function getInitials(name: string) {
 }
 
 export default function TaskDetailsPage({ profile, org }: Props) {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -135,7 +120,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       }
       setTask({ ...task, status: newStatus as BoardTask["status"] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка смены статуса");
+      setError(err instanceof Error ? err.message : t("tasks.statusChangeError"));
     }
   };
 
@@ -158,7 +143,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       });
       setEditing(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка сохранения");
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -173,7 +158,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       setComments((prev) => [...prev, c]);
       setCommentText("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка отправки");
+      setError(err instanceof Error ? err.message : t("chat.sendError"));
     } finally {
       setSendingComment(false);
     }
@@ -187,7 +172,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       const a = await uploadAttachment(task.id, file, profile.id, org.id);
       setAttachments((prev) => [a, ...prev]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка загрузки файла");
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -200,12 +185,12 @@ export default function TaskDetailsPage({ profile, org }: Props) {
   };
 
   const handleDeleteAttachment = async (att: BoardTaskAttachment) => {
-    if (!confirm("Удалить файл?")) return;
+    if (!confirm(t("taskDetails.deleteFileConfirm"))) return;
     try {
       await deleteAttachment(att);
       setAttachments((prev) => prev.filter((a) => a.id !== att.id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка удаления");
+      setError(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
@@ -233,7 +218,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       }
       await loadAll();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка изменения исполнителей");
+      setError(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
@@ -251,12 +236,12 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       await addAssignee(task.id, profileId, "executor");
       await loadAll();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка смены главного исполнителя");
+      setError(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
-  if (loading) return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>Загрузка...</div>;
-  if (!task) return <div style={{ color: "#DC2626", padding: "40px 0" }}>Поручение не найдено</div>;
+  if (loading) return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>{t("common.loading")}</div>;
+  if (!task) return <div style={{ color: "#DC2626", padding: "40px 0" }}>{t("taskDetails.notFound")}</div>;
 
   const sc = STATUS_COLORS[task.status] || STATUS_COLORS.open;
   const pc = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
@@ -267,17 +252,17 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       {/* Back + Actions */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <button onClick={() => navigate("/tasks")} style={backBtnStyle}>
-          &larr; Назад к поручениям
+          &larr; {t("taskDetails.backToTasks")}
         </button>
         <div style={{ display: "flex", gap: 8 }}>
           {task.status !== "done" && (
             <button onClick={() => handleStatusChange("done")} style={doneBtnStyle}>
-              Выполнено
+              {t("taskStatus.done")}
             </button>
           )}
           {canManage && !editing && (
             <button onClick={() => setEditing(true)} style={editBtnStyle}>
-              Редактировать
+              {t("admin.edit")}
             </button>
           )}
         </div>
@@ -298,22 +283,22 @@ export default function TaskDetailsPage({ profile, org }: Props) {
             <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} style={{ ...inputStyle, marginBottom: 12, resize: "vertical" }} placeholder="Описание..." />
             <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
               <div style={{ flex: 1 }}>
-                <label style={metaLabelStyle}>Приоритет</label>
+                <label style={metaLabelStyle}>{t("taskTable.priority")}</label>
                 <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)} style={inputStyle}>
-                  <option value="low">Низкий</option>
-                  <option value="medium">Средний</option>
-                  <option value="high">Высокий</option>
+                  <option value="low">{t("taskPriority.low")}</option>
+                  <option value="medium">{t("taskPriority.medium")}</option>
+                  <option value="high">{t("taskPriority.high")}</option>
                 </select>
               </div>
               <div style={{ flex: 1 }}>
-                <label style={metaLabelStyle}>Срок</label>
+                <label style={metaLabelStyle}>{t("taskTable.deadline")}</label>
                 <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} style={inputStyle} />
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button onClick={() => setEditing(false)} style={cancelBtnStyle}>Отмена</button>
+              <button onClick={() => setEditing(false)} style={cancelBtnStyle}>{t("common.cancel")}</button>
               <button onClick={handleSaveEdit} disabled={saving} style={saveBtnStyle}>
-                {saving ? "Сохранение..." : "Сохранить"}
+                {saving ? t("common.saving") : t("common.save")}
               </button>
             </div>
           </>
@@ -328,7 +313,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>
               {/* Status */}
               <div>
-                <span style={metaLabelStyle}>Статус</span>
+                <span style={metaLabelStyle}>{t("taskTable.status")}</span>
                 <select
                   value={task.status}
                   onChange={(e) => handleStatusChange(e.target.value)}
@@ -343,29 +328,29 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                     appearance: "auto",
                   }}
                 >
-                  {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                    <option key={k} value={k}>{v}</option>
+                  {STATUS_KEYS.map((k) => (
+                    <option key={k} value={k}>{t(`taskStatus.${k}`)}</option>
                   ))}
                 </select>
               </div>
 
               {/* Priority */}
               <div>
-                <span style={metaLabelStyle}>Приоритет</span>
-                <span style={{ ...badgeStyle, background: pc.bg, color: pc.color }}>{PRIORITY_LABELS[task.priority]}</span>
+                <span style={metaLabelStyle}>{t("taskTable.priority")}</span>
+                <span style={{ ...badgeStyle, background: pc.bg, color: pc.color }}>{t(`taskPriority.${task.priority}`)}</span>
               </div>
 
               {/* Due date */}
               <div>
-                <span style={metaLabelStyle}>Срок</span>
+                <span style={metaLabelStyle}>{t("taskTable.deadline")}</span>
                 <span style={{ fontWeight: isOverdue ? 600 : 400, color: isOverdue ? "#DC2626" : "#374151", fontSize: 14 }}>
-                  {task.due_date ? new Date(task.due_date).toLocaleDateString("ru-RU") : "—"}
+                  {task.due_date ? new Date(task.due_date).toLocaleDateString(getIntlLocale()) : "—"}
                 </span>
               </div>
 
               {/* Creator */}
               <div>
-                <span style={metaLabelStyle}>Создал</span>
+                <span style={metaLabelStyle}>{t("taskDetails.creator")}</span>
                 <span style={{ fontSize: 14, color: "#374151" }}>
                   {(task.creator as { full_name: string } | undefined)?.full_name || "—"}
                 </span>
@@ -373,9 +358,9 @@ export default function TaskDetailsPage({ profile, org }: Props) {
 
               {/* Created at */}
               <div>
-                <span style={metaLabelStyle}>Дата создания</span>
+                <span style={metaLabelStyle}>{t("taskDetails.createdDate")}</span>
                 <span style={{ fontSize: 14, color: "#6B7280" }}>
-                  {new Date(task.created_at).toLocaleDateString("ru-RU")}
+                  {new Date(task.created_at).toLocaleDateString(getIntlLocale())}
                 </span>
               </div>
             </div>
@@ -386,13 +371,13 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       {/* Assignees */}
       <div style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h2 style={sectionTitleStyle}>Исполнители</h2>
+          <h2 style={sectionTitleStyle}>{t("taskTable.assignees")}</h2>
           {canManageAssignees && (
-            <button onClick={openAssigneesModal} style={editBtnStyle}>Изменить</button>
+            <button onClick={openAssigneesModal} style={editBtnStyle}>{t("common.edit")}</button>
           )}
         </div>
         {(!task.assignees || task.assignees.length === 0) ? (
-          <p style={{ color: "#9CA3AF", fontSize: 14 }}>Исполнители не назначены</p>
+          <p style={{ color: "#9CA3AF", fontSize: 14 }}>{t("taskDetails.noAssignees")}</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {task.assignees
@@ -425,11 +410,11 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                             borderRadius: 8,
                             fontWeight: 500,
                           }}>
-                            Главный
+                            {t("taskTable.main")}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{ROLE_IN_TASK_LABELS[a.role_in_task] || a.role_in_task}</div>
+                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{t(`tasks.${a.role_in_task === "executor" ? "mainExecutor" : a.role_in_task === "co_executor" ? "coExecutor" : "controller"}`)}</div>
                     </div>
                   </div>
                 );
@@ -440,10 +425,10 @@ export default function TaskDetailsPage({ profile, org }: Props) {
 
       {/* Comments */}
       <div style={cardStyle}>
-        <h2 style={sectionTitleStyle}>Комментарии ({comments.length})</h2>
+        <h2 style={sectionTitleStyle}>{t("taskDetails.comments", { count: comments.length })}</h2>
 
         {comments.length === 0 && (
-          <p style={{ color: "#9CA3AF", fontSize: 14, marginBottom: 16 }}>Нет комментариев</p>
+          <p style={{ color: "#9CA3AF", fontSize: 14, marginBottom: 16 }}>{t("taskDetails.noComments")}</p>
         )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 20 }}>
@@ -454,7 +439,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                   {(c.author as { full_name: string } | undefined)?.full_name || "—"}
                 </span>
                 <span style={{ fontSize: 12, color: "#9CA3AF" }}>
-                  {new Date(c.created_at).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  {new Date(c.created_at).toLocaleString(getIntlLocale(), { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
               <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5 }}>{c.body}</div>
@@ -467,7 +452,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
             <textarea
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Написать комментарий..."
+              placeholder={t("taskDetails.commentPlaceholder")}
               rows={2}
               style={{ ...inputStyle, flex: 1, resize: "vertical" }}
             />
@@ -585,12 +570,13 @@ export default function TaskDetailsPage({ profile, org }: Props) {
 }
 
 const ROLE_SHORT: Record<string, string> = {
-  chairman: "Председатель",
+  corp_secretary: "Секретарь",
   board_member: "Член НС",
   executive: "Правление",
+  management: "Менеджмент",
   admin: "Админ",
+  employee: "Сотрудник",
   auditor: "Аудитор",
-  department_head: "Рук. подр.",
 };
 
 // ============================================================

@@ -24,12 +24,13 @@
     "userContentNote": "User-generated content is displayed in its original language and is not auto-translated."
   },
   "roles": {
-    "chairman": "Chairman",
-    "board_member": "Board Member",
-    "executive": "Executive",
     "admin": "Administrator",
-    "auditor": "Auditor",
-    "department_head": "Dept. Head"
+    "corp_secretary": "Secretary",
+    "board_member": "Board Member",
+    "management": "Management",
+    "executive": "Executive",
+    "employee": "Employee",
+    "auditor": "Internal Auditor"
   },
   "sidebar": {
     "title": "Board of Directors",
@@ -201,6 +202,7 @@
     "in_progress": "In progress",
     "done": "Done",
     "cancelled": "Cancelled",
+    "canceled": "Cancelled",
     "overdue": "Overdue"
   },
   "taskPriority": {
@@ -244,7 +246,8 @@
     "noName": "No name",
     "boardTab": "Board of Directors",
     "managementTab": "Management",
-    "kpiTab": "Management KPI"
+    "kpiTab": "Management KPI",
+    "sendMessage": "Message"
   },
   "stats": {
     "title": "Statistics & Reports",
@@ -258,7 +261,28 @@
     "lastSixMonths": "Last 6 months",
     "lastYear": "Last year",
     "allTime": "All time",
-    "exportFormat": "Export format"
+    "exportFormat": "Export format",
+    "export": "Export",
+    "totalMeetings": "Total meetings",
+    "onlineOffline": "Online / Offline",
+    "decisionsMade": "Decisions made",
+    "avgDuration": "Average duration (min)",
+    "meetingHistory": "Meeting History",
+    "noMeetingsForPeriod": "No meetings for the selected period",
+    "dateCol": "Date",
+    "meetingCol": "Meeting",
+    "organCol": "Body",
+    "formatCol": "Format",
+    "durationCol": "Duration",
+    "participantsCol": "Participants",
+    "decisionsCol": "Decisions",
+    "online": "Online",
+    "offline": "Offline",
+    "durationMin": "{{min}} min",
+    "totalMeetingsLabel": "Total meetings",
+    "onlineLabel": "Online",
+    "offlineLabel": "Offline",
+    "decisionsLabel": "Decisions"
   },
   "video": {
     "title": "Video Conference",
@@ -353,12 +377,13 @@
   },
   "chat": {
     "roles": {
-      "chairman": "Chairman",
-      "board_member": "Board member",
-      "executive": "Executive",
       "admin": "Administrator",
-      "auditor": "Auditor",
-      "department_head": "Manager"
+      "corp_secretary": "Secretary",
+      "board_member": "Board member",
+      "management": "Management",
+      "executive": "Executive",
+      "employee": "Employee",
+      "auditor": "Auditor"
     },
     "title": "Chat",
     "personal": "Personal",
@@ -403,7 +428,15 @@
     "yourVote": "Your vote",
     "votingOpen": "Open",
     "votingClosed": "Closed",
-    "closeVoting": "Close"
+    "closeVoting": "Close",
+    "joinVideoConference": "Join Video Conference",
+    "noVideoLink": "Video conference link not added",
+    "addVoting": "+ Voting",
+    "addDecision": "+ Decision",
+    "votingTopicPlaceholder": "Voting topic",
+    "decisionTextPlaceholder": "Decision text",
+    "addButton": "Add",
+    "agendaPlaceholder": "Budget approval"
   },
   "nsMeetings": {
     "title": "Supervisory Board Meetings",
@@ -445,5 +478,110 @@
     "briefFilesUsed": "Files processed",
     "downloadDocx": "Download Word (.docx)",
     "briefLang": "Brief language"
+  },
+  "admin": {
+    "title": "User Management",
+    "subtitle": "Create, edit and delete system users",
+    "createUser": "+ Create User",
+    "editUser": "Edit User",
+    "createUserTitle": "Create User",
+    "noUsers": "No users",
+    "email": "Email",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "John Doe",
+    "mainRole": "Main Role",
+    "roleDetails": "Role Details",
+    "roleDetailsPlaceholder": "E.g.: Chairman of Audit Committee",
+    "roleDetailsHint": "Position or status clarification",
+    "createdAt": "Created",
+    "actions": "Actions",
+    "password": "Password",
+    "passwordPlaceholder": "Minimum 6 characters",
+    "userUpdated": "User updated",
+    "userCreated": "User created",
+    "userDeleted": "User deleted",
+    "updateError": "Update error",
+    "deleteError": "Delete error",
+    "emailRequired": "Enter email",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "confirmDelete": "Delete user \"{{name}}\"?\n\nThis action is irreversible.",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "confirmEmail": {
+    "title": "Confirm your email",
+    "sentTo": "A confirmation email has been sent to <strong>{{email}}</strong>.",
+    "checkSpam": "Please check your spam folder if you don't see the email in your inbox.",
+    "resentSuccess": "Email resent successfully",
+    "sending": "Sending...",
+    "resend": "Resend confirmation email",
+    "afterConfirm": "After confirming your email, refresh the page (F5)"
+  },
+  "voting_extra": {
+    "deadline": "Deadline",
+    "totalVoters": "Total voters",
+    "activeVotings": "Active Votings",
+    "noActiveVotings": "No active votings",
+    "completedVotings": "Completed Votings",
+    "needsVote": "Vote required",
+    "voted": "Voted",
+    "completed": "Completed",
+    "votingProgress": "Voting progress",
+    "against": "Against",
+    "abstained": "Abstained",
+    "closeConfirm": "Close voting?",
+    "deadlineDate": "Deadline: {{date}}",
+    "createdDate": "Created: {{date}}",
+    "voteAgainst": "Against",
+    "voteAbstain": "Abstain"
+  },
+  "company_extra": {
+    "sendMessage": "Message"
+  },
+  "taskDetails": {
+    "notFound": "Task not found",
+    "backToTasks": "Back to tasks",
+    "creator": "Created by",
+    "createdDate": "Created date",
+    "noAssignees": "No assignees",
+    "comments": "Comments ({{count}})",
+    "noComments": "No comments",
+    "commentPlaceholder": "Write a comment...",
+    "files": "Files ({{count}})",
+    "uploadFile": "Upload file",
+    "noAttachments": "No attachments",
+    "file": "File",
+    "size": "Size",
+    "uploader": "Uploaded by",
+    "date": "Date",
+    "manageAssignees": "Manage assignees",
+    "makeMain": "Make main",
+    "deleteFileConfirm": "Delete file?",
+    "descriptionPlaceholder": "Description..."
+  },
+  "stats_extra": {
+    "export": "Export",
+    "totalMeetings": "Total meetings",
+    "onlineOffline": "Online / Offline",
+    "online": "Online",
+    "offline": "Offline",
+    "decisionsMade": "Decisions made",
+    "avgDuration": "Average duration (min)",
+    "meetingHistory": "Meeting history",
+    "noMeetingsForPeriod": "No meetings for selected period",
+    "dateCol": "Date",
+    "meetingCol": "Meeting",
+    "organCol": "Body",
+    "formatCol": "Format",
+    "durationCol": "Duration",
+    "participantsCol": "Participants",
+    "decisionsCol": "Decisions",
+    "durationMin": "{{min}} min"
+  },
+  "langTabs": {
+    "ru": "Русский",
+    "uz": "Ўзбекча",
+    "en": "English",
+    "optional": "(optional)"
   }
 }

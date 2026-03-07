@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import {
   getAllProfiles,
   updateUserProfile,
@@ -9,6 +10,7 @@ import {
   type Profile,
   type UserRole,
 } from "../lib/profile";
+import { getIntlLocale } from "../i18n";
 
 export default function AdminUsersPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -20,6 +22,8 @@ export default function AdminUsersPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const { t } = useTranslation();
 
   // Form fields
   const [formName, setFormName] = useState("");
@@ -75,12 +79,12 @@ export default function AdminUsersPage() {
 
     try {
       if (editingProfile) {
-        const ok = await updateUserProfile(editingProfile.id, {
+        const result = await updateUserProfile(editingProfile.id, {
           full_name: formName.trim() || undefined,
           role: formRole,
           role_details: formRole === "admin" ? null : (formRoleDetails.trim() || null),
         });
-        if (!ok) throw new Error("Ошибка при обновлении пользователя");
+        if (!result.ok) throw new Error(`${t("admin.updateError")}: ${result.errorMessage}`);
 
         setProfiles((prev) =>
           prev.map((p) =>
@@ -94,10 +98,10 @@ export default function AdminUsersPage() {
               : p
           )
         );
-        setSuccess("Пользователь обновлён");
+        setSuccess(t("admin.userUpdated"));
       } else {
-        if (!formEmail.trim()) throw new Error("Введите email");
-        if (!formPassword || formPassword.length < 6) throw new Error("Пароль должен быть не менее 6 символов");
+        if (!formEmail.trim()) throw new Error(t("admin.emailRequired"));
+        if (!formPassword || formPassword.length < 6) throw new Error(t("admin.passwordMinLength"));
 
         await adminCreateUser(
           formEmail.trim(),
@@ -108,11 +112,11 @@ export default function AdminUsersPage() {
         );
 
         await loadProfiles();
-        setSuccess("Пользователь создан");
+        setSuccess(t("admin.userCreated"));
       }
       closeModal();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка");
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setSaving(false);
     }
@@ -120,30 +124,30 @@ export default function AdminUsersPage() {
 
   const handleDelete = async (p: Profile) => {
     clearMessages();
-    const msg = `Удалить пользователя «${p.full_name || p.email}»?\n\nЭто действие необратимо.`;
+    const msg = t("admin.confirmDelete", { name: p.full_name || p.email });
     if (!confirm(msg)) return;
 
     try {
       await adminDeleteUser(p.id);
       setProfiles((prev) => prev.filter((x) => x.id !== p.id));
-      setSuccess("Пользователь удалён");
+      setSuccess(t("admin.userDeleted"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка удаления");
+      setError(err instanceof Error ? err.message : t("admin.deleteError"));
     }
   };
 
   if (loading) {
-    return <div style={{ color: "#9CA3AF" }}>Загрузка...</div>;
+    return <div style={{ color: "#9CA3AF" }}>{t("common.loading")}</div>;
   }
 
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-        <h1 style={{ margin: 0 }}>Управление пользователями</h1>
-        <button onClick={openCreateModal} style={createBtnStyle}>+ Создать пользователя</button>
+        <h1 style={{ margin: 0 }}>{t("admin.title")}</h1>
+        <button onClick={openCreateModal} style={createBtnStyle}>{t("admin.createUser")}</button>
       </div>
       <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 20px" }}>
-        Создание, редактирование и удаление пользователей системы
+        {t("admin.subtitle")}
       </p>
 
       {error && (
@@ -160,18 +164,18 @@ export default function AdminUsersPage() {
       )}
 
       {profiles.length === 0 ? (
-        <p style={{ color: "#9CA3AF" }}>Нет пользователей</p>
+        <p style={{ color: "#9CA3AF" }}>{t("admin.noUsers")}</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr style={{ background: "#F3F4F6", borderBottom: "1px solid #E5E7EB" }}>
                 <th style={thStyle}>Email</th>
-                <th style={thStyle}>ФИО</th>
-                <th style={thStyle}>Основная роль</th>
-                <th style={thStyle}>Дополнение к роли</th>
-                <th style={thStyle}>Дата создания</th>
-                <th style={{ ...thStyle, textAlign: "center", width: 100 }}>Действия</th>
+                <th style={thStyle}>{t("admin.fullName")}</th>
+                <th style={thStyle}>{t("admin.mainRole")}</th>
+                <th style={thStyle}>{t("admin.roleDetails")}</th>
+                <th style={thStyle}>{t("admin.createdAt")}</th>
+                <th style={{ ...thStyle, textAlign: "center", width: 100 }}>{t("admin.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -186,17 +190,17 @@ export default function AdminUsersPage() {
                     {p.role !== "admin" && p.role_details ? p.role_details : "—"}
                   </td>
                   <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>
-                    {new Date(p.created_at).toLocaleDateString("ru-RU")}
+                    {new Date(p.created_at).toLocaleDateString(getIntlLocale())}
                   </td>
                   <td style={{ ...tdStyle, textAlign: "center" }}>
                     <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-                      <button onClick={() => openEditModal(p)} style={actBtnStyle} title="Редактировать">
+                      <button onClick={() => openEditModal(p)} style={actBtnStyle} title={t("admin.edit")}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
                           <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                         </svg>
                       </button>
-                      <button onClick={() => handleDelete(p)} style={delBtnStyle} title="Удалить">
+                      <button onClick={() => handleDelete(p)} style={delBtnStyle} title={t("admin.delete")}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6" />
                           <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
@@ -217,32 +221,32 @@ export default function AdminUsersPage() {
           <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h3 style={{ margin: 0, fontSize: 18 }}>
-                {editingProfile ? "Редактировать пользователя" : "Создать пользователя"}
+                {editingProfile ? t("admin.editUser") : t("admin.createUserTitle")}
               </h3>
               <button onClick={closeModal} style={closeBtnStyle}>&times;</button>
             </div>
 
             <form onSubmit={handleSave}>
               <div style={fldStyle}>
-                <label style={lblStyle}>ФИО</label>
-                <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Иванов Иван Иванович" style={inpStyle} />
+                <label style={lblStyle}>{t("admin.fullName")}</label>
+                <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder={t("admin.fullNamePlaceholder")} style={inpStyle} />
               </div>
 
               {!editingProfile && (
                 <>
                   <div style={fldStyle}>
-                    <label style={lblStyle}>Email *</label>
+                    <label style={lblStyle}>{`${t("admin.email")} *`}</label>
                     <input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="user@example.com" style={inpStyle} required />
                   </div>
                   <div style={fldStyle}>
-                    <label style={lblStyle}>Пароль *</label>
-                    <input type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} placeholder="Минимум 6 символов" style={inpStyle} required minLength={6} />
+                    <label style={lblStyle}>{`${t("admin.password")} *`}</label>
+                    <input type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} placeholder={t("admin.passwordPlaceholder")} style={inpStyle} required minLength={6} />
                   </div>
                 </>
               )}
 
               <div style={fldStyle}>
-                <label style={lblStyle}>Основная роль *</label>
+                <label style={lblStyle}>{`${t("admin.mainRole")} *`}</label>
                 <select value={formRole} onChange={(e) => setFormRole(e.target.value as UserRole)} style={selStyle}>
                   {ROLE_OPTIONS.map((r) => (
                     <option key={r} value={r}>{ROLE_LABELS[r]}</option>
@@ -252,16 +256,16 @@ export default function AdminUsersPage() {
 
               {formRole !== "admin" && (
                 <div style={fldStyle}>
-                  <label style={lblStyle}>Дополнение к роли</label>
-                  <input value={formRoleDetails} onChange={(e) => setFormRoleDetails(e.target.value)} placeholder="Например: Председатель Комитета по аудиту" style={inpStyle} />
-                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>Уточнение должности или статуса</div>
+                  <label style={lblStyle}>{t("admin.roleDetails")}</label>
+                  <input value={formRoleDetails} onChange={(e) => setFormRoleDetails(e.target.value)} placeholder={t("admin.roleDetailsPlaceholder")} style={inpStyle} />
+                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{t("admin.roleDetailsHint")}</div>
                 </div>
               )}
 
               <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
-                <button type="button" onClick={closeModal} style={cancelBtnStyle}>Отмена</button>
+                <button type="button" onClick={closeModal} style={cancelBtnStyle}>{t("common.cancel")}</button>
                 <button type="submit" disabled={saving} style={{ ...saveBtnStyle, opacity: saving ? 0.6 : 1 }}>
-                  {saving ? "Сохранение..." : "Сохранить"}
+                  {saving ? t("common.saving") : t("common.save")}
                 </button>
               </div>
             </form>

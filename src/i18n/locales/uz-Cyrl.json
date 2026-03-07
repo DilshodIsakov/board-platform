@@ -24,12 +24,13 @@
     "userContentNote": "Фойдаланувчи матни аслида кўрсатилади ва автоматик таржима қилинмайди."
   },
   "roles": {
-    "chairman": "Раис",
-    "board_member": "КК аъзоси",
-    "executive": "Бошқарув аъзоси",
     "admin": "Администратор",
-    "auditor": "Аудитор",
-    "department_head": "Бўлим бошлиғи"
+    "corp_secretary": "Котиб",
+    "board_member": "КК аъзоси",
+    "management": "Бошқарув",
+    "executive": "Бошқарув аъзоси",
+    "employee": "Ходим",
+    "auditor": "Ички аудитор"
   },
   "sidebar": {
     "title": "Кузатув кенгаши",
@@ -201,6 +202,7 @@
     "in_progress": "Жараёнда",
     "done": "Бажарилган",
     "cancelled": "Бекор қилинган",
+    "canceled": "Бекор қилинган",
     "overdue": "Муддати ўтган"
   },
   "taskPriority": {
@@ -244,7 +246,8 @@
     "noName": "Номсиз",
     "boardTab": "Кузатув кенгаши",
     "managementTab": "Бошқарув",
-    "kpiTab": "Бошқарув КПЭ"
+    "kpiTab": "Бошқарув КПЭ",
+    "sendMessage": "Ёзиш"
   },
   "stats": {
     "title": "Статистика ва ҳисоботлар",
@@ -258,7 +261,28 @@
     "lastSixMonths": "Сўнгги 6 ой",
     "lastYear": "Сўнгги йил",
     "allTime": "Барча давр",
-    "exportFormat": "Экспорт формати"
+    "exportFormat": "Экспорт формати",
+    "export": "Юклаб олиш",
+    "totalMeetings": "Жами йиғилишлар",
+    "onlineOffline": "Онлайн / Офлайн",
+    "decisionsMade": "Қабул қилинган қарорлар",
+    "avgDuration": "Ўртача давомийлик (дақ)",
+    "meetingHistory": "Йиғилишлар тарихи",
+    "noMeetingsForPeriod": "Танланган давр учун йиғилишлар йўқ",
+    "dateCol": "Сана",
+    "meetingCol": "Йиғилиш",
+    "organCol": "Орган",
+    "formatCol": "Формат",
+    "durationCol": "Давомийлик",
+    "participantsCol": "Иштирокчилар",
+    "decisionsCol": "Қарорлар",
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "durationMin": "{{min}} дақ",
+    "totalMeetingsLabel": "Жами йиғилишлар",
+    "onlineLabel": "Онлайн",
+    "offlineLabel": "Офлайн",
+    "decisionsLabel": "Қарорлар"
   },
   "video": {
     "title": "Видеоконференция",
@@ -353,12 +377,13 @@
   },
   "chat": {
     "roles": {
-      "chairman": "Раис",
-      "board_member": "Кенгаш аъзоси",
-      "executive": "Ижрочи",
       "admin": "Администратор",
-      "auditor": "Аудитор",
-      "department_head": "Раҳбар"
+      "corp_secretary": "Котиб",
+      "board_member": "Кенгаш аъзоси",
+      "management": "Бошқарув",
+      "executive": "Ижрочи",
+      "employee": "Ходим",
+      "auditor": "Аудитор"
     },
     "title": "Чат",
     "personal": "Шахсий",
@@ -403,7 +428,15 @@
     "yourVote": "Сизнинг овозингиз",
     "votingOpen": "Очиқ",
     "votingClosed": "Ёпиқ",
-    "closeVoting": "Ёпиш"
+    "closeVoting": "Ёпиш",
+    "joinVideoConference": "Видеоконференцияга қўшилиш",
+    "noVideoLink": "Видеоконференция ҳаволаси қўшилмаган",
+    "addVoting": "+ Овоз бериш",
+    "addDecision": "+ Қарор",
+    "votingTopicPlaceholder": "Овоз бериш мавзуси",
+    "decisionTextPlaceholder": "Қарор матни",
+    "addButton": "Қўшиш",
+    "agendaPlaceholder": "Бюджетни тасдиқлаш"
   },
   "nsMeetings": {
     "title": "Кузатув кенгаши мажлислари",
@@ -445,5 +478,110 @@
     "briefFilesUsed": "Ишланган файллар",
     "downloadDocx": "Word юклаб олиш (.docx)",
     "briefLang": "Бриф тили"
+  },
+  "admin": {
+    "title": "Фойдаланувчиларни бошқариш",
+    "subtitle": "Тизим фойдаланувчиларини яратиш, таҳрирлаш ва ўчириш",
+    "createUser": "+ Фойдаланувчи яратиш",
+    "editUser": "Фойдаланувчини таҳрирлаш",
+    "createUserTitle": "Фойдаланувчи яратиш",
+    "noUsers": "Фойдаланувчилар йўқ",
+    "email": "Электрон почта",
+    "fullName": "ФИО",
+    "fullNamePlaceholder": "Исмоилов Исмоил Исмоилович",
+    "mainRole": "Асосий вазифа",
+    "roleDetails": "Вазифага қўшимча",
+    "roleDetailsPlaceholder": "Масалан: Аудит қўмитаси раиси",
+    "roleDetailsHint": "Лавозим ёки мақомни аниқлаштириш",
+    "createdAt": "Яратилган сана",
+    "actions": "Амаллар",
+    "password": "Парол",
+    "passwordPlaceholder": "Камида 6 белги",
+    "userUpdated": "Фойдаланувчи янгиланди",
+    "userCreated": "Фойдаланувчи яратилди",
+    "userDeleted": "Фойдаланувчи ўчирилди",
+    "updateError": "Янгилаш хатоси",
+    "deleteError": "Ўчириш хатоси",
+    "emailRequired": "Электрон почтани киритинг",
+    "passwordMinLength": "Парол камида 6 белгидан иборат бўлиши керак",
+    "confirmDelete": "«{{name}}» фойдаланувчисини ўчирасизми?\n\nБу амални қайтариб бўлмайди.",
+    "edit": "Таҳрирлаш",
+    "delete": "Ўчириш"
+  },
+  "confirmEmail": {
+    "title": "Электрон почтани тасдиқланг",
+    "sentTo": "<strong>{{email}}</strong> манзилига тасдиқлаш хати юборилди.",
+    "checkSpam": "Хат кирувчи хатлар орасида бўлмаса, спам папкасини текширинг.",
+    "resentSuccess": "Хат қайта юборилди",
+    "sending": "Юборилмоқда...",
+    "resend": "Хатни қайта юбориш",
+    "afterConfirm": "Электрон почтани тасдиқлагандан сўнг саҳифани янгиланг (F5)"
+  },
+  "voting_extra": {
+    "deadline": "Сўнгги муддат",
+    "totalVoters": "Жами овоз берувчилар",
+    "activeVotings": "Фаол овоз беришлар",
+    "noActiveVotings": "Фаол овоз беришлар йўқ",
+    "completedVotings": "Тугалланган овоз беришлар",
+    "needsVote": "Овоз бериш керак",
+    "voted": "Овоз берилган",
+    "completed": "Тугалланган",
+    "votingProgress": "Овоз бериш жараёни",
+    "against": "Қарши",
+    "abstained": "Бетарафлар",
+    "closeConfirm": "Овоз беришни тугатасизми?",
+    "deadlineDate": "Муддат: {{date}}",
+    "createdDate": "Яратилган: {{date}}",
+    "voteAgainst": "Қарши",
+    "voteAbstain": "Бетараф"
+  },
+  "company_extra": {
+    "sendMessage": "Ёзиш"
+  },
+  "taskDetails": {
+    "notFound": "Топшириқ топилмади",
+    "backToTasks": "Топшириқларга қайтиш",
+    "creator": "Яратган",
+    "createdDate": "Яратилган сана",
+    "noAssignees": "Ижрочилар тайинланмаган",
+    "comments": "Изоҳлар ({{count}})",
+    "noComments": "Изоҳлар йўқ",
+    "commentPlaceholder": "Изоҳ ёзиш...",
+    "files": "Файллар ({{count}})",
+    "uploadFile": "Файл юклаш",
+    "noAttachments": "Бириктирилган файллар йўқ",
+    "file": "Файл",
+    "size": "Ҳажм",
+    "uploader": "Юклаган",
+    "date": "Сана",
+    "manageAssignees": "Ижрочиларни бошқариш",
+    "makeMain": "Асосий қилиш",
+    "deleteFileConfirm": "Файлни ўчириш?",
+    "descriptionPlaceholder": "Тавсиф..."
+  },
+  "stats_extra": {
+    "export": "Юклаб олиш",
+    "totalMeetings": "Жами мажлислар",
+    "onlineOffline": "Онлайн / Офлайн",
+    "online": "Онлайн",
+    "offline": "Офлайн",
+    "decisionsMade": "Қабул қилинган қарорлар",
+    "avgDuration": "Ўртача давомийлик (дақ)",
+    "meetingHistory": "Мажлислар тарихи",
+    "noMeetingsForPeriod": "Танланган давр учун мажлислар йўқ",
+    "dateCol": "Сана",
+    "meetingCol": "Мажлис",
+    "organCol": "Орган",
+    "formatCol": "Формат",
+    "durationCol": "Давомийлик",
+    "participantsCol": "Иштирокчилар",
+    "decisionsCol": "Қарорлар",
+    "durationMin": "{{min}} дақ"
+  },
+  "langTabs": {
+    "ru": "Русский",
+    "uz": "Ўзбекча",
+    "en": "English",
+    "optional": "(ихтиёрий)"
   }
 }

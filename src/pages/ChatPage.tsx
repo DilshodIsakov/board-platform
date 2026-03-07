@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
 import type { Profile, Organization } from "../lib/profile";
@@ -41,6 +42,7 @@ type SidebarTab = "personal" | "groups";
 
 export default function ChatPage({ profile, org }: Props) {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { refresh } = useNotifications();
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>("personal");
 
@@ -102,6 +104,18 @@ export default function ChatPage({ profile, org }: Props) {
       setLoadingContacts(false);
     });
   }, [profile]);
+
+  // Auto-select contact from URL param ?userId=...
+  useEffect(() => {
+    const userId = searchParams.get("userId");
+    if (!userId || contacts.length === 0) return;
+    const found = contacts.find((c) => c.id === userId);
+    if (found) {
+      setSelectedContact(found);
+      setSidebarTab("personal");
+      setSearchParams({}, { replace: true });
+    }
+  }, [contacts, searchParams]);
 
   // Load groups
   useEffect(() => {

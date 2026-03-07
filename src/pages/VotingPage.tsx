@@ -1,5 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import type { Profile, Organization } from "../lib/profile";
+import { getIntlLocale } from "../i18n";
 import {
   fetchAllVotings,
   castVote,
@@ -14,9 +16,10 @@ interface Props {
   org: Organization | null;
 }
 
-const CAN_MANAGE = ["admin", "chairman"];
+const CAN_MANAGE = ["admin", "corp_secretary"];
 
 export default function VotingPage({ profile, org }: Props) {
+  const { t } = useTranslation();
   const [votings, setVotings] = useState<Voting[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,7 +89,7 @@ export default function VotingPage({ profile, org }: Props) {
       setShowForm(false);
       await loadVotings();
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : "Ошибка создания");
+      setFormError(err instanceof Error ? err.message : t("voting.createError"));
     } finally {
       setCreating(false);
     }
@@ -96,21 +99,21 @@ export default function VotingPage({ profile, org }: Props) {
   const closedVotings = votings.filter((v) => v.status === "closed");
 
   if (loading) {
-    return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>Загрузка...</div>;
+    return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>{t("common.loading")}</div>;
   }
 
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
         <div>
-          <h1 style={{ marginBottom: 8 }}>Система голосования</h1>
+          <h1 style={{ marginBottom: 8 }}>{t("voting.title")}</h1>
           <p style={{ color: "#6B7280", fontSize: 16, marginBottom: 28 }}>
-            Голосуйте по важным вопросам с использованием ЭЦП
+            {t("voting.subtitle")}
           </p>
         </div>
         {canManage && !showForm && (
           <button onClick={() => setShowForm(true)} style={createBtnStyle}>
-            + Новое голосование
+            {t("voting.newVoting")}
           </button>
         )}
       </div>
@@ -119,36 +122,36 @@ export default function VotingPage({ profile, org }: Props) {
       {showForm && canManage && (
         <div style={{ ...cardStyle, marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <h3 style={{ margin: 0 }}>Создание голосования</h3>
+            <h3 style={{ margin: 0 }}>{t("voting.createVoting")}</h3>
             <button onClick={() => setShowForm(false)} style={{ color: "#9CA3AF", fontSize: 20, cursor: "pointer", background: "none", border: "none", padding: 4 }}>
               ✕
             </button>
           </div>
           <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <label style={labelStyle}>Название</label>
+              <label style={labelStyle}>{t("voting.name")}</label>
               <input
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 required
-                placeholder="Утверждение бюджета на 2026 год"
+                placeholder={t("voting.namePlaceholder")}
                 style={inputStyle}
               />
             </div>
             <div>
-              <label style={labelStyle}>Описание</label>
+              <label style={labelStyle}>{t("voting.description")}</label>
               <textarea
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
-                placeholder="Предлагается утвердить бюджет компании на 2026 год в размере 500 млн рублей..."
+                placeholder={t("voting.descriptionPlaceholder")}
                 rows={3}
                 style={{ ...inputStyle, resize: "vertical" }}
               />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div>
-                <label style={labelStyle}>Крайний срок</label>
+                <label style={labelStyle}>{t("voting_extra.deadline")}</label>
                 <input
                   type="date"
                   value={formDeadline}
@@ -157,7 +160,7 @@ export default function VotingPage({ profile, org }: Props) {
                 />
               </div>
               <div>
-                <label style={labelStyle}>Всего голосующих</label>
+                <label style={labelStyle}>{t("voting_extra.totalVoters")}</label>
                 <input
                   type="number"
                   value={formMembers}
@@ -169,10 +172,10 @@ export default function VotingPage({ profile, org }: Props) {
             </div>
             <div style={{ display: "flex", gap: 12 }}>
               <button type="submit" disabled={creating} style={submitBtnStyle}>
-                {creating ? "Создание..." : "Создать голосование"}
+                {creating ? t("common.creating") : t("voting.createVoting")}
               </button>
               <button type="button" onClick={() => setShowForm(false)} style={cancelBtnStyle}>
-                Отмена
+                {t("common.cancel")}
               </button>
             </div>
             {formError && <p style={{ color: "#DC2626", fontSize: 14, margin: 0 }}>{formError}</p>}
@@ -181,9 +184,9 @@ export default function VotingPage({ profile, org }: Props) {
       )}
 
       {/* Active votings */}
-      <h2 style={{ marginBottom: 20 }}>Активные голосования</h2>
+      <h2 style={{ marginBottom: 20 }}>{t("voting_extra.activeVotings")}</h2>
       {openVotings.length === 0 ? (
-        <p style={{ color: "#9CA3AF", fontSize: 15, marginBottom: 32 }}>Нет активных голосований</p>
+        <p style={{ color: "#9CA3AF", fontSize: 15, marginBottom: 32 }}>{t("voting_extra.noActiveVotings")}</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 40 }}>
           {openVotings.map((v) => (
@@ -202,7 +205,7 @@ export default function VotingPage({ profile, org }: Props) {
       {/* Closed votings */}
       {closedVotings.length > 0 && (
         <>
-          <h2 style={{ marginBottom: 20 }}>Завершённые голосования</h2>
+          <h2 style={{ marginBottom: 20 }}>{t("voting_extra.completedVotings")}</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {closedVotings.map((v) => (
               <VotingCard
@@ -236,6 +239,7 @@ function VotingCard({
   onVote: (votingId: string, choice: "for" | "against" | "abstain") => void;
   onClose: (votingId: string) => void;
 }) {
+  const { t } = useTranslation();
   const votes = voting.votes || [];
   const tally = tallyBoardVotes(votes);
   const myVote = profile ? votes.find((v) => v.voter_id === profile.id) : null;
@@ -252,13 +256,13 @@ function VotingCard({
           {voting.title}
         </h3>
         {isOpen && !myVote && (
-          <span style={needsVoteBadge}>Требуется голос</span>
+          <span style={needsVoteBadge}>{t("voting_extra.needsVote")}</span>
         )}
         {isOpen && myVote && (
-          <span style={votedBadge}>Голос отдан</span>
+          <span style={votedBadge}>{t("voting_extra.voted")}</span>
         )}
         {!isOpen && (
-          <span style={closedBadge}>Завершено</span>
+          <span style={closedBadge}>{t("voting_extra.completed")}</span>
         )}
       </div>
 
@@ -272,7 +276,7 @@ function VotingCard({
       {/* Progress bar section */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-          <span style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>Прогресс голосования</span>
+          <span style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>{t("voting_extra.votingProgress")}</span>
           <span style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>{tally.total}/{totalMembers}</span>
         </div>
         <div style={progressBarBg}>
@@ -284,15 +288,15 @@ function VotingCard({
       <div style={{ display: "flex", gap: 24, marginBottom: 20, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#059669" }} />
-          <span style={{ fontSize: 14, color: "#374151" }}>За: {tally.forCount}</span>
+          <span style={{ fontSize: 14, color: "#374151" }}>{t("dashboard.for")} {tally.forCount}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#DC2626" }} />
-          <span style={{ fontSize: 14, color: "#374151" }}>Против: {tally.againstCount}</span>
+          <span style={{ fontSize: 14, color: "#374151" }}>{t("voting_extra.against")}: {tally.againstCount}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#9CA3AF" }} />
-          <span style={{ fontSize: 14, color: "#374151" }}>Воздержались: {tally.abstainCount}</span>
+          <span style={{ fontSize: 14, color: "#374151" }}>{t("voting_extra.abstained")}: {tally.abstainCount}</span>
         </div>
       </div>
 
@@ -303,9 +307,9 @@ function VotingCard({
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontSize: 14, color: "#6B7280" }}>
           {voting.deadline ? (
-            <>Крайний срок: {new Date(voting.deadline).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</>
+            <>{t("voting_extra.deadlineDate", { date: new Date(voting.deadline).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "long", year: "numeric" }) })}</>
           ) : (
-            <>Создано: {new Date(voting.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" })}</>
+            <>{t("voting_extra.createdDate", { date: new Date(voting.created_at).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "long", year: "numeric" }) })}</>
           )}
         </div>
 
@@ -313,11 +317,11 @@ function VotingCard({
           {canManage && isOpen && (
             <button
               onClick={() => {
-                if (window.confirm("Завершить голосование?")) onClose(voting.id);
+                if (window.confirm(t("voting_extra.closeConfirm"))) onClose(voting.id);
               }}
               style={closeBtnStyle}
             >
-              Закрыть
+              {t("common.close")}
             </button>
           )}
           {canVote && (
@@ -334,7 +338,7 @@ function VotingCard({
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Против
+                {t("voting_extra.voteAgainst")}
               </button>
               <button
                 onClick={() => onVote(voting.id, "abstain")}
@@ -345,7 +349,7 @@ function VotingCard({
                   border: `1px solid ${myVote?.choice === "abstain" ? "#1F2937" : "#D1D5DB"}`,
                 }}
               >
-                Воздержаться
+                {t("voting_extra.voteAbstain")}
               </button>
               <button
                 onClick={() => onVote(voting.id, "for")}
@@ -360,7 +364,7 @@ function VotingCard({
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 13l4 4L19 7" />
                 </svg>
-                За
+                {t("voteChoice.for")}
               </button>
             </>
           )}

@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import type { Profile, Organization } from "../lib/profile";
 import {
   fetchDocLinks,
@@ -9,7 +10,7 @@ import {
   type DocLink,
 } from "../lib/docLinks";
 
-const CAN_MANAGE = ["admin", "chairman"];
+const CAN_MANAGE = ["admin", "corp_secretary"];
 
 interface Props {
   profile: Profile | null;
@@ -31,6 +32,8 @@ export default function DocumentsPage({ profile, org }: Props) {
   const [formSort, setFormSort] = useState(100);
   const [formActive, setFormActive] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const { t } = useTranslation();
 
   const canManage = profile && CAN_MANAGE.includes(profile.role);
 
@@ -90,7 +93,7 @@ export default function DocumentsPage({ profile, org }: Props) {
     if (!formTitle.trim() || !formUrl.trim()) return;
 
     if (!validateUrl(formUrl.trim())) {
-      setError("URL должен начинаться с https://");
+      setError(t("documents.urlValidation"));
       return;
     }
 
@@ -106,7 +109,7 @@ export default function DocumentsPage({ profile, org }: Props) {
           sort_order: formSort,
           is_active: formActive,
         });
-        setSuccess("Ссылка обновлена");
+        setSuccess(t("documents.linkUpdated"));
       } else {
         if (!org || !profile) return;
         await createDocLink({
@@ -118,37 +121,37 @@ export default function DocumentsPage({ profile, org }: Props) {
           is_active: formActive,
           created_by: profile.id,
         });
-        setSuccess("Ссылка добавлена");
+        setSuccess(t("documents.linkAdded"));
       }
       handleCloseModal();
       await loadData();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Ошибка сохранения");
+      setError(err instanceof Error ? err.message : t("documents.saveError"));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (link: DocLink) => {
-    if (!confirm(`Удалить «${link.title}»?`)) return;
+    if (!confirm(t("documents.confirmDelete", { title: link.title }))) return;
     try {
       await deleteDocLink(link.id);
-      setSuccess("Ссылка удалена");
+      setSuccess(t("documents.linkDeleted"));
       await loadData();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Ошибка удаления");
+      setError(err instanceof Error ? err.message : t("documents.deleteError"));
     }
   };
 
   if (loading) {
-    return <div style={{ color: "#9CA3AF" }}>Загрузка...</div>;
+    return <div style={{ color: "#9CA3AF" }}>{t("common.loading")}</div>;
   }
 
   return (
     <div>
-      <h1 style={{ marginBottom: 4 }}>Документооборот</h1>
+      <h1 style={{ marginBottom: 4 }}>{t("documents.title")}</h1>
       <p style={{ color: "#6b7280", fontSize: 14, margin: "0 0 20px" }}>
-        Каталог документов Google Docs / Google Drive
+        {t("documents.subtitle")}
       </p>
 
       {/* Messages */}
@@ -168,13 +171,13 @@ export default function DocumentsPage({ profile, org }: Props) {
       {/* Admin: add button */}
       {canManage && (
         <button onClick={handleOpenCreate} style={btnPrimaryStyle}>
-          + Добавить ссылку
+          {t("documents.addLink")}
         </button>
       )}
 
       {/* Links list */}
       {links.length === 0 ? (
-        <p style={{ color: "#888", marginTop: 20 }}>Документов пока нет.</p>
+        <p style={{ color: "#888", marginTop: 20 }}>{t("documents.noDocuments")}</p>
       ) : (
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
           {links.map((link) => (
@@ -198,7 +201,7 @@ export default function DocumentsPage({ profile, org }: Props) {
                   </svg>
                   <span style={{ fontWeight: 600, fontSize: 15 }}>{link.title}</span>
                   {!link.is_active && (
-                    <span style={inactiveBadgeStyle}>Скрыт</span>
+                    <span style={inactiveBadgeStyle}>{t("documents.hidden")}</span>
                   )}
                 </div>
                 {link.description && (
@@ -214,18 +217,18 @@ export default function DocumentsPage({ profile, org }: Props) {
                   onClick={() => window.open(link.url, "_blank", "noopener,noreferrer")}
                   style={btnOpenStyle}
                 >
-                  Открыть
+                  {t("common.open")}
                 </button>
                 {canManage && (
                   <>
                     <button onClick={() => handleOpenEdit(link)} style={btnSmallStyle}>
-                      Изм.
+                      {t("common.edit")}
                     </button>
                     <button
                       onClick={() => handleDelete(link)}
                       style={{ ...btnSmallStyle, color: "#DC2626", borderColor: "#FECACA" }}
                     >
-                      Уд.
+                      {t("common.delete")}
                     </button>
                   </>
                 )}
@@ -240,44 +243,44 @@ export default function DocumentsPage({ profile, org }: Props) {
         <div style={overlayStyle} onClick={handleCloseModal}>
           <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ marginTop: 0, fontSize: 16 }}>
-              {editingLink ? "Редактировать ссылку" : "Добавить ссылку"}
+              {editingLink ? t("documents.editLink") : t("documents.addLinkTitle")}
             </h3>
             <form onSubmit={handleSave}>
               <div style={{ marginBottom: 12 }}>
-                <label style={labelStyle}>Название *</label>
+                <label style={labelStyle}>{t("documents.nameLabel")}</label>
                 <input
                   type="text"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="Бизнес-план 2026 г."
+                  placeholder={t("documents.namePlaceholder")}
                   required
                   style={{ ...inputStyle, width: "100%" }}
                 />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={labelStyle}>URL (https://) *</label>
+                <label style={labelStyle}>{t("documents.urlLabel")}</label>
                 <input
                   type="url"
                   value={formUrl}
                   onChange={(e) => setFormUrl(e.target.value)}
-                  placeholder="https://docs.google.com/document/d/..."
+                  placeholder={t("documents.urlPlaceholder")}
                   required
                   style={{ ...inputStyle, width: "100%" }}
                 />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={labelStyle}>Описание</label>
+                <label style={labelStyle}>{t("documents.descriptionLabel")}</label>
                 <input
                   type="text"
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
-                  placeholder="Короткое описание (необязательно)"
+                  placeholder={t("documents.descriptionPlaceholder")}
                   style={{ ...inputStyle, width: "100%" }}
                 />
               </div>
               <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
                 <div>
-                  <label style={labelStyle}>Порядок</label>
+                  <label style={labelStyle}>{t("documents.sortOrder")}</label>
                   <input
                     type="number"
                     value={formSort}
@@ -293,16 +296,16 @@ export default function DocumentsPage({ profile, org }: Props) {
                     id="active-cb"
                   />
                   <label htmlFor="active-cb" style={{ fontSize: 14, cursor: "pointer" }}>
-                    Активна
+                    {t("documents.active")}
                   </label>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                 <button type="button" onClick={handleCloseModal} style={btnSecondaryStyle}>
-                  Отмена
+                  {t("common.cancel")}
                 </button>
                 <button type="submit" disabled={saving} style={btnPrimaryStyle}>
-                  {saving ? "Сохранение..." : "Сохранить"}
+                  {saving ? t("common.saving") : t("common.save")}
                 </button>
               </div>
             </form>

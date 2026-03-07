@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "../lib/supabaseClient";
 import type { Profile, Organization } from "../lib/profile";
 
-const BOARD_ROLES = ["chairman", "board_member"];
+const BOARD_ROLES = ["corp_secretary", "board_member"];
 const EXECUTIVE_ROLES = ["executive"];
 
 interface MemberProfile {
   id: string;
   full_name: string;
   role: string;
+  role_details: string | null;
 }
 
 interface Props {
@@ -21,6 +23,7 @@ type TabKey = "board" | "executive" | "kpi";
 
 export default function CompanyInfoPage({ profile }: Props) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [members, setMembers] = useState<MemberProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>("board");
@@ -36,7 +39,7 @@ export default function CompanyInfoPage({ profile }: Props) {
   const loadMembers = async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, role")
+      .select("id, full_name, role, role_details")
       .order("full_name");
 
     if (error) {
@@ -82,13 +85,6 @@ export default function CompanyInfoPage({ profile }: Props) {
           label={t("company.boardOfDirectors")}
         />
         <KpiCard
-          color="#059669"
-          bgColor="#D1FAE5"
-          icon="star"
-          value={boardMembers.filter((m) => m.role === "board_member").length}
-          label={t("company.independentMembers")}
-        />
-        <KpiCard
           color="#3B82F6"
           bgColor="#DBEAFE"
           icon="briefcase"
@@ -125,7 +121,7 @@ export default function CompanyInfoPage({ profile }: Props) {
       ) : (
         <div>
           {currentMembers.map((m) => (
-            <MemberCard key={m.id} member={m} />
+            <MemberCard key={m.id} member={m} isSelf={m.id === profile?.id} onMessage={() => navigate(`/chat?userId=${m.id}`)} />
           ))}
         </div>
       )}
@@ -162,12 +158,13 @@ function KpiCard({ color, bgColor, icon, value, label }: {
 // --- Member Card ---
 
 const ROLE_BADGE_COLORS: Record<string, { bg: string; color: string }> = {
-  chairman: { bg: "#DBEAFE", color: "#1E40AF" },
+  corp_secretary: { bg: "#DBEAFE", color: "#1E40AF" },
   board_member: { bg: "#D1FAE5", color: "#065F46" },
   executive: { bg: "#FEF3C7", color: "#92400E" },
+  management: { bg: "#E0E7FF", color: "#3730A3" },
   admin: { bg: "#F3E8FF", color: "#6B21A8" },
+  employee: { bg: "#F3F4F6", color: "#374151" },
   auditor: { bg: "#FEE2E2", color: "#991B1B" },
-  department_head: { bg: "#E0E7FF", color: "#3730A3" },
 };
 
 const AVATAR_COLORS = ["#7C3AED", "#059669", "#DC2626", "#2563EB", "#D97706", "#0891B2"];
@@ -179,7 +176,7 @@ function getInitials(name: string): string {
   return name[0].toUpperCase();
 }
 
-function MemberCard({ member }: { member: MemberProfile }) {
+function MemberCard({ member, isSelf, onMessage }: { member: MemberProfile; isSelf: boolean; onMessage: () => void }) {
   const { t } = useTranslation();
   const badgeColors = ROLE_BADGE_COLORS[member.role] || { bg: "#F3F4F6", color: "#374151" };
   const avatarColor = AVATAR_COLORS[member.full_name.length % AVATAR_COLORS.length];
@@ -193,25 +190,32 @@ function MemberCard({ member }: { member: MemberProfile }) {
         </div>
 
         {/* Info */}
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 20, color: "#111827", letterSpacing: "-0.01em" }}>
-                {member.full_name || t("company.noName")}
-              </div>
-              <span style={{
-                ...roleBadgeStyle,
-                background: badgeColors.bg,
-                color: badgeColors.color,
-              }}>
-                {t(`roles.${member.role}`, member.role)}
-              </span>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ fontWeight: 600, fontSize: 20, color: "#111827", letterSpacing: "-0.01em" }}>
+              {member.full_name || t("company.noName")}
             </div>
-            {/* TODO: Срок полномочий — добавить когда появятся поля в БД */}
+            {!isSelf && (
+              <button onClick={onMessage} style={messageBtnStyle} title={t("company.sendMessage", "Написать")}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                </svg>
+                {t("company.sendMessage", "Написать")}
+              </button>
+            )}
           </div>
-
-          {/* Details rows — будут добавлены когда появятся поля в БД */}
-          <div style={detailsGridStyle} />
+          <span style={{
+            ...roleBadgeStyle,
+            background: badgeColors.bg,
+            color: badgeColors.color,
+          }}>
+            {t(`roles.${member.role}`, member.role)}
+          </span>
+          {member.role_details && (
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginTop: 5 }}>
+              {member.role_details}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -246,7 +250,7 @@ function KpiTabContent() {
 
 const kpiGridStyle: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(3, 1fr)",
+  gridTemplateColumns: "repeat(2, 1fr)",
   gap: 20,
   marginBottom: 32,
 };
@@ -315,6 +319,10 @@ const roleBadgeStyle: React.CSSProperties = {
   marginTop: 6,
 };
 
-const detailsGridStyle: React.CSSProperties = {
-  marginTop: 16,
+const messageBtnStyle: React.CSSProperties = {
+  display: "flex", alignItems: "center", gap: 6,
+  padding: "7px 14px", fontSize: 13, fontWeight: 500,
+  borderRadius: 8, border: "1px solid #D1D5DB",
+  background: "#FFFFFF", color: "#374151", cursor: "pointer",
+  whiteSpace: "nowrap",
 };

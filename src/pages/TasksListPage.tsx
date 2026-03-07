@@ -34,7 +34,7 @@ const PRIORITY_COLORS: Record<string, { bg: string; color: string }> = {
   high: { bg: "#FEE2E2", color: "#991B1B" },
 };
 
-const CAN_CREATE_ROLES = ["admin", "chairman", "board_member"];
+const CAN_CREATE_ROLES = ["admin", "corp_secretary", "board_member"];
 
 export default function TasksListPage({ profile, org }: Props) {
   const { t } = useTranslation();

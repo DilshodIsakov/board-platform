@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { getIntlLocale } from "../i18n";
 import { supabase } from "../lib/supabaseClient";
 import type { Profile, Organization } from "../lib/profile";
 
@@ -20,6 +22,7 @@ type PeriodFilter = "quarter" | "half" | "year" | "all";
 type ExportFormat = "pdf" | "excel" | "csv";
 
 export default function StatsPage({ profile }: Props) {
+  const { t } = useTranslation();
   const [meetings, setMeetings] = useState<MeetingRow[]>([]);
   const [decisionsCount, setDecisionsCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -77,13 +80,13 @@ export default function StatsPage({ profile }: Props) {
   const handleExport = () => {
     if (meetings.length === 0) return;
 
-    const headers = ["Дата", "Собрание", "Орган", "Формат", "Длительность"];
+    const headers = [t("stats.dateCol"), t("stats.meetingCol"), t("stats.organCol"), t("stats.formatCol"), t("stats.durationCol")];
     const rows = meetings.map((m) => [
-      new Date(m.start_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" }),
+      new Date(m.start_at).toLocaleDateString(getIntlLocale(), { day: "2-digit", month: "2-digit", year: "numeric" }),
       m.title,
-      "Наблюдательный совет",
-      m.meet_url ? "Онлайн" : "Офлайн",
-      "120 мин",
+      t("stats.boardOfDirectors"),
+      m.meet_url ? t("stats.online") : t("stats.offline"),
+      t("stats.durationMin", { min: 120 }),
     ]);
 
     if (exportFormat === "csv") {
@@ -93,8 +96,8 @@ export default function StatsPage({ profile }: Props) {
     } else if (exportFormat === "excel") {
       // Simple HTML table that Excel can open
       const tableHtml = `<html><head><meta charset="utf-8"></head><body>
-        <h2>Статистика и отчеты</h2>
-        <p>Всего собраний: ${totalMeetings} | Онлайн: ${onlineMeetings} | Офлайн: ${offlineMeetings} | Решений: ${decisionsCount}</p>
+        <h2>${t("stats.title")}</h2>
+        <p>${t("stats.totalMeetingsLabel")}: ${totalMeetings} | ${t("stats.onlineLabel")}: ${onlineMeetings} | ${t("stats.offlineLabel")}: ${offlineMeetings} | ${t("stats.decisionsLabel")}: ${decisionsCount}</p>
         <table border="1" cellpadding="4"><thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
         <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>
         </body></html>`;
@@ -104,11 +107,11 @@ export default function StatsPage({ profile }: Props) {
       // PDF — open printable page
       const printWin = window.open("", "_blank");
       if (!printWin) return;
-      printWin.document.write(`<html><head><meta charset="utf-8"><title>Статистика</title>
+      printWin.document.write(`<html><head><meta charset="utf-8"><title>${t("stats.title")}</title>
         <style>body{font-family:sans-serif;padding:24px}table{border-collapse:collapse;width:100%}
         th,td{border:1px solid #ccc;padding:8px 12px;text-align:left}th{background:#f3f4f6}</style></head><body>
-        <h2>Статистика и отчеты</h2>
-        <p>Всего собраний: ${totalMeetings} | Онлайн: ${onlineMeetings} | Офлайн: ${offlineMeetings} | Решений: ${decisionsCount}</p>
+        <h2>${t("stats.title")}</h2>
+        <p>${t("stats.totalMeetingsLabel")}: ${totalMeetings} | ${t("stats.onlineLabel")}: ${onlineMeetings} | ${t("stats.offlineLabel")}: ${offlineMeetings} | ${t("stats.decisionsLabel")}: ${decisionsCount}</p>
         <table><thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
         <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>
         </body></html>`);
@@ -129,41 +132,41 @@ export default function StatsPage({ profile }: Props) {
   };
 
   if (loading) {
-    return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>Загрузка...</div>;
+    return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>{t("common.loading")}</div>;
   }
 
   return (
     <div>
-      <h1 style={{ marginBottom: 8 }}>Статистика и отчеты</h1>
+      <h1 style={{ marginBottom: 8 }}>{t("stats.title")}</h1>
       <p style={{ color: "#6B7280", fontSize: 16, marginBottom: 28 }}>
-        Самооценка и проверка деятельности органов корпоративного управления
+        {t("stats.subtitle")}
       </p>
 
       {/* Filters bar */}
       <div style={filterBarStyle}>
         <div>
-          <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 6, fontWeight: 500 }}>Выберите орган управления</div>
+          <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 6, fontWeight: 500 }}>{t("stats.selectOrgan")}</div>
           <select style={selectStyle}>
-            <option>Все органы</option>
-            <option>Наблюдательный совет</option>
-            <option>Исполнительный орган</option>
+            <option>{t("stats.allOrgans")}</option>
+            <option>{t("stats.boardOfDirectors")}</option>
+            <option>{t("stats.executiveOrgan")}</option>
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 6, fontWeight: 500 }}>Период</div>
+          <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 6, fontWeight: 500 }}>{t("stats.period")}</div>
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value as PeriodFilter)}
             style={selectStyle}
           >
-            <option value="quarter">Последний квартал</option>
-            <option value="half">Последние 6 месяцев</option>
-            <option value="year">Последний год</option>
-            <option value="all">Все время</option>
+            <option value="quarter">{t("stats.lastQuarter")}</option>
+            <option value="half">{t("stats.lastSixMonths")}</option>
+            <option value="year">{t("stats.lastYear")}</option>
+            <option value="all">{t("stats.allTime")}</option>
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 6, fontWeight: 500 }}>Формат экспорта</div>
+          <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 6, fontWeight: 500 }}>{t("stats.exportFormat")}</div>
           <select
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
@@ -179,7 +182,7 @@ export default function StatsPage({ profile }: Props) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
             </svg>
-            Выгрузить
+            {t("stats.export")}
           </button>
         </div>
       </div>
@@ -190,46 +193,46 @@ export default function StatsPage({ profile }: Props) {
           icon={<CalendarIcon />}
           iconBg="#DBEAFE"
           value={totalMeetings}
-          label="Всего собраний"
+          label={t("stats.totalMeetings")}
           trend={totalMeetings > 0 ? "up" : undefined}
         />
         <KpiCard
           icon={<VideoIcon />}
           iconBg="#D1FAE5"
           value={`${onlineMeetings}/${offlineMeetings}`}
-          label="Онлайн / Офлайн"
+          label={t("stats.onlineOffline")}
         />
         <KpiCard
           icon={<DocIcon />}
           iconBg="#FEE2E2"
           value={decisionsCount}
-          label="Принято решений"
+          label={t("stats.decisionsMade")}
         />
         <KpiCard
           icon={<ChartIcon />}
           iconBg="#EDE9FE"
           value={avgDuration}
-          label="Средняя длительность (мин)"
+          label={t("stats.avgDuration")}
         />
       </div>
 
       {/* Meeting history table */}
       <div style={tableCardStyle}>
-        <h2 style={{ margin: "0 0 20px 0" }}>История собраний</h2>
+        <h2 style={{ margin: "0 0 20px 0" }}>{t("stats.meetingHistory")}</h2>
 
         {meetings.length === 0 ? (
-          <p style={{ color: "#9CA3AF", fontSize: 15 }}>Нет собраний за выбранный период</p>
+          <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("stats.noMeetingsForPeriod")}</p>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <th style={thStyle}>Дата</th>
-                <th style={thStyle}>Собрание</th>
-                <th style={thStyle}>Орган</th>
-                <th style={thStyle}>Формат</th>
-                <th style={thStyle}>Длительность</th>
-                <th style={thStyle}>Участники</th>
-                <th style={thStyle}>Решения</th>
+                <th style={thStyle}>{t("stats.dateCol")}</th>
+                <th style={thStyle}>{t("stats.meetingCol")}</th>
+                <th style={thStyle}>{t("stats.organCol")}</th>
+                <th style={thStyle}>{t("stats.formatCol")}</th>
+                <th style={thStyle}>{t("stats.durationCol")}</th>
+                <th style={thStyle}>{t("stats.participantsCol")}</th>
+                <th style={thStyle}>{t("stats.decisionsCol")}</th>
               </tr>
             </thead>
             <tbody>
@@ -238,13 +241,13 @@ export default function StatsPage({ profile }: Props) {
                 return (
                   <tr key={m.id} style={{ borderBottom: "1px solid #F3F4F6" }}>
                     <td style={tdStyle}>
-                      {new Date(m.start_at).toLocaleDateString("ru-RU", {
+                      {new Date(m.start_at).toLocaleDateString(getIntlLocale(), {
                         day: "2-digit", month: "2-digit", year: "numeric",
                       })}
                     </td>
                     <td style={{ ...tdStyle, fontWeight: 500, color: "#111827" }}>{m.title}</td>
                     <td style={tdStyle}>
-                      <span style={organBadgeStyle}>Наблюдательный совет</span>
+                      <span style={organBadgeStyle}>{t("stats.boardOfDirectors")}</span>
                     </td>
                     <td style={tdStyle}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -253,7 +256,7 @@ export default function StatsPage({ profile }: Props) {
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
-                            <span style={{ color: "#059669", fontSize: 14 }}>Онлайн</span>
+                            <span style={{ color: "#059669", fontSize: 14 }}>{t("stats.online")}</span>
                           </>
                         ) : (
                           <>
@@ -261,12 +264,12 @@ export default function StatsPage({ profile }: Props) {
                               <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <span style={{ color: "#7C3AED", fontSize: 14 }}>Офлайн</span>
+                            <span style={{ color: "#7C3AED", fontSize: 14 }}>{t("stats.offline")}</span>
                           </>
                         )}
                       </div>
                     </td>
-                    <td style={{ ...tdStyle, color: "#6B7280" }}>120 мин</td>
+                    <td style={{ ...tdStyle, color: "#6B7280" }}>{t("stats.durationMin", { min: 120 })}</td>
                     <td style={tdStyle}>
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

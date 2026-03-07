@@ -1,6 +1,6 @@
 import { supabase, supabaseAnonKey } from "./supabaseClient";
 
-export type UserRole = "admin" | "corp_secretary" | "board_member" | "management" | "executive" | "employee" | "auditor";
+export type UserRole = "admin" | "corp_secretary" | "board_member" | "management" | "executive" | "employee" | "auditor" | "department_head" | "chairman";
 
 export interface Profile {
   id: string;
@@ -9,12 +9,12 @@ export interface Profile {
   role: UserRole;
   role_details?: string | null;
   created_at: string;
-  updated_at?: string;
 }
 
 export const ROLE_OPTIONS: UserRole[] = [
   "admin",
   "board_member",
+  "management",
   "executive",
   "employee",
   "corp_secretary",
@@ -24,11 +24,13 @@ export const ROLE_OPTIONS: UserRole[] = [
 export const ROLE_LABELS: Record<UserRole, string> = {
   admin: "Администратор",
   board_member: "Член НС",
+  management: "Менеджмент",
   executive: "Член Правления",
   employee: "Сотрудник",
   corp_secretary: "Секретарь",
   auditor: "Внутренний аудитор",
-  management: "Менеджмент",
+  department_head: "Рук. подразделения",
+  chairman: "Председатель",
 };
 
 export interface Organization {
@@ -74,22 +76,23 @@ export async function getAllProfiles(): Promise<Profile[]> {
 export async function updateUserProfile(
   userId: string,
   updates: { full_name?: string; role?: UserRole; role_details?: string | null }
-): Promise<boolean> {
+): Promise<{ ok: boolean; errorMessage?: string }> {
   const { error } = await supabase
     .from("profiles")
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq("id", userId);
 
   if (error) {
     console.error("updateUserProfile error:", error);
-    return false;
+    return { ok: false, errorMessage: error.message || error.code || "Unknown error" };
   }
-  return true;
+  return { ok: true };
 }
 
 // Legacy alias
 export async function updateUserRole(userId: string, role: Profile["role"]): Promise<boolean> {
-  return updateUserProfile(userId, { role });
+  const result = await updateUserProfile(userId, { role });
+  return result.ok;
 }
 
 export async function updateMyProfile(updates: { full_name?: string }): Promise<boolean> {
@@ -98,7 +101,7 @@ export async function updateMyProfile(updates: { full_name?: string }): Promise<
 
   const { error } = await supabase
     .from("profiles")
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq("id", session.user.id);
 
   if (error) {

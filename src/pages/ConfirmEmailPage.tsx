@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { resendConfirmationEmail } from "../lib/profile";
 import type { User } from "@supabase/supabase-js";
 
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function ConfirmEmailPage({ user }: Props) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -35,15 +37,13 @@ export default function ConfirmEmailPage({ user }: Props) {
         </svg>
         
         <h1 style={{ fontSize: 24, margin: "0 0 16px", color: "#111827" }}>
-          Подтвердите email
+          {t("confirmEmail.title")}
         </h1>
         
-        <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 16px", lineHeight: 1.5 }}>
-          На адрес <strong>{user.email}</strong> отправлено письмо с инструкциями по подтверждению.
-        </p>
+        <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 16px", lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: t("confirmEmail.sentTo", { email: user.email }) }} />
 
         <p style={{ color: "#6B7280", fontSize: 13, margin: "0 0 24px", lineHeight: 1.5 }}>
-          Пожалуйста проверьте папку спама, если письма нет во входящих.
+          {t("confirmEmail.checkSpam")}
         </p>
 
         {sent && (
@@ -56,7 +56,7 @@ export default function ConfirmEmailPage({ user }: Props) {
             fontSize: 13,
             marginBottom: 16,
           }}>
-            ✓ Письмо отправлено повторно
+            ✓ {t("confirmEmail.resentSuccess")}
           </div>
         )}
 
@@ -76,11 +76,11 @@ export default function ConfirmEmailPage({ user }: Props) {
             opacity: loading ? 0.7 : 1,
           }}
         >
-          {loading ? "Отправка..." : "Отправить письмо повторно"}
+          {loading ? t("confirmEmail.sending") : t("confirmEmail.resend")}
         </button>
 
         <p style={{ color: "#9CA3AF", fontSize: 12, margin: "16px 0 0" }}>
-          После подтверждения email обновите страницу (F5)
+          {t("confirmEmail.afterConfirm")}
         </p>
       </div>
     </div>

@@ -19,7 +19,7 @@ import {
 } from "../lib/voting";
 import { formatDateTime } from "../lib/format";
 
-const CAN_EDIT = ["admin", "chairman"];
+const CAN_EDIT = ["admin", "corp_secretary"];
 
 interface Props {
   profile: Profile | null;
@@ -116,7 +116,7 @@ export default function MeetingPage({ profile, org }: Props) {
       setAgendaPresenter("");
       await loadAgenda();
     } catch (err: unknown) {
-      setAgendaError(err instanceof Error ? err.message : "Ошибка добавления");
+      setAgendaError(err instanceof Error ? err.message : t("meeting.addError"));
     } finally {
       setAddingAgenda(false);
     }
@@ -135,7 +135,7 @@ export default function MeetingPage({ profile, org }: Props) {
       setDecisionItemId(null);
       await loadAgenda();
     } catch (err: unknown) {
-      setDecisionError(err instanceof Error ? err.message : "Ошибка добавления");
+      setDecisionError(err instanceof Error ? err.message : t("meeting.addError"));
     } finally {
       setAddingDecision(false);
     }
@@ -232,7 +232,7 @@ export default function MeetingPage({ profile, org }: Props) {
       <div style={meetBlockStyle}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 20 }}>&#128249;</span>
-          <strong style={{ fontSize: 15 }}>Видеоконференция</strong>
+          <strong style={{ fontSize: 15 }}>{t("video.title")}</strong>
         </div>
 
         {meeting.meet_url && !editingMeetUrl ? (
@@ -243,7 +243,7 @@ export default function MeetingPage({ profile, org }: Props) {
               rel="noopener noreferrer"
               style={meetJoinBtnStyle}
             >
-              Присоединиться к видеоконференции
+              {t("meeting.joinVideoConference")}
             </a>
             {canEdit && (
               <button
@@ -253,7 +253,7 @@ export default function MeetingPage({ profile, org }: Props) {
                 }}
                 style={btnSmallStyle}
               >
-                Изменить
+                {t("common.edit")}
               </button>
             )}
           </div>
@@ -271,26 +271,26 @@ export default function MeetingPage({ profile, org }: Props) {
               disabled={savingMeetUrl}
               style={btnPrimaryStyle}
             >
-              {savingMeetUrl ? "..." : "Сохранить"}
+              {savingMeetUrl ? "..." : t("common.save")}
             </button>
             {editingMeetUrl && (
               <button onClick={() => setEditingMeetUrl(false)} style={btnSmallStyle}>
-                Отмена
+                {t("common.cancel")}
               </button>
             )}
           </div>
         ) : (
           <p style={{ color: "#9ca3af", fontSize: 13, margin: "8px 0 0" }}>
-            Ссылка на видеоконференцию не добавлена
+            {t("meeting.noVideoLink")}
           </p>
         )}
       </div>
 
       {/* --- Повестка --- */}
-      <h2 style={{ marginTop: 32, marginBottom: 16 }}>Повестка дня</h2>
+      <h2 style={{ marginTop: 32, marginBottom: 16 }}>{t("nsMeetings.agenda")}</h2>
 
       {agendaItems.length === 0 && (
-        <p style={{ color: "#888" }}>Пунктов повестки пока нет.</p>
+        <p style={{ color: "#888" }}>{t("nsMeetings.noAgenda")}</p>
       )}
 
       {agendaItems.map((item) => {
@@ -320,7 +320,7 @@ export default function MeetingPage({ profile, org }: Props) {
                       }}
                       style={btnSmallStyle}
                     >
-                      + Голосование
+                      {t("meeting.addVoting")}
                     </button>
                     <button
                       onClick={() => {
@@ -330,7 +330,7 @@ export default function MeetingPage({ profile, org }: Props) {
                       }}
                       style={btnSmallStyle}
                     >
-                      + Решение
+                      {t("meeting.addDecision")}
                     </button>
                   </>
                 )}
@@ -442,7 +442,7 @@ export default function MeetingPage({ profile, org }: Props) {
                   type="text"
                   value={votingTitle}
                   onChange={(e) => setVotingTitle(e.target.value)}
-                  placeholder="Тема голосования"
+                  placeholder={t("meeting.votingTopicPlaceholder")}
                   style={{ ...inputStyle, flex: 1 }}
                 />
                 <button
@@ -450,7 +450,7 @@ export default function MeetingPage({ profile, org }: Props) {
                   disabled={!votingTitle.trim()}
                   style={btnPrimaryStyle}
                 >
-                  Создать
+                  {t("common.create")}
                 </button>
               </div>
             )}
@@ -463,11 +463,11 @@ export default function MeetingPage({ profile, org }: Props) {
                   value={decisionText}
                   onChange={(e) => setDecisionText(e.target.value)}
                   required
-                  placeholder="Текст решения"
+                  placeholder={t("meeting.decisionTextPlaceholder")}
                   style={{ ...inputStyle, flex: 1 }}
                 />
                 <button type="submit" disabled={addingDecision} style={btnPrimaryStyle}>
-                  {addingDecision ? "..." : "Добавить"}
+                  {addingDecision ? "..." : t("meeting.addButton")}
                 </button>
               </form>
             )}
@@ -481,31 +481,31 @@ export default function MeetingPage({ profile, org }: Props) {
       {/* --- Форма добавления пункта повестки --- */}
       {canEdit && (
         <div style={{ marginTop: 24, padding: 16, border: "1px solid #e5e7eb", borderRadius: 8 }}>
-          <h3 style={{ marginTop: 0, fontSize: 15 }}>Добавить пункт повестки</h3>
+          <h3 style={{ marginTop: 0, fontSize: 15 }}>{t("nsMeetings.addAgendaItem")}</h3>
           <form onSubmit={handleAddAgenda} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "end" }}>
             <div style={{ flex: 1, minWidth: 200 }}>
-              <label style={labelStyle}>Название</label>
+              <label style={labelStyle}>{t("nsMeetings.agendaTitle")}</label>
               <input
                 type="text"
                 value={agendaTitle}
                 onChange={(e) => setAgendaTitle(e.target.value)}
                 required
-                placeholder="Утверждение бюджета"
+                placeholder={t("meeting.agendaPlaceholder")}
                 style={{ ...inputStyle, width: "100%" }}
               />
             </div>
             <div style={{ minWidth: 160 }}>
-              <label style={labelStyle}>Докладчик</label>
+              <label style={labelStyle}>{t("nsMeetings.speaker")}</label>
               <input
                 type="text"
                 value={agendaPresenter}
                 onChange={(e) => setAgendaPresenter(e.target.value)}
-                placeholder="Иванов И.И."
+                placeholder={t("nsMeetings.speakerPlaceholder")}
                 style={{ ...inputStyle, width: "100%" }}
               />
             </div>
             <button type="submit" disabled={addingAgenda} style={btnPrimaryStyle}>
-              {addingAgenda ? "..." : "Добавить"}
+              {addingAgenda ? "..." : t("meeting.addButton")}
             </button>
           </form>
           {agendaError && <p style={{ color: "#dc2626", fontSize: 13, marginTop: 6 }}>{agendaError}</p>}

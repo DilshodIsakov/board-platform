@@ -15,8 +15,9 @@ import {
 } from "../lib/shareholderVoting";
 import { useTranslation } from "react-i18next";
 import { formatDateTime } from "../lib/format";
+import { getIntlLocale } from "../i18n";
 
-const CAN_CREATE_MEETING = ["admin", "chairman"];
+const CAN_CREATE_MEETING = ["admin", "corp_secretary"];
 
 interface Props {
   user: User;
@@ -207,21 +208,21 @@ export default function DashboardPage({ user, profile, org }: Props) {
         {/* Create meeting form */}
         {canCreate && (
           <div style={cardStyle}>
-            <h3 style={{ marginBottom: 18 }}>Новое заседание</h3>
+            <h3 style={{ marginBottom: 18 }}>{t("dashboard.newMeeting")}</h3>
             <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>
-                <label style={labelStyle}>Название</label>
+                <label style={labelStyle}>{t("dashboard.meetingTitle")}</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
-                  placeholder="Квартальное собрание"
+                  placeholder={t("dashboard.meetingTitlePlaceholder")}
                   style={inputStyle}
                 />
               </div>
               <div>
-                <label style={labelStyle}>Дата и время</label>
+                <label style={labelStyle}>{t("dashboard.dateTime")}</label>
                 <input
                   type="datetime-local"
                   value={date}
@@ -231,7 +232,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
                 />
               </div>
               <div>
-                <label style={labelStyle}>Google Meet (необязательно)</label>
+                <label style={labelStyle}>{t("dashboard.googleMeet")}</label>
                 <input
                   type="url"
                   value={meetUrl}
@@ -241,7 +242,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
                 />
               </div>
               <button type="submit" disabled={creating} style={btnPrimaryStyle}>
-                {creating ? "Создание..." : "Создать заседание"}
+                {creating ? t("common.creating") : t("dashboard.createMeeting")}
               </button>
             </form>
             {formError && <p style={{ color: "#DC2626", fontSize: 13, marginTop: 8 }}>{formError}</p>}
@@ -251,18 +252,18 @@ export default function DashboardPage({ user, profile, org }: Props) {
 
       {/* Recent meetings table */}
       <div style={cardStyle}>
-        <h3 style={{ marginBottom: 18 }}>Последние заседания</h3>
+        <h3 style={{ marginBottom: 18 }}>{t("dashboard.recentMeetings")}</h3>
         {loadingMeetings ? (
-          <p style={{ color: "#9CA3AF", fontSize: 15 }}>Загрузка...</p>
+          <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("common.loading")}</p>
         ) : recentMeetings.length === 0 ? (
-          <p style={{ color: "#9CA3AF", fontSize: 15 }}>Заседаний пока нет.</p>
+          <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("dashboard.noMeetingsYet")}</p>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
             <thead>
               <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <th style={thStyle}>Название</th>
-                <th style={thStyle}>Дата</th>
-                <th style={thStyle}>Статус</th>
+                <th style={thStyle}>{t("dashboard.meetingTitle")}</th>
+                <th style={thStyle}>{t("dashboard.date")}</th>
+                <th style={thStyle}>{t("dashboard.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -274,7 +275,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
                     </Link>
                   </td>
                   <td style={{ ...tdStyle, color: "#6B7280" }}>
-                    {new Date(m.start_at).toLocaleString("ru-RU", {
+                    {new Date(m.start_at).toLocaleString(getIntlLocale(), {
                       day: "2-digit", month: "2-digit", year: "numeric",
                       hour: "2-digit", minute: "2-digit",
                     })}
@@ -306,10 +307,10 @@ export default function DashboardPage({ user, profile, org }: Props) {
                   <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <h3 style={{ margin: 0 }}>Собрания акционеров</h3>
+              <h3 style={{ margin: 0 }}>{t("dashboard.shareholderMeetingsTitle")}</h3>
             </div>
             {shMeetings.filter((m) => m.status === "scheduled").length === 0 ? (
-              <p style={{ color: "#9CA3AF", fontSize: 15 }}>Нет предстоящих собраний</p>
+              <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("dashboard.noUpcomingShareholder")}</p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {shMeetings.filter((m) => m.status === "scheduled").slice(0, 3).map((m) => (
@@ -317,7 +318,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
                     <div>
                       <div style={{ fontWeight: 500, fontSize: 15, color: "#111827" }}>{m.title}</div>
                       <div style={{ fontSize: 13, color: "#9CA3AF" }}>
-                        {new Date(m.meeting_date).toLocaleDateString("ru-RU", {
+                        {new Date(m.meeting_date).toLocaleDateString(getIntlLocale(), {
                           day: "numeric", month: "long", year: "numeric",
                         })}
                       </div>
@@ -327,14 +328,14 @@ export default function DashboardPage({ user, profile, org }: Props) {
                       background: "#D1FAE5",
                       color: "#065F46",
                     }}>
-                      {m.total_shares.toLocaleString("ru-RU")} акций
+                      {m.total_shares.toLocaleString(getIntlLocale())} {t("dashboard.shares")}
                     </span>
                   </Link>
                 ))}
               </div>
             )}
             <Link to="/shareholder-meeting" style={{ display: "block", marginTop: 18, fontSize: 14, color: "#3B82F6", fontWeight: 500 }}>
-              Перейти к собраниям →
+              {t("dashboard.goToShareholder")}
             </Link>
           </div>
 
@@ -347,7 +348,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
                     <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                   </svg>
                 </div>
-                <h3 style={{ margin: 0 }}>Голосование: {shVoteSummary.meetingTitle}</h3>
+                <h3 style={{ margin: 0 }}>{t("dashboard.votingFor", { title: shVoteSummary.meetingTitle })}</h3>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {shVoteSummary.items.map((item, i) => (
@@ -363,13 +364,13 @@ export default function DashboardPage({ user, profile, org }: Props) {
                           {item.abstainShares > 0 && <div style={{ flex: item.abstainShares, background: "#9CA3AF", borderRadius: 3 }} />}
                         </div>
                         <div style={{ display: "flex", gap: 12, fontSize: 12, color: "#6B7280" }}>
-                          <span style={{ color: "#059669" }}>За: {item.forShares.toLocaleString("ru-RU")}</span>
-                          <span style={{ color: "#DC2626" }}>Против: {item.againstShares.toLocaleString("ru-RU")}</span>
-                          <span style={{ color: "#9CA3AF" }}>Возд: {item.abstainShares.toLocaleString("ru-RU")}</span>
+                          <span style={{ color: "#059669" }}>{t("dashboard.for")} {item.forShares.toLocaleString(getIntlLocale())}</span>
+                          <span style={{ color: "#DC2626" }}>{t("dashboard.against")} {item.againstShares.toLocaleString(getIntlLocale())}</span>
+                          <span style={{ color: "#9CA3AF" }}>{t("dashboard.abstain")} {item.abstainShares.toLocaleString(getIntlLocale())}</span>
                         </div>
                       </>
                     ) : (
-                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>Голосов пока нет</div>
+                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{t("dashboard.noVotesYet")}</div>
                     )}
                   </div>
                 ))}
@@ -381,10 +382,10 @@ export default function DashboardPage({ user, profile, org }: Props) {
 
       {/* Quick action cards (like Figma bottom row) */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginTop: 24 }}>
-        <QuickActionCard to="/videoconference" icon="video" color="#3B82F6" bgColor="#DBEAFE" label="Начать видеоконференцию" />
-        <QuickActionCard to="/protocols" icon="protocol" color="#F59E0B" bgColor="#FEF3C7" label="Создать протокол" />
-        <QuickActionCard to="/chat" icon="chat" color="#059669" bgColor="#D1FAE5" label="Написать руководителю" />
-        <QuickActionCard to="/stats" icon="stats" color="#7C3AED" bgColor="#F3E8FF" label="Посмотреть статистику" />
+        <QuickActionCard to="/videoconference" icon="video" color="#3B82F6" bgColor="#DBEAFE" label={t("dashboard.startVideoconference")} />
+        <QuickActionCard to="/protocols" icon="protocol" color="#F59E0B" bgColor="#FEF3C7" label={t("dashboard.createProtocol")} />
+        <QuickActionCard to="/chat" icon="chat" color="#059669" bgColor="#D1FAE5" label={t("dashboard.writeToManager")} />
+        <QuickActionCard to="/stats" icon="stats" color="#7C3AED" bgColor="#F3E8FF" label={t("dashboard.viewStats")} />
       </div>
     </div>
   );

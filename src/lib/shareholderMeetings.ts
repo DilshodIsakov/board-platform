@@ -3,7 +3,11 @@ import { supabase } from "./supabaseClient";
 export interface ShareholderMeeting {
   id: string;
   organization_id: string;
-  title: string;
+  title: string; // backward compat
+  title_ru: string | null;
+  title_uz: string | null;
+  title_en: string | null;
+  source_language: string;
   meeting_type: "annual" | "extraordinary";
   meeting_date: string;
   status: "scheduled" | "completed" | "cancelled";
@@ -13,11 +17,15 @@ export interface ShareholderMeeting {
   created_at: string;
 }
 
+/** All three language fields required for OSA */
 export interface ShareholderAgendaItem {
   id: string;
   meeting_id: string;
   order_index: number;
-  title: string;
+  title: string; // backward compat
+  title_ru: string;
+  title_uz: string;
+  title_en: string;
   created_at: string;
 }
 
@@ -45,24 +53,34 @@ export async function fetchShareholderMeetings(): Promise<ShareholderMeeting[]> 
   return data as ShareholderMeeting[];
 }
 
-/** Создать собрание акционеров */
+export interface ShareholderMeetingPayload {
+  title_ru: string;
+  title_uz: string;
+  title_en: string;
+  meetingDate: string;
+  meetingType: "annual" | "extraordinary";
+  totalShares: number;
+}
+
+/** Создать собрание акционеров (требует все 3 языка) */
 export async function createShareholderMeeting(
   orgId: string,
   profileId: string,
-  title: string,
-  meetingDate: string,
-  meetingType: "annual" | "extraordinary" = "annual",
-  totalShares: number = 1000000
+  payload: ShareholderMeetingPayload
 ): Promise<ShareholderMeeting> {
   const { data, error } = await supabase
     .from("shareholder_meetings")
     .insert({
       organization_id: orgId,
       created_by: profileId,
-      title,
-      meeting_date: meetingDate,
-      meeting_type: meetingType,
-      total_shares: totalShares,
+      title: payload.title_ru, // backward compat — use RU as canonical title
+      title_ru: payload.title_ru,
+      title_uz: payload.title_uz,
+      title_en: payload.title_en,
+      source_language: "ru",
+      meeting_date: payload.meetingDate,
+      meeting_type: payload.meetingType,
+      total_shares: payload.totalShares,
     })
     .select()
     .single();
@@ -91,15 +109,24 @@ export async function fetchAgendaItems(meetingId: string): Promise<ShareholderAg
   return data as ShareholderAgendaItem[];
 }
 
-/** Добавить пункт повестки дня */
+/** Добавить пункт повестки дня ОСА (требует все 3 языка) */
 export async function addAgendaItem(
   meetingId: string,
-  title: string,
+  titleRu: string,
+  titleUz: string,
+  titleEn: string,
   orderIndex: number
 ): Promise<ShareholderAgendaItem> {
   const { data, error } = await supabase
     .from("shareholder_agenda_items")
-    .insert({ meeting_id: meetingId, title, order_index: orderIndex })
+    .insert({
+      meeting_id: meetingId,
+      title: titleRu, // backward compat
+      title_ru: titleRu,
+      title_uz: titleUz,
+      title_en: titleEn,
+      order_index: orderIndex,
+    })
     .select()
     .single();
 

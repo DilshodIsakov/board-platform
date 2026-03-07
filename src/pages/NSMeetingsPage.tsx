@@ -24,6 +24,12 @@ import {
   type AgendaBrief,
   type BriefLang,
 } from "../lib/nsMeetings";
+import { getLocalizedField, isTranslationStale, getStatusBadgeStyle } from "../lib/i18nHelpers";
+import {
+  generateMeetingTranslations,
+  type SupportedLang,
+  type TranslationStatus,
+} from "../lib/translationService";
 
 interface Props {
   profile: Profile | null;
@@ -41,10 +47,19 @@ export default function NSMeetingsPage({ profile, org }: Props) {
   // Meeting form
   const [showMeetingForm, setShowMeetingForm] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<NSMeeting | null>(null);
-  const [formTitle, setFormTitle] = useState("");
+  const [formSourceLang, setFormSourceLang] = useState<SupportedLang>("ru");
+  const [formLangTab, setFormLangTab] = useState<SupportedLang>("ru");
+  const [formTitleRu, setFormTitleRu] = useState("");
+  const [formTitleUz, setFormTitleUz] = useState("");
+  const [formTitleEn, setFormTitleEn] = useState("");
+  const [formStatusRu, setFormStatusRu] = useState<TranslationStatus>("original");
+  const [formStatusUz, setFormStatusUz] = useState<TranslationStatus>("missing");
+  const [formStatusEn, setFormStatusEn] = useState<TranslationStatus>("missing");
   const [formDate, setFormDate] = useState("");
   const [formStatus, setFormStatus] = useState<string>("scheduled");
   const [saving, setSaving] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translationStale, setTranslationStale] = useState(false);
 
   // Agenda
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([]);
@@ -121,40 +136,84 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
   // ---------- Meeting CRUD ----------
 
+  const getSourceTitle = (src: SupportedLang = formSourceLang) =>
+    src === "ru" ? formTitleRu : src === "uz" ? formTitleUz : formTitleEn;
+
   const openCreateForm = () => {
     setEditingMeeting(null);
-    setFormTitle("");
+    setFormSourceLang("ru");
+    setFormLangTab("ru");
+    setFormTitleRu(""); setFormTitleUz(""); setFormTitleEn("");
+    setFormStatusRu("original"); setFormStatusUz("missing"); setFormStatusEn("missing");
     setFormDate(new Date().toISOString().slice(0, 10));
     setFormStatus("scheduled");
+    setTranslationStale(false);
     setShowMeetingForm(true);
   };
 
   const openEditForm = (m: NSMeeting) => {
+    const src = (m.source_language || "ru") as SupportedLang;
     setEditingMeeting(m);
-    setFormTitle(m.title);
+    setFormSourceLang(src);
+    setFormLangTab(src);
+    setFormTitleRu(m.title_ru || m.title || "");
+    setFormTitleUz(m.title_uz || "");
+    setFormTitleEn(m.title_en || "");
+    setFormStatusRu((m.translation_status_ru || "original") as TranslationStatus);
+    setFormStatusUz((m.translation_status_uz || "missing") as TranslationStatus);
+    setFormStatusEn((m.translation_status_en || "missing") as TranslationStatus);
     setFormDate(m.start_at.slice(0, 10));
     setFormStatus(m.status);
+    setTranslationStale(false);
     setShowMeetingForm(true);
   };
 
+  const handleGenerateTranslations = async () => {
+    const sourceText = getSourceTitle();
+    if (!sourceText.trim()) return;
+    setTranslating(true);
+    try {
+      const draft = await generateMeetingTranslations(formSourceLang, sourceText.trim());
+      setFormTitleRu(draft.title_ru);
+      setFormTitleUz(draft.title_uz);
+      setFormTitleEn(draft.title_en);
+      setFormStatusRu(draft.status_ru);
+      setFormStatusUz(draft.status_uz);
+      setFormStatusEn(draft.status_en);
+      setTranslationStale(false);
+    } catch (e) {
+      console.error(e);
+    }
+    setTranslating(false);
+  };
+
   const handleSaveMeeting = async () => {
-    if (!formTitle.trim() || !formDate || !org || !profile) return;
+    const sourceText = getSourceTitle();
+    if (!sourceText.trim() || !formDate || !org || !profile) return;
     setSaving(true);
+
+    // Mark non-source reviewed fields that were manually edited
+    const markReviewed = (status: TranslationStatus, lang: SupportedLang) =>
+      lang !== formSourceLang && status === "missing" ? "missing" : status;
+
+    const payload = {
+      title: sourceText.trim(),
+      title_ru: formTitleRu.trim() || null,
+      title_uz: formTitleUz.trim() || null,
+      title_en: formTitleEn.trim() || null,
+      source_language: formSourceLang,
+      translation_status_ru: markReviewed(formStatusRu, "ru"),
+      translation_status_uz: markReviewed(formStatusUz, "uz"),
+      translation_status_en: markReviewed(formStatusEn, "en"),
+      start_at: new Date(formDate).toISOString(),
+      status: formStatus,
+    };
+
     try {
       if (editingMeeting) {
-        await updateNSMeeting(editingMeeting.id, {
-          title: formTitle.trim(),
-          start_at: new Date(formDate).toISOString(),
-          status: formStatus,
-        });
+        await updateNSMeeting(editingMeeting.id, payload);
       } else {
-        await createNSMeeting(
-          org.id,
-          profile.id,
-          formTitle.trim(),
-          new Date(formDate).toISOString(),
-          formStatus
-        );
+        await createNSMeeting(org.id, profile.id, payload);
       }
       setShowMeetingForm(false);
       await loadMeetings();
@@ -162,6 +221,19 @@ export default function NSMeetingsPage({ profile, org }: Props) {
       console.error(e);
     }
     setSaving(false);
+  };
+
+  // Detect stale translations when user edits source title in edit mode
+  const handleSourceTitleChange = (val: string, lang: SupportedLang) => {
+    if (lang === "ru") setFormTitleRu(val);
+    else if (lang === "uz") setFormTitleUz(val);
+    else setFormTitleEn(val);
+
+    if (editingMeeting && lang === formSourceLang) {
+      setTranslationStale(
+        isTranslationStale(editingMeeting as unknown as Record<string, unknown>, lang, val)
+      );
+    }
   };
 
   const handleDeleteMeeting = async () => {
@@ -351,7 +423,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                   }}
                 >
                   <div style={{ fontWeight: 600, fontSize: 14, color: "#111827", marginBottom: 4 }}>
-                    {m.title}
+                    {getLocalizedField(m as unknown as Record<string, unknown>, "title")}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontSize: 13, color: "#6B7280" }}>
@@ -389,7 +461,9 @@ export default function NSMeetingsPage({ profile, org }: Props) {
               {/* Meeting Header */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: 20 }}>{selected.title}</h2>
+                  <h2 style={{ margin: 0, fontSize: 20 }}>
+                    {getLocalizedField(selected as unknown as Record<string, unknown>, "title")}
+                  </h2>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
                     <span style={{ fontSize: 14, color: "#6B7280" }}>
                       {new Date(selected.start_at).toLocaleDateString(getIntlLocale(), {
@@ -649,19 +723,121 @@ export default function NSMeetingsPage({ profile, org }: Props) {
       {/* ===== Create/Edit Meeting Modal ===== */}
       {showMeetingForm && (
         <div style={overlayStyle} onClick={() => setShowMeetingForm(false)}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+          <div style={{ ...modalStyle, maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ margin: "0 0 16px" }}>
               {editingMeeting ? t("nsMeetings.editMeeting") : t("nsMeetings.createMeeting")}
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+              {/* Source language selector */}
+              <div>
+                <label style={labelStyle}>{t("nsMeetings.sourceLanguage")}</label>
+                <select
+                  value={formSourceLang}
+                  onChange={(e) => {
+                    const l = e.target.value as SupportedLang;
+                    setFormSourceLang(l);
+                    setFormLangTab(l);
+                    setFormStatusRu(l === "ru" ? "original" : formStatusRu === "original" ? "reviewed" : formStatusRu);
+                    setFormStatusUz(l === "uz" ? "original" : formStatusUz === "original" ? "reviewed" : formStatusUz);
+                    setFormStatusEn(l === "en" ? "original" : formStatusEn === "original" ? "reviewed" : formStatusEn);
+                  }}
+                  style={inputStyle}
+                >
+                  <option value="ru">Русский</option>
+                  <option value="uz">Ўзбекча</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+
+              {/* Language tabs for title */}
               <div>
                 <label style={labelStyle}>{t("nsMeetings.meetingTitle")}</label>
-                <input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} style={inputStyle} />
+                {/* Tab buttons */}
+                <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #E5E7EB", marginBottom: 8 }}>
+                  {(["ru", "uz", "en"] as SupportedLang[]).map((lang) => {
+                    const status = lang === "ru" ? formStatusRu : lang === "uz" ? formStatusUz : formStatusEn;
+                    const isSource = lang === formSourceLang;
+                    const isActive = lang === formLangTab;
+                    const isEmpty = (lang === "ru" ? formTitleRu : lang === "uz" ? formTitleUz : formTitleEn).trim() === "";
+                    return (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => setFormLangTab(lang)}
+                        style={{
+                          padding: "6px 16px", fontSize: 13, cursor: "pointer",
+                          borderBottom: isActive ? "2px solid #3B82F6" : "2px solid transparent",
+                          background: "none", fontWeight: isActive ? 600 : 400,
+                          color: isActive ? "#3B82F6" : "#6B7280",
+                          display: "flex", alignItems: "center", gap: 6,
+                        }}
+                      >
+                        {lang.toUpperCase()}
+                        {isSource && <span style={{ fontSize: 10, background: "#D1FAE5", color: "#065F46", borderRadius: 4, padding: "1px 5px" }}>src</span>}
+                        {!isSource && isEmpty && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#D1D5DB", display: "inline-block" }} />}
+                        {!isSource && !isEmpty && <span style={getStatusBadgeStyle(status)}>{status === "auto_translated" ? "✦" : "✓"}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Active tab input */}
+                {(["ru", "uz", "en"] as SupportedLang[]).map((lang) => (
+                  formLangTab === lang && (
+                    <input
+                      key={lang}
+                      value={lang === "ru" ? formTitleRu : lang === "uz" ? formTitleUz : formTitleEn}
+                      onChange={(e) => handleSourceTitleChange(e.target.value, lang)}
+                      placeholder={lang === formSourceLang ? t("nsMeetings.meetingTitle") : t("nsMeetings.translationPlaceholder")}
+                      style={inputStyle}
+                    />
+                  )
+                ))}
               </div>
+
+              {/* Stale translation warning */}
+              {translationStale && (
+                <div style={{ background: "#FEF3C7", border: "1px solid #FDE68A", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#92400E" }}>
+                  <div style={{ fontWeight: 600, marginBottom: 6 }}>⚠ {t("nsMeetings.translationStale")}</div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button type="button" onClick={handleGenerateTranslations} disabled={translating}
+                      style={{ ...primaryBtnSmallStyle, fontSize: 12 }}>
+                      {translating ? t("nsMeetings.generating") : t("nsMeetings.regenerateTranslations")}
+                    </button>
+                    <button type="button" onClick={() => setTranslationStale(false)}
+                      style={{ ...smallBtnStyle, fontSize: 12 }}>
+                      {t("nsMeetings.keepTranslations")}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Generate translations button */}
+              <button
+                type="button"
+                onClick={handleGenerateTranslations}
+                disabled={translating || !getSourceTitle().trim()}
+                style={{
+                  ...smallBtnStyle,
+                  opacity: translating || !getSourceTitle().trim() ? 0.5 : 1,
+                  fontSize: 13, display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
+                ✦ {translating ? t("nsMeetings.generating") : t("nsMeetings.generateTranslations")}
+              </button>
+              {!translating && (
+                <p style={{ fontSize: 11, color: "#9CA3AF", margin: "-4px 0 0" }}>
+                  {t("nsMeetings.translationProviderNote")}
+                </p>
+              )}
+
+              {/* Date */}
               <div>
                 <label style={labelStyle}>{t("nsMeetings.meetingDate")}</label>
                 <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} style={inputStyle} />
               </div>
+
+              {/* Status */}
               <div>
                 <label style={labelStyle}>{t("nsMeetings.meetingStatus")}</label>
                 <select value={formStatus} onChange={(e) => setFormStatus(e.target.value)} style={inputStyle}>
@@ -670,11 +846,13 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                   <option value="completed">{t("nsMeetings.statusCompleted")}</option>
                 </select>
               </div>
+
+              {/* Actions */}
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                 <button
                   onClick={handleSaveMeeting}
-                  disabled={saving || !formTitle.trim() || !formDate}
-                  style={{ ...primaryBtnStyle, opacity: saving || !formTitle.trim() || !formDate ? 0.5 : 1 }}
+                  disabled={saving || !getSourceTitle().trim() || !formDate}
+                  style={{ ...primaryBtnStyle, opacity: saving || !getSourceTitle().trim() || !formDate ? 0.5 : 1 }}
                 >
                   {saving ? t("common.saving") : t("nsMeetings.save")}
                 </button>

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { Profile, Organization } from "../lib/profile";
 import { fetchMeetings, type Meeting } from "../lib/meetings";
 import { getIntlLocale } from "../i18n";
+import { getLocalizedField } from "../lib/i18nHelpers";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "#9ca3af",
@@ -164,11 +165,11 @@ export default function CalendarPage({ profile }: Props) {
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                     }}
-                    title={`${isWorkPlan ? "[" + t("calendar.planNS") + "] " : ""}${m.title} — ${new Date(m.start_at).toLocaleTimeString(getIntlLocale(), { hour: "2-digit", minute: "2-digit" })}`}
+                    title={`${isWorkPlan ? "[" + t("calendar.planNS") + "] " : ""}${getLocalizedField(m as unknown as Record<string, unknown>, "title")} — ${new Date(m.start_at).toLocaleTimeString(getIntlLocale(), { hour: "2-digit", minute: "2-digit" })}`}
                   >
                     {isWorkPlan && "📋 "}
                     {new Date(m.start_at).toLocaleTimeString(getIntlLocale(), { hour: "2-digit", minute: "2-digit" })}{" "}
-                    {m.title}
+                    {getLocalizedField(m as unknown as Record<string, unknown>, "title")}
                   </Link>
                 );
               })}

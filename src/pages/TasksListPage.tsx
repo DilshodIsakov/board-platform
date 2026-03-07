@@ -48,12 +48,19 @@ export default function TasksListPage({ profile, org }: Props) {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [duePeriod, setDuePeriod] = useState<"all" | "overdue" | "week">("all");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const canCreate = profile && CAN_CREATE_ROLES.includes(profile.role);
 
+  // Debounce search input — не запрашиваем БД на каждое нажатие
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   useEffect(() => {
     if (org) loadTasks();
-  }, [org, statusFilter, priorityFilter, duePeriod, search]);
+  }, [org, statusFilter, priorityFilter, duePeriod, debouncedSearch]);
 
   const loadTasks = async () => {
     if (!org) return;
@@ -62,7 +69,7 @@ export default function TasksListPage({ profile, org }: Props) {
     if (statusFilter !== "all") filters.status = statusFilter;
     if (priorityFilter !== "all") filters.priority = priorityFilter;
     if (duePeriod !== "all") filters.duePeriod = duePeriod;
-    if (search.trim()) filters.search = search.trim();
+    if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
     const data = await listTasks(org.id, filters);
     setTasks(data);
     setLoading(false);

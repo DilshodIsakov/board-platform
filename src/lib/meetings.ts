@@ -3,7 +3,11 @@ import { supabase } from "./supabaseClient";
 export interface Meeting {
   id: string;
   organization_id: string;
-  title: string;
+  title: string; // backward compat
+  title_ru: string | null;
+  title_uz: string | null;
+  title_en: string | null;
+  source_language: string;
   start_at: string;
   location: string | null;
   meet_url: string | null;
@@ -29,7 +33,7 @@ export async function fetchMeetings(): Promise<Meeting[]> {
   return data as Meeting[];
 }
 
-/** Создать новое заседание */
+/** Создать новое заседание (быстрая форма Dashboard — сохраняет title_ru) */
 export async function createMeeting(
   orgId: string,
   profileId: string,
@@ -42,6 +46,11 @@ export async function createMeeting(
     .insert({
       organization_id: orgId,
       title,
+      title_ru: title,
+      source_language: "ru",
+      translation_status_ru: "original",
+      translation_status_uz: "missing",
+      translation_status_en: "missing",
       start_at: startAt,
       status: "scheduled",
       created_by: profileId,

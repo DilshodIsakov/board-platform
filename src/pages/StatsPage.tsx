@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
 import { supabase } from "../lib/supabaseClient";
+import { getLocalizedField } from "../lib/i18nHelpers";
 import type { Profile, Organization } from "../lib/profile";
 
 interface MeetingRow {
   id: string;
   title: string;
+  title_ru: string | null;
+  title_uz: string | null;
+  title_en: string | null;
   start_at: string;
   meet_url: string | null;
   status: string;
@@ -53,7 +57,7 @@ export default function StatsPage({ profile }: Props) {
 
     let query = supabase
       .from("meetings")
-      .select("id, title, start_at, meet_url, status")
+      .select("id, title, title_ru, title_uz, title_en, start_at, meet_url, status")
       .order("start_at", { ascending: false });
 
     if (dateFilter) {
@@ -83,7 +87,7 @@ export default function StatsPage({ profile }: Props) {
     const headers = [t("stats.dateCol"), t("stats.meetingCol"), t("stats.organCol"), t("stats.formatCol"), t("stats.durationCol")];
     const rows = meetings.map((m) => [
       new Date(m.start_at).toLocaleDateString(getIntlLocale(), { day: "2-digit", month: "2-digit", year: "numeric" }),
-      m.title,
+      getLocalizedField(m as unknown as Record<string, unknown>, "title"),
       t("stats.boardOfDirectors"),
       m.meet_url ? t("stats.online") : t("stats.offline"),
       t("stats.durationMin", { min: 120 }),
@@ -245,7 +249,7 @@ export default function StatsPage({ profile }: Props) {
                         day: "2-digit", month: "2-digit", year: "numeric",
                       })}
                     </td>
-                    <td style={{ ...tdStyle, fontWeight: 500, color: "#111827" }}>{m.title}</td>
+                    <td style={{ ...tdStyle, fontWeight: 500, color: "#111827" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title")}</td>
                     <td style={tdStyle}>
                       <span style={organBadgeStyle}>{t("stats.boardOfDirectors")}</span>
                     </td>

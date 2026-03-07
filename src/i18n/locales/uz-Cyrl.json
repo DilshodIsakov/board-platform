@@ -374,7 +374,21 @@
     "materialsTitle": "Материаллар",
     "noMaterials": "Материаллар қўшилмаган",
     "materialsAvailable": "Материаллар мавжуд",
-    "materialsWaiting": "Юклашни кутмоқда"
+    "materialsWaiting": "Юклашни кутмоқда",
+    "allLangsNote": "Учала тил ҳам мажбурий (RU, UZ, EN)",
+    "allLangsRequired": "Йиғилиш номини учала тилда ҳам тўлдиринг (RU, UZ, EN)",
+    "agendaLineMismatch": "Кун тартиби бандлари сони барча тилларда мос бўлиши керак",
+    "titleRuLabel": "Йиғилиш номи (русча)",
+    "titleUzLabel": "Йиғилиш номи (ўзбекча)",
+    "titleEnLabel": "Йиғилиш номи (инглизча)",
+    "titleRuPlaceholder": "Акционерларнинг йиллик умумий йиғилиши",
+    "titleUzPlaceholder": "Aktsiyadorlarning yillik umumiy yig'ilishi",
+    "titleEnPlaceholder": "Annual General Meeting of Shareholders",
+    "agendaRuLabel": "Кун тартиби (русча, ҳар банд янги қаторда)",
+    "agendaUzLabel": "Кун тартиби (ўзбекча, ҳар банд янги қаторда)",
+    "agendaEnLabel": "Кун тартиби (инглизча, ҳар банд янги қаторда)",
+    "agendaUzPlaceholder": "2025 yilgi yillik hisobotni tasdiqlash\nMoliyaviy hisobotni tasdiqlash\nFoydani taqsimlash",
+    "agendaEnPlaceholder": "Approval of annual report for 2025\nApproval of financial statements\nProfit distribution"
   },
   "chat": {
     "roles": {
@@ -478,7 +492,19 @@
     "noMaterialsForBrief": "Brief яратиш учун материал юкланг",
     "briefFilesUsed": "Ишланган файллар",
     "downloadDocx": "Word юклаб олиш (.docx)",
-    "briefLang": "Бриф тили"
+    "briefLang": "Бриф тили",
+    "sourceLanguage": "Манба тили",
+    "titleRuLabel": "Номи (русча)",
+    "titleUzLabel": "Номи (ўзбекча)",
+    "titleEnLabel": "Номи (инглизча)",
+    "translationStatus": "Таржима ҳолати",
+    "generateTranslations": "Таржималарни генерация қилиш",
+    "generating": "Генерация...",
+    "translationStale": "Манба матни ўзгарди. Таржималарни қайта генерация қилинсинми?",
+    "regenerateTranslations": "Қайта генерация",
+    "keepTranslations": "Сақлаш",
+    "translationProviderNote": "Автотаржима учун таржима провайдерини улаш (OpenAI / DeepL / Google)",
+    "translationPlaceholder": "Таржима бу ерда пайдо бўлади"
   },
   "admin": {
     "title": "Фойдаланувчиларни бошқариш",

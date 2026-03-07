@@ -14,6 +14,7 @@ import {
   type ShareholderAgendaItem,
   type ShareholderMaterial,
 } from "../lib/shareholderMeetings";
+import { getLocalizedField } from "../lib/i18nHelpers";
 import {
   fetchVotesByMeeting,
   castShareholderVote,
@@ -49,11 +50,16 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
 
   // Create form
   const [showForm, setShowForm] = useState(false);
-  const [formTitle, setFormTitle] = useState("");
+  const [formLangTab, setFormLangTab] = useState<"ru" | "uz" | "en">("ru");
+  const [formTitleRu, setFormTitleRu] = useState("");
+  const [formTitleUz, setFormTitleUz] = useState("");
+  const [formTitleEn, setFormTitleEn] = useState("");
+  const [formAgendaRu, setFormAgendaRu] = useState("");
+  const [formAgendaUz, setFormAgendaUz] = useState("");
+  const [formAgendaEn, setFormAgendaEn] = useState("");
   const [formDate, setFormDate] = useState("");
   const [formType, setFormType] = useState<"annual" | "extraordinary">("annual");
   const [formShares, setFormShares] = useState("1000000");
-  const [formAgenda, setFormAgenda] = useState("");
   const [formMaterials, setFormMaterials] = useState("");
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState("");
@@ -101,23 +107,44 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
     e.preventDefault();
     if (!profile || !org) return;
 
+    // Validate: all 3 language titles required
+    if (!formTitleRu.trim() || !formTitleUz.trim() || !formTitleEn.trim()) {
+      setFormError(t("shareholder.allLangsRequired"));
+      return;
+    }
+
+    // Validate: agenda line counts must match (if any agenda provided)
+    const agendaRuLines = formAgendaRu.split("\n").filter((l) => l.trim());
+    const agendaUzLines = formAgendaUz.split("\n").filter((l) => l.trim());
+    const agendaEnLines = formAgendaEn.split("\n").filter((l) => l.trim());
+    const agendaCount = agendaRuLines.length;
+    if (agendaCount > 0 && (agendaUzLines.length !== agendaCount || agendaEnLines.length !== agendaCount)) {
+      setFormError(t("shareholder.agendaLineMismatch"));
+      return;
+    }
+
     setCreating(true);
     setFormError("");
 
     try {
-      const meeting = await createShareholderMeeting(
-        org.id,
-        profile.id,
-        formTitle,
-        new Date(formDate).toISOString(),
-        formType,
-        parseInt(formShares) || 1000000
-      );
+      const meeting = await createShareholderMeeting(org.id, profile.id, {
+        title_ru: formTitleRu.trim(),
+        title_uz: formTitleUz.trim(),
+        title_en: formTitleEn.trim(),
+        meetingDate: new Date(formDate).toISOString(),
+        meetingType: formType,
+        totalShares: parseInt(formShares) || 1000000,
+      });
 
-      // Add agenda items
-      const agendaLines = formAgenda.split("\n").filter((l) => l.trim());
-      for (let i = 0; i < agendaLines.length; i++) {
-        await addAgendaItem(meeting.id, agendaLines[i].trim(), i + 1);
+      // Add agenda items (all 3 languages)
+      for (let i = 0; i < agendaCount; i++) {
+        await addAgendaItem(
+          meeting.id,
+          agendaRuLines[i].trim(),
+          agendaUzLines[i].trim(),
+          agendaEnLines[i].trim(),
+          i + 1
+        );
       }
 
       // Add materials
@@ -127,12 +154,17 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
       }
 
       // Reset form
-      setFormTitle("");
+      setFormTitleRu("");
+      setFormTitleUz("");
+      setFormTitleEn("");
+      setFormAgendaRu("");
+      setFormAgendaUz("");
+      setFormAgendaEn("");
       setFormDate("");
       setFormType("annual");
       setFormShares("1000000");
-      setFormAgenda("");
       setFormMaterials("");
+      setFormLangTab("ru");
       setShowForm(false);
 
       await loadMeetings();
@@ -214,89 +246,186 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
       </div>
 
       {/* Create Form */}
-      {showForm && canCreate && (
-        <div style={{ ...cardStyle, marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <h3 style={{ margin: 0 }}>{t("shareholder.createTitle")}</h3>
-            <button onClick={() => setShowForm(false)} style={{ color: "#9CA3AF", fontSize: 20, cursor: "pointer", background: "none", border: "none", padding: 4 }}>
-              ✕
-            </button>
+      {showForm && canCreate && (() => {
+        const langHasTitle = { ru: !!formTitleRu.trim(), uz: !!formTitleUz.trim(), en: !!formTitleEn.trim() };
+        const tabDot = (lang: "ru" | "uz" | "en") => (
+          <span style={{
+            display: "inline-block",
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            background: langHasTitle[lang] ? "#16a34a" : "#DC2626",
+            marginLeft: 5,
+            verticalAlign: "middle",
+          }} />
+        );
+        return (
+          <div style={{ ...cardStyle, marginBottom: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div>
+                <h3 style={{ margin: 0 }}>{t("shareholder.createTitle")}</h3>
+                <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B7280" }}>{t("shareholder.allLangsNote")}</p>
+              </div>
+              <button onClick={() => setShowForm(false)} style={{ color: "#9CA3AF", fontSize: 20, cursor: "pointer", background: "none", border: "none", padding: 4 }}>
+                ✕
+              </button>
+            </div>
+
+            {/* Language tabs */}
+            <div style={{ display: "flex", borderBottom: "1px solid #E5E7EB", marginBottom: 20 }}>
+              {(["ru", "uz", "en"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setFormLangTab(lang)}
+                  style={{
+                    padding: "8px 20px",
+                    fontSize: 14,
+                    fontWeight: formLangTab === lang ? 600 : 400,
+                    color: formLangTab === lang ? "#2563EB" : "#6B7280",
+                    background: "none",
+                    border: "none",
+                    borderBottom: formLangTab === lang ? "2px solid #2563EB" : "2px solid transparent",
+                    cursor: "pointer",
+                  }}
+                >
+                  {lang.toUpperCase()}{tabDot(lang)}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Per-language fields */}
+              {formLangTab === "ru" && (
+                <>
+                  <div>
+                    <label style={labelStyle}>{t("shareholder.titleRuLabel")}</label>
+                    <input
+                      type="text"
+                      value={formTitleRu}
+                      onChange={(e) => setFormTitleRu(e.target.value)}
+                      placeholder={t("shareholder.titleRuPlaceholder")}
+                      style={{ ...inputStyle, borderColor: formTitleRu.trim() ? "#D1D5DB" : "#FCA5A5" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>{t("shareholder.agendaRuLabel")}</label>
+                    <textarea
+                      value={formAgendaRu}
+                      onChange={(e) => setFormAgendaRu(e.target.value)}
+                      placeholder={t("shareholder.agendaPlaceholder")}
+                      rows={5}
+                      style={{ ...inputStyle, resize: "vertical" }}
+                    />
+                  </div>
+                </>
+              )}
+              {formLangTab === "uz" && (
+                <>
+                  <div>
+                    <label style={labelStyle}>{t("shareholder.titleUzLabel")}</label>
+                    <input
+                      type="text"
+                      value={formTitleUz}
+                      onChange={(e) => setFormTitleUz(e.target.value)}
+                      placeholder={t("shareholder.titleUzPlaceholder")}
+                      style={{ ...inputStyle, borderColor: formTitleUz.trim() ? "#D1D5DB" : "#FCA5A5" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>{t("shareholder.agendaUzLabel")}</label>
+                    <textarea
+                      value={formAgendaUz}
+                      onChange={(e) => setFormAgendaUz(e.target.value)}
+                      placeholder={t("shareholder.agendaUzPlaceholder")}
+                      rows={5}
+                      style={{ ...inputStyle, resize: "vertical" }}
+                    />
+                  </div>
+                </>
+              )}
+              {formLangTab === "en" && (
+                <>
+                  <div>
+                    <label style={labelStyle}>{t("shareholder.titleEnLabel")}</label>
+                    <input
+                      type="text"
+                      value={formTitleEn}
+                      onChange={(e) => setFormTitleEn(e.target.value)}
+                      placeholder={t("shareholder.titleEnPlaceholder")}
+                      style={{ ...inputStyle, borderColor: formTitleEn.trim() ? "#D1D5DB" : "#FCA5A5" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>{t("shareholder.agendaEnLabel")}</label>
+                    <textarea
+                      value={formAgendaEn}
+                      onChange={(e) => setFormAgendaEn(e.target.value)}
+                      placeholder={t("shareholder.agendaEnPlaceholder")}
+                      rows={5}
+                      style={{ ...inputStyle, resize: "vertical" }}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Shared fields */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>{t("shareholder.dateLabel")}</label>
+                  <input
+                    type="datetime-local"
+                    value={formDate}
+                    onChange={(e) => setFormDate(e.target.value)}
+                    required
+                    lang={getIntlLocale()}
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>{t("shareholder.typeLabel")}</label>
+                  <select value={formType} onChange={(e) => setFormType(e.target.value as "annual" | "extraordinary")} style={inputStyle}>
+                    <option value="annual">{t("shareholder.meetingType.annual")}</option>
+                    <option value="extraordinary">{t("shareholder.meetingType.extraordinary")}</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>{t("shareholder.totalSharesLabel")}</label>
+                  <input
+                    type="number"
+                    value={formShares}
+                    onChange={(e) => setFormShares(e.target.value)}
+                    min="1"
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>{t("shareholder.materialsLabel")}</label>
+                  <input
+                    type="text"
+                    value={formMaterials}
+                    onChange={(e) => setFormMaterials(e.target.value)}
+                    placeholder={t("shareholder.materialsPlaceholder")}
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 12 }}>
+                <button type="submit" disabled={creating} style={submitBtnStyle}>
+                  {creating ? t("common.creating") : t("shareholder.createMeeting")}
+                </button>
+                <button type="button" onClick={() => setShowForm(false)} style={cancelBtnStyle}>
+                  {t("common.cancel")}
+                </button>
+              </div>
+              {formError && <p style={{ color: "#DC2626", fontSize: 14, margin: 0 }}>{formError}</p>}
+            </form>
           </div>
-          <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div>
-                <label style={labelStyle}>{t("shareholder.meetingNameLabel")}</label>
-                <input
-                  type="text"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  required
-                  placeholder={t("shareholder.meetingNamePlaceholder")}
-                  style={inputStyle}
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>{t("shareholder.dateLabel")}</label>
-                <input
-                  type="datetime-local"
-                  value={formDate}
-                  onChange={(e) => setFormDate(e.target.value)}
-                  required
-                  style={inputStyle}
-                />
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <div>
-                <label style={labelStyle}>{t("shareholder.typeLabel")}</label>
-                <select value={formType} onChange={(e) => setFormType(e.target.value as "annual" | "extraordinary")} style={inputStyle}>
-                  <option value="annual">{t("shareholder.meetingType.annual")}</option>
-                  <option value="extraordinary">{t("shareholder.meetingType.extraordinary")}</option>
-                </select>
-              </div>
-              <div>
-                <label style={labelStyle}>{t("shareholder.totalSharesLabel")}</label>
-                <input
-                  type="number"
-                  value={formShares}
-                  onChange={(e) => setFormShares(e.target.value)}
-                  min="1"
-                  style={inputStyle}
-                />
-              </div>
-            </div>
-            <div>
-              <label style={labelStyle}>{t("shareholder.agendaLabel")}</label>
-              <textarea
-                value={formAgenda}
-                onChange={(e) => setFormAgenda(e.target.value)}
-                placeholder={t("shareholder.agendaPlaceholder")}
-                rows={5}
-                style={{ ...inputStyle, resize: "vertical" }}
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>{t("shareholder.materialsLabel")}</label>
-              <textarea
-                value={formMaterials}
-                onChange={(e) => setFormMaterials(e.target.value)}
-                placeholder={t("shareholder.materialsPlaceholder")}
-                rows={3}
-                style={{ ...inputStyle, resize: "vertical" }}
-              />
-            </div>
-            <div style={{ display: "flex", gap: 12 }}>
-              <button type="submit" disabled={creating} style={submitBtnStyle}>
-                {creating ? t("common.creating") : t("shareholder.createMeeting")}
-              </button>
-              <button type="button" onClick={() => setShowForm(false)} style={cancelBtnStyle}>
-                {t("common.cancel")}
-              </button>
-            </div>
-            {formError && <p style={{ color: "#DC2626", fontSize: 14, margin: 0 }}>{formError}</p>}
-          </form>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Tabs */}
       <div style={tabBarStyle}>
@@ -376,7 +505,7 @@ function MeetingCard({
       {/* Header row */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <h2 style={{ margin: 0 }}>{t(`shareholder.meetingType.${meeting.meeting_type}`, meeting.title)}</h2>
+          <h2 style={{ margin: 0 }}>{getLocalizedField(meeting as unknown as Record<string, unknown>, "title") || t(`shareholder.meetingType.${meeting.meeting_type}`)}</h2>
           <span style={{
             ...badgeStyle,
             background: statusColors.bg,
@@ -461,7 +590,7 @@ function MeetingCard({
                       {idx + 1}.
                     </span>
                     <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.5 }}>
-                      {item.title}
+                      {getLocalizedField(item as unknown as Record<string, unknown>, "title")}
                     </span>
                   </div>
 

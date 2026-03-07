@@ -5,7 +5,15 @@ import { supabase, supabaseAnonKey } from "./supabaseClient";
 export interface NSMeeting {
   id: string;
   organization_id: string;
-  title: string;
+  title: string; // backward compat — mirrors source language
+  title_ru: string | null;
+  title_uz: string | null;
+  title_en: string | null;
+  source_language: string;
+  translation_status_ru: string;
+  translation_status_uz: string;
+  translation_status_en: string;
+  translation_updated_at: string | null;
   start_at: string;
   location: string | null;
   meet_url: string | null;
@@ -18,7 +26,10 @@ export interface AgendaItem {
   id: string;
   meeting_id: string;
   org_id: string;
-  title: string;
+  title: string; // backward compat
+  title_ru: string | null;
+  title_uz: string | null;
+  title_en: string | null;
   order_index: number;
   presenter: string | null;
 }
@@ -52,21 +63,31 @@ export async function fetchNSMeetings(): Promise<NSMeeting[]> {
   return data as NSMeeting[];
 }
 
+export interface NSMeetingPayload {
+  title: string;
+  title_ru?: string | null;
+  title_uz?: string | null;
+  title_en?: string | null;
+  source_language?: string;
+  translation_status_ru?: string;
+  translation_status_uz?: string;
+  translation_status_en?: string;
+  start_at: string;
+  status: string;
+}
+
 export async function createNSMeeting(
   orgId: string,
   createdBy: string,
-  title: string,
-  date: string,
-  status: string
+  payload: NSMeetingPayload
 ): Promise<NSMeeting | null> {
   const { data, error } = await supabase
     .from("meetings")
     .insert({
       organization_id: orgId,
-      title,
-      start_at: date,
-      status,
       created_by: createdBy,
+      ...payload,
+      translation_updated_at: new Date().toISOString(),
     })
     .select()
     .single();
@@ -80,9 +101,12 @@ export async function createNSMeeting(
 
 export async function updateNSMeeting(
   id: string,
-  fields: { title?: string; start_at?: string; status?: string }
+  fields: Partial<NSMeetingPayload>
 ): Promise<void> {
-  const { error } = await supabase.from("meetings").update(fields).eq("id", id);
+  const { error } = await supabase
+    .from("meetings")
+    .update({ ...fields, translation_updated_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) {
     console.error("updateNSMeeting error:", error);
     throw new Error(error.message);
@@ -118,11 +142,21 @@ export async function createAgendaItem(
   orgId: string,
   title: string,
   presenter: string | null,
-  orderIndex: number
+  orderIndex: number,
+  multilang?: { title_ru?: string; title_uz?: string; title_en?: string }
 ): Promise<AgendaItem | null> {
   const { data, error } = await supabase
     .from("agenda_items")
-    .insert({ meeting_id: meetingId, org_id: orgId, title, presenter, order_index: orderIndex })
+    .insert({
+      meeting_id: meetingId,
+      org_id: orgId,
+      title,
+      presenter,
+      order_index: orderIndex,
+      title_ru: multilang?.title_ru ?? title,
+      ...(multilang?.title_uz ? { title_uz: multilang.title_uz } : {}),
+      ...(multilang?.title_en ? { title_en: multilang.title_en } : {}),
+    })
     .select()
     .single();
 

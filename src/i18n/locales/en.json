@@ -33,7 +33,7 @@
     "auditor": "Internal Auditor"
   },
   "sidebar": {
-    "title": "Board of Directors",
+    "title": "Supervisory Board",
     "company": "Company Info",
     "dashboard": "Dashboard",
     "calendar": "Calendar",
@@ -69,7 +69,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome to the Board of Directors management system",
+    "welcome": "Welcome to the Supervisory Board management system",
     "profileNotFound": "Profile not found. Make sure the SQL migration has been run in Supabase.",
     "scheduledMeetings": "Scheduled Meetings",
     "completedMeetings": "Completed Meetings",
@@ -162,7 +162,7 @@
   },
   "tasks": {
     "title": "Board Tasks",
-    "subtitle": "Board of Directors tasks with status and deadline tracking",
+    "subtitle": "Supervisory Board tasks with status and deadline tracking",
     "create": "+ Create Task",
     "searchPlaceholder": "Search by title...",
     "noTasks": "No tasks",
@@ -237,14 +237,14 @@
   "company": {
     "title": "Company Information",
     "subtitle": "Management structure and contact information",
-    "boardOfDirectors": "Board of Directors",
+    "boardOfDirectors": "Supervisory Board",
     "independentMembers": "Independent Board Members",
     "management": "Management Board",
     "kpiMonitoring": "KPI Monitoring",
     "kpiDescription": "KPI monitoring for management board members will be displayed here. This section is under development.",
     "noMembers": "No members",
     "noName": "No name",
-    "boardTab": "Board of Directors",
+    "boardTab": "Supervisory Board",
     "managementTab": "Management",
     "kpiTab": "Management KPI",
     "sendMessage": "Message"
@@ -254,7 +254,7 @@
     "subtitle": "Self-assessment and review of corporate governance bodies",
     "selectOrgan": "Select governance body",
     "allOrgans": "All bodies",
-    "boardOfDirectors": "Board of Directors",
+    "boardOfDirectors": "Supervisory Board",
     "executiveOrgan": "Executive body",
     "period": "Period",
     "lastQuarter": "Last quarter",
@@ -374,7 +374,21 @@
     "materialsTitle": "Materials",
     "noMaterials": "No materials added",
     "materialsAvailable": "Materials available",
-    "materialsWaiting": "Awaiting upload"
+    "materialsWaiting": "Awaiting upload",
+    "allLangsNote": "All three languages are required (RU, UZ, EN)",
+    "allLangsRequired": "Please fill in the meeting title in all three languages (RU, UZ, EN)",
+    "agendaLineMismatch": "Number of agenda items must match across all languages",
+    "titleRuLabel": "Meeting title (Russian)",
+    "titleUzLabel": "Meeting title (Uzbek)",
+    "titleEnLabel": "Meeting title (English)",
+    "titleRuPlaceholder": "Annual General Meeting of Shareholders",
+    "titleUzPlaceholder": "Aktsiyadorlarning yillik umumiy yig'ilishi",
+    "titleEnPlaceholder": "Annual General Meeting of Shareholders",
+    "agendaRuLabel": "Agenda (Russian, one item per line)",
+    "agendaUzLabel": "Agenda (Uzbek, one item per line)",
+    "agendaEnLabel": "Agenda (English, one item per line)",
+    "agendaUzPlaceholder": "2025 yilgi yillik hisobotni tasdiqlash\nMoliyaviy hisobotni tasdiqlash\nFoydani taqsimlash",
+    "agendaEnPlaceholder": "Approval of annual report for 2025\nApproval of financial statements\nProfit distribution"
   },
   "chat": {
     "roles": {
@@ -478,7 +492,19 @@
     "noMaterialsForBrief": "Upload materials to generate a brief",
     "briefFilesUsed": "Files processed",
     "downloadDocx": "Download Word (.docx)",
-    "briefLang": "Brief language"
+    "briefLang": "Brief language",
+    "sourceLanguage": "Source language",
+    "titleRuLabel": "Title (Russian)",
+    "titleUzLabel": "Title (Uzbek)",
+    "titleEnLabel": "Title (English)",
+    "translationStatus": "Translation status",
+    "generateTranslations": "Generate translations",
+    "generating": "Generating...",
+    "translationStale": "Source text has changed. Regenerate translations?",
+    "regenerateTranslations": "Regenerate",
+    "keepTranslations": "Keep",
+    "translationProviderNote": "Connect a translation provider (OpenAI / DeepL / Google) to enable auto-translation",
+    "translationPlaceholder": "Translation will appear here"
   },
   "admin": {
     "title": "User Management",
@@ -582,6 +608,18 @@
     "participantsCol": "Participants",
     "decisionsCol": "Decisions",
     "durationMin": "{{min}} min"
+  },
+  "roleDetails": {
+    "Председатель НС": "Chairman of SB",
+    "Заместитель председателя НС": "Deputy Chairman of SB",
+    "Независимый директор НС": "Independent Director of SB",
+    "Член НС": "Member of SB",
+    "Секретарь НС": "Secretary of SB",
+    "Председатель правления": "Chairman of the Management Board",
+    "Заместитель председателя правления": "Deputy Chairman of the Management Board",
+    "Член правления": "Member of the Management Board",
+    "Председатель ревизионной комиссии": "Chairman of the Audit Committee",
+    "Корпоративный секретарь": "Corporate Secretary"
   },
   "langTabs": {
     "ru": "Русский",

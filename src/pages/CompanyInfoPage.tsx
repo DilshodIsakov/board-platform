@@ -177,7 +177,16 @@ function getInitials(name: string): string {
 }
 
 function MemberCard({ member, isSelf, onMessage }: { member: MemberProfile; isSelf: boolean; onMessage: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const translateRoleDetail = (detail: string) => {
+    if (i18n.language === "en") {
+      const key = `roleDetails.${detail}`;
+      const translated = t(key);
+      if (translated !== key) return translated;
+    }
+    return detail;
+  };
   const badgeColors = ROLE_BADGE_COLORS[member.role] || { bg: "#F3F4F6", color: "#374151" };
   const avatarColor = AVATAR_COLORS[member.full_name.length % AVATAR_COLORS.length];
 
@@ -213,7 +222,7 @@ function MemberCard({ member, isSelf, onMessage }: { member: MemberProfile; isSe
           </span>
           {member.role_details && (
             <div style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginTop: 5 }}>
-              {member.role_details}
+              {translateRoleDetail(member.role_details)}
             </div>
           )}
         </div>

@@ -374,7 +374,21 @@
     "materialsTitle": "Материалы",
     "noMaterials": "Материалы не добавлены",
     "materialsAvailable": "Материалы доступны",
-    "materialsWaiting": "Ожидает загрузки"
+    "materialsWaiting": "Ожидает загрузки",
+    "allLangsNote": "Все три языка обязательны (RU, UZ, EN)",
+    "allLangsRequired": "Пожалуйста, заполните название собрания на всех трёх языках (RU, UZ, EN)",
+    "agendaLineMismatch": "Количество пунктов повестки должно совпадать на всех языках",
+    "titleRuLabel": "Название собрания (русский)",
+    "titleUzLabel": "Название собрания (узбекский)",
+    "titleEnLabel": "Название собрания (английский)",
+    "titleRuPlaceholder": "Годовое общее собрание акционеров",
+    "titleUzPlaceholder": "Aktsiyadorlarning yillik umumiy yig'ilishi",
+    "titleEnPlaceholder": "Annual General Meeting of Shareholders",
+    "agendaRuLabel": "Повестка дня (русский, каждый пункт с новой строки)",
+    "agendaUzLabel": "Повестка дня (узбекский, каждый пункт с новой строки)",
+    "agendaEnLabel": "Повестка дня (английский, каждый пункт с новой строки)",
+    "agendaUzPlaceholder": "2025 yilgi yillik hisobotni tasdiqlash\nMoliyaviy hisobotni tasdiqlash\nFoydani taqsimlash",
+    "agendaEnPlaceholder": "Approval of annual report for 2025\nApproval of financial statements\nProfit distribution"
   },
   "chat": {
     "roles": {
@@ -481,7 +495,19 @@
     "noMaterialsForBrief": "Загрузите материалы для генерации brief",
     "briefFilesUsed": "Обработано файлов",
     "downloadDocx": "Скачать Word (.docx)",
-    "briefLang": "Язык брифа"
+    "briefLang": "Язык брифа",
+    "sourceLanguage": "Язык источника",
+    "titleRuLabel": "Название (русский)",
+    "titleUzLabel": "Название (узбекский)",
+    "titleEnLabel": "Название (английский)",
+    "translationStatus": "Статус перевода",
+    "generateTranslations": "Сгенерировать переводы",
+    "generating": "Генерация...",
+    "translationStale": "Исходный текст изменился. Перегенерировать переводы?",
+    "regenerateTranslations": "Перегенерировать",
+    "keepTranslations": "Оставить",
+    "translationProviderNote": "Подключите провайдер перевода (OpenAI / DeepL / Google) для автоперевода",
+    "translationPlaceholder": "Перевод появится здесь"
   },
   "admin": {
     "title": "Управление пользователями",

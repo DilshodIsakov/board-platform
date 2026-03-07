@@ -16,6 +16,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { formatDateTime } from "../lib/format";
 import { getIntlLocale } from "../i18n";
+import { getLocalizedField } from "../lib/i18nHelpers";
 
 const CAN_CREATE_MEETING = ["admin", "corp_secretary"];
 
@@ -190,7 +191,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
               {scheduledMeetings.slice(0, 5).map((m) => (
                 <Link key={m.id} to={`/meetings/${m.id}`} style={meetingItemStyle}>
                   <div>
-                    <div style={{ fontWeight: 500, fontSize: 15, color: "#111827" }}>{m.title}</div>
+                    <div style={{ fontWeight: 500, fontSize: 15, color: "#111827" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title")}</div>
                     <div style={{ fontSize: 13, color: "#9CA3AF" }}>
                       {formatDateTime(m.start_at)}
                     </div>
@@ -228,6 +229,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   required
+                  lang={getIntlLocale()}
                   style={inputStyle}
                 />
               </div>
@@ -316,7 +318,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
                 {shMeetings.filter((m) => m.status === "scheduled").slice(0, 3).map((m) => (
                   <Link key={m.id} to="/shareholder-meeting" style={meetingItemStyle}>
                     <div>
-                      <div style={{ fontWeight: 500, fontSize: 15, color: "#111827" }}>{m.title}</div>
+                      <div style={{ fontWeight: 500, fontSize: 15, color: "#111827" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title")}</div>
                       <div style={{ fontSize: 13, color: "#9CA3AF" }}>
                         {new Date(m.meeting_date).toLocaleDateString(getIntlLocale(), {
                           day: "numeric", month: "long", year: "numeric",

@@ -280,7 +280,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
         {editing ? (
           <>
             <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} style={{ ...inputStyle, fontSize: 20, fontWeight: 600, marginBottom: 12 }} />
-            <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} style={{ ...inputStyle, marginBottom: 12, resize: "vertical" }} placeholder="Описание..." />
+            <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} style={{ ...inputStyle, marginBottom: 12, resize: "vertical" }} placeholder={t("taskDetails.descriptionPlaceholder")} />
             <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
               <div style={{ flex: 1 }}>
                 <label style={metaLabelStyle}>{t("taskTable.priority")}</label>
@@ -457,7 +457,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
               style={{ ...inputStyle, flex: 1, resize: "vertical" }}
             />
             <button type="submit" disabled={sendingComment || !commentText.trim()} style={{ ...saveBtnStyle, alignSelf: "flex-end" }}>
-              {sendingComment ? "..." : "Отправить"}
+              {sendingComment ? "..." : t("taskDetails.send")}
             </button>
           </form>
         )}
@@ -466,11 +466,11 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       {/* Attachments */}
       <div style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h2 style={sectionTitleStyle}>Файлы ({attachments.length})</h2>
+          <h2 style={sectionTitleStyle}>{t("taskDetails.files", { count: attachments.length })}</h2>
           {profile && (
             <>
               <button onClick={() => fileInputRef.current?.click()} disabled={uploading} style={editBtnStyle}>
-                {uploading ? "Загрузка..." : "Загрузить файл"}
+                {uploading ? t("taskDetails.uploading") : t("taskDetails.uploadFile")}
               </button>
               <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={handleUpload} />
             </>
@@ -478,15 +478,15 @@ export default function TaskDetailsPage({ profile, org }: Props) {
         </div>
 
         {attachments.length === 0 ? (
-          <p style={{ color: "#9CA3AF", fontSize: 14 }}>Нет прикреплённых файлов</p>
+          <p style={{ color: "#9CA3AF", fontSize: 14 }}>{t("taskDetails.noAttachments")}</p>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
             <thead>
               <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <th style={thStyle}>Файл</th>
-                <th style={thStyle}>Размер</th>
-                <th style={thStyle}>Загрузил</th>
-                <th style={thStyle}>Дата</th>
+                <th style={thStyle}>{t("taskDetails.file")}</th>
+                <th style={thStyle}>{t("taskDetails.size")}</th>
+                <th style={thStyle}>{t("taskDetails.uploader")}</th>
+                <th style={thStyle}>{t("taskDetails.date")}</th>
                 <th style={thStyle}></th>
               </tr>
             </thead>
@@ -501,14 +501,14 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                   <td style={{ ...tdStyle, color: "#6B7280" }}>{formatFileSize(a.file_size)}</td>
                   <td style={{ ...tdStyle, color: "#6B7280" }}>{(a.uploader as { full_name: string } | undefined)?.full_name || "—"}</td>
                   <td style={{ ...tdStyle, color: "#6B7280", whiteSpace: "nowrap" }}>
-                    {new Date(a.created_at).toLocaleDateString("ru-RU")}
+                    {new Date(a.created_at).toLocaleDateString(getIntlLocale())}
                   </td>
                   <td style={tdStyle}>
                     <div style={{ display: "flex", gap: 6 }}>
-                      <button onClick={() => handleDownload(a)} style={smallBtnStyle}>Скачать</button>
+                      <button onClick={() => handleDownload(a)} style={smallBtnStyle}>{t("taskDetails.download")}</button>
                       {canDeleteAttachment(a) && (
                         <button onClick={() => handleDeleteAttachment(a)} style={{ ...smallBtnStyle, color: "#DC2626", borderColor: "#FCA5A5" }}>
-                          Удалить
+                          {t("common.delete")}
                         </button>
                       )}
                     </div>
@@ -525,7 +525,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
         <div style={overlayStyle} onClick={() => setShowAssignees(false)}>
           <div style={modalSmallStyle} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: 18 }}>Управление исполнителями</h3>
+              <h3 style={{ margin: 0, fontSize: 18 }}>{t("taskDetails.manageAssignees")}</h3>
               <button onClick={() => setShowAssignees(false)} style={closeBtnStyle}>&times;</button>
             </div>
             <div style={{ maxHeight: 400, overflowY: "auto" }}>
@@ -543,19 +543,19 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                     />
                     <span style={{ flex: 1, cursor: "pointer" }} onClick={() => handleToggleAssignee(p.id)}>
                       {p.full_name}
-                      <span style={{ color: "#9CA3AF", fontSize: 12, marginLeft: 4 }}>({ROLE_SHORT[p.role] || p.role})</span>
+                      <span style={{ color: "#9CA3AF", fontSize: 12, marginLeft: 4 }}>({t(`roles.${p.role}`, p.role)})</span>
                     </span>
                     {isAssigned && !isMain && (
                       <button
                         onClick={() => handleSetMainExecutor(p.id)}
                         style={{ ...smallBtnStyle, fontSize: 11, color: "#D97706", borderColor: "#FCD34D" }}
                       >
-                        Назначить главным
+                        {t("taskDetails.makeMain")}
                       </button>
                     )}
                     {isMain && (
                       <span style={{ fontSize: 11, background: "#FEF3C7", color: "#92400E", padding: "2px 8px", borderRadius: 8 }}>
-                        Главный
+                        {t("taskDetails.mainLabel")}
                       </span>
                     )}
                   </div>
@@ -569,15 +569,6 @@ export default function TaskDetailsPage({ profile, org }: Props) {
   );
 }
 
-const ROLE_SHORT: Record<string, string> = {
-  corp_secretary: "Секретарь",
-  board_member: "Член НС",
-  executive: "Правление",
-  management: "Менеджмент",
-  admin: "Админ",
-  employee: "Сотрудник",
-  auditor: "Аудитор",
-};
 
 // ============================================================
 // Styles

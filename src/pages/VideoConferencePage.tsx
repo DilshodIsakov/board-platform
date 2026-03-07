@@ -143,7 +143,7 @@ export default function VideoConferencePage({ profile, org }: Props) {
                 <input
                   value={formUrl}
                   onChange={(e) => setFormUrl(e.target.value)}
-                  placeholder="https://meet.google.com/... или Zoom / Teams"
+                  placeholder={t("video.confUrlPlaceholder")}
                   style={inputStyle}
                 />
               </div>

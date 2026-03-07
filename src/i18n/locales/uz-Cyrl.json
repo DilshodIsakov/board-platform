@@ -296,6 +296,7 @@
     "confDate": "Сана",
     "confTime": "Вақт",
     "confUrl": "Конференция ҳаволаси",
+    "confUrlPlaceholder": "https://meet.google.com/... ёки Zoom / Teams",
     "create": "Яратиш",
     "cancel": "Бекор қилиш",
     "upcomingConferences": "Келгуси конференциялар",
@@ -557,7 +558,11 @@
     "manageAssignees": "Ижрочиларни бошқариш",
     "makeMain": "Асосий қилиш",
     "deleteFileConfirm": "Файлни ўчириш?",
-    "descriptionPlaceholder": "Тавсиф..."
+    "descriptionPlaceholder": "Тавсиф...",
+    "send": "Юбориш",
+    "uploading": "Юкланмоқда...",
+    "download": "Юклаб олиш",
+    "mainLabel": "Асосий"
   },
   "stats_extra": {
     "export": "Юклаб олиш",

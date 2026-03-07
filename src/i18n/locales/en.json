@@ -296,6 +296,7 @@
     "confDate": "Date",
     "confTime": "Time",
     "confUrl": "Conference link",
+    "confUrlPlaceholder": "https://meet.google.com/... or Zoom / Teams",
     "create": "Create",
     "cancel": "Cancel",
     "upcomingConferences": "Upcoming Conferences",
@@ -557,7 +558,11 @@
     "manageAssignees": "Manage assignees",
     "makeMain": "Make main",
     "deleteFileConfirm": "Delete file?",
-    "descriptionPlaceholder": "Description..."
+    "descriptionPlaceholder": "Description...",
+    "send": "Send",
+    "uploading": "Uploading...",
+    "download": "Download",
+    "mainLabel": "Main"
   },
   "stats_extra": {
     "export": "Export",

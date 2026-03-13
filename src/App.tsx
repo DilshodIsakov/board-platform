@@ -32,10 +32,7 @@ export default function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [org, setOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(false);
-
   const loadProfileAndOrg = async () => {
-    setProfileLoading(true);
     try {
       const [p, o] = await Promise.all([getMyProfile(), getMyOrg()]);
       console.log("[DEBUG] Loaded profile:", p);
@@ -53,8 +50,6 @@ export default function App() {
       console.error("loadProfileAndOrg error:", e);
       setProfile(null);
       setOrg(null);
-    } finally {
-      setProfileLoading(false);
     }
   };
 

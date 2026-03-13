@@ -17,6 +17,18 @@ export interface BoardTask {
   updated_at: string;
   related_meeting_id: string | null;
   related_agenda_item_id: string | null;
+  // multilingual fields
+  source_language?: string;
+  title_ru?: string | null;
+  title_uz?: string | null;
+  title_en?: string | null;
+  description_ru?: string | null;
+  description_uz?: string | null;
+  description_en?: string | null;
+  translation_status_ru?: string;
+  translation_status_uz?: string;
+  translation_status_en?: string;
+  translation_updated_at?: string | null;
   // joined
   assignees?: BoardTaskAssignee[];
   creator?: { full_name: string };
@@ -101,7 +113,12 @@ export async function listTasks(
     q = q.lte("due_date", weekLater.toISOString().slice(0, 10));
   }
   if (filters?.search) {
-    q = q.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+    const s = filters.search;
+    q = q.or(
+      `title.ilike.%${s}%,description.ilike.%${s}%,` +
+      `title_ru.ilike.%${s}%,title_uz.ilike.%${s}%,title_en.ilike.%${s}%,` +
+      `description_ru.ilike.%${s}%,description_uz.ilike.%${s}%,description_en.ilike.%${s}%`
+    );
   }
 
   const { data, error } = await q;
@@ -141,18 +158,42 @@ export async function createTask(payload: {
   due_date?: string;
   related_meeting_id?: string;
   related_agenda_item_id?: string;
+  // multilingual
+  source_language?: string;
+  title_ru?: string;
+  title_uz?: string;
+  title_en?: string;
+  description_ru?: string;
+  description_uz?: string;
+  description_en?: string;
+  translation_status_ru?: string;
+  translation_status_uz?: string;
+  translation_status_en?: string;
 }): Promise<BoardTask> {
+  const sourceLang = payload.source_language || "ru";
+
   const { data, error } = await supabase
     .from("board_tasks")
     .insert({
-      organization_id: payload.organization_id,
-      created_by: payload.created_by,
-      title: payload.title,
-      description: payload.description || null,
-      priority: payload.priority || "medium",
-      due_date: payload.due_date || null,
-      related_meeting_id: payload.related_meeting_id || null,
+      organization_id:        payload.organization_id,
+      created_by:             payload.created_by,
+      title:                  payload.title,
+      description:            payload.description || null,
+      priority:               payload.priority || "medium",
+      due_date:               payload.due_date || null,
+      related_meeting_id:     payload.related_meeting_id || null,
       related_agenda_item_id: payload.related_agenda_item_id || null,
+      source_language:        sourceLang,
+      title_ru:               payload.title_ru || null,
+      title_uz:               payload.title_uz || null,
+      title_en:               payload.title_en || null,
+      description_ru:         payload.description_ru || null,
+      description_uz:         payload.description_uz || null,
+      description_en:         payload.description_en || null,
+      translation_status_ru:  payload.translation_status_ru || (sourceLang === "ru" ? "original" : "missing"),
+      translation_status_uz:  payload.translation_status_uz || (sourceLang === "uz" ? "original" : "missing"),
+      translation_status_en:  payload.translation_status_en || (sourceLang === "en" ? "original" : "missing"),
+      translation_updated_at: new Date().toISOString(),
     })
     .select()
     .single();
@@ -164,7 +205,14 @@ export async function createTask(payload: {
 /** Обновить поручение */
 export async function updateTask(
   id: string,
-  patch: Partial<Pick<BoardTask, "title" | "description" | "priority" | "status" | "due_date">>
+  patch: Partial<Pick<BoardTask,
+    | "title" | "description" | "priority" | "status" | "due_date"
+    | "source_language"
+    | "title_ru" | "title_uz" | "title_en"
+    | "description_ru" | "description_uz" | "description_en"
+    | "translation_status_ru" | "translation_status_uz" | "translation_status_en"
+    | "translation_updated_at"
+  >>
 ): Promise<void> {
   const { error } = await supabase
     .from("board_tasks")
@@ -337,11 +385,12 @@ export function formatFileSize(bytes: number | null): string {
 }
 
 /** Загрузить всех профилей организации (для выбора исполнителей) */
-export async function listOrgProfiles(orgId: string): Promise<{ id: string; full_name: string; role: string }[]> {
+export async function listOrgProfiles(_orgId: string): Promise<{ id: string; full_name: string; role: string }[]> {
+  // Single-company system: profiles table has no organization_id column.
+  // RLS on profiles already scopes to the current user's org context.
   const { data, error } = await supabase
     .from("profiles")
     .select("id, full_name, role")
-    .eq("organization_id", orgId)
     .order("full_name");
 
   if (error) {

@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading...",
+    "loadError": "Failed to load data. Please try refreshing the page.",
     "save": "Save",
     "saving": "Saving...",
     "cancel": "Cancel",
@@ -122,7 +123,9 @@
     "today": "Today",
     "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-    "planNS": "Board Plan"
+    "planNS": "Board Plan",
+    "tabCalendar": "Calendar",
+    "tabWorkplan": "Work Plan"
   },
   "voting": {
     "title": "Voting System",
@@ -195,7 +198,16 @@
     "deadlineLabel": "Deadline",
     "assigneesLabel": "Assignees",
     "mainExecutorLabel": "Main executor",
-    "coExecutorNote": "Others will be assigned as co-executors"
+    "coExecutorNote": "Others will be assigned as co-executors",
+    "sourceLang": "Source language",
+    "generateTranslations": "Generate translations",
+    "generating": "Generating...",
+    "translationStale": "Source text changed. Regenerate?",
+    "translationProviderNote": "Auto-translation via OpenAI ✦",
+    "translationError": "Failed to generate translations. Check your connection and try again.",
+    "titlePlaceholderRu": "Task title in Russian",
+    "titlePlaceholderUz": "Task title in Uzbek",
+    "titlePlaceholderEn": "Task title in English"
   },
   "taskStatus": {
     "open": "Open",
@@ -320,12 +332,38 @@
     "pastMeetings": "Past meetings ({{count}})",
     "meetingNumber": "Meeting #{{number}}",
     "agenda": "Agenda ({{count}} items)",
+    "noAgendaItems": "No agenda items yet.",
     "goToCalendar": "Go to calendar",
     "planStatus": {
       "scheduled": "Scheduled",
       "completed": "Completed",
       "cancelled": "Cancelled"
-    }
+    },
+    "editPlan": "Edit Plan",
+    "addMeeting": "Add Meeting",
+    "editMeeting": "Edit Meeting",
+    "deleteMeeting": "Delete Meeting",
+    "confirmDeleteMeeting": "Are you sure you want to delete this meeting?",
+    "addAgendaItem": "Add Agenda Item",
+    "editAgendaItem": "Edit Agenda Item",
+    "deleteAgendaItem": "Delete Agenda Item",
+    "confirmDeleteAgendaItem": "Are you sure you want to delete this agenda item?",
+    "meetingDateFrom": "Start Date",
+    "meetingDateTo": "End Date",
+    "meetingStatus": "Status",
+    "datesRequired": "Please specify both dates.",
+    "datesInvalid": "Start date must be before end date.",
+    "planTitle": "Plan Title",
+    "planPeriodStart": "Period Start",
+    "planPeriodEnd": "Period End",
+    "planStatusLabel": "Plan Status",
+    "agendaItemTitle": "Agenda Item Title",
+    "generateTranslations": "Generate translations",
+    "generating": "Generating...",
+    "translationError": "Failed to generate translations. Try again.",
+    "titleRequired": "Title is required.",
+    "saveError": "Save error.",
+    "deleteError": "Delete error."
   },
   "shareholder": {
     "meetingStatus": {
@@ -470,6 +508,7 @@
     "noMeetingSelectedHint": "Click on a meeting on the left to view details",
     "agenda": "Agenda",
     "addAgendaItem": "Add Agenda Item",
+    "editAgendaItem": "Edit Agenda Item",
     "agendaTitle": "Item Title",
     "speaker": "Speaker",
     "speakerPlaceholder": "Speaker name and position",
@@ -503,7 +542,8 @@
     "translationStale": "Source text has changed. Regenerate translations?",
     "regenerateTranslations": "Regenerate",
     "keepTranslations": "Keep",
-    "translationProviderNote": "Connect a translation provider (OpenAI / DeepL / Google) to enable auto-translation",
+    "translationProviderNote": "Auto-translation via OpenAI ✦",
+    "translationError": "Failed to generate translations. Please try again.",
     "translationPlaceholder": "Translation will appear here"
   },
   "admin": {
@@ -626,5 +666,39 @@
     "uz": "Ўзбекча",
     "en": "English",
     "optional": "(optional)"
+  },
+  "nsVoting": {
+    "title": "Voting",
+    "notStarted": "Voting not started",
+    "active": "Voting in progress",
+    "closed": "Voting closed",
+    "activate": "Activate voting",
+    "closeVoting": "Close voting",
+    "activateConfirm": "Activate voting for this agenda item?",
+    "closeConfirm": "Close voting for this item?",
+    "voteFor": "For",
+    "voteAgainst": "Against",
+    "voteAbstain": "Abstain",
+    "myVote": "My vote",
+    "signPackage": "Sign voting results",
+    "signConfirm": "Confirm signing all votes for this meeting?",
+    "signed": "Voting results signed",
+    "signedAt": "Signed at",
+    "allVotedReady": "All votes cast — ready to sign",
+    "notAllVoted": "Please vote on all active agenda items",
+    "activateSuccess": "Voting activated",
+    "closeSuccess": "Voting closed",
+    "voteSaved": "Vote saved",
+    "signSuccess": "Voting results signed",
+    "signError": "Signing error",
+    "dashSubtitle": "Overview of voting sessions for the Supervisory Board",
+    "activeMeetings": "Active votings",
+    "completedMeetings": "Completed votings",
+    "noActiveMeetings": "No active votings",
+    "noMeetingsWithVotings": "No votings yet",
+    "openQuestions": "active items",
+    "allClosed": "All closed",
+    "needsVote": "Needs vote",
+    "goToMeeting": "Go to meeting"
   }
 }

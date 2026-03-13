@@ -26,12 +26,35 @@ export interface AgendaItem {
   id: string;
   meeting_id: string;
   org_id: string;
-  title: string; // backward compat
+  title: string; // backward compat — mirrors source language
   title_ru: string | null;
   title_uz: string | null;
   title_en: string | null;
   order_index: number;
-  presenter: string | null;
+  presenter: string | null; // backward compat
+  presenter_ru: string | null;
+  presenter_uz: string | null;
+  presenter_en: string | null;
+  source_language: string;
+  translation_status_ru: string;
+  translation_status_uz: string;
+  translation_status_en: string;
+  translation_updated_at: string | null;
+}
+
+export interface AgendaItemPayload {
+  title: string;
+  title_ru?: string | null;
+  title_uz?: string | null;
+  title_en?: string | null;
+  presenter?: string | null;
+  presenter_ru?: string | null;
+  presenter_uz?: string | null;
+  presenter_en?: string | null;
+  source_language?: string;
+  translation_status_ru?: string;
+  translation_status_uz?: string;
+  translation_status_en?: string;
 }
 
 export interface Material {
@@ -140,22 +163,17 @@ export async function fetchAgendaItems(meetingId: string): Promise<AgendaItem[]>
 export async function createAgendaItem(
   meetingId: string,
   orgId: string,
-  title: string,
-  presenter: string | null,
   orderIndex: number,
-  multilang?: { title_ru?: string; title_uz?: string; title_en?: string }
+  payload: AgendaItemPayload
 ): Promise<AgendaItem | null> {
   const { data, error } = await supabase
     .from("agenda_items")
     .insert({
       meeting_id: meetingId,
       org_id: orgId,
-      title,
-      presenter,
       order_index: orderIndex,
-      title_ru: multilang?.title_ru ?? title,
-      ...(multilang?.title_uz ? { title_uz: multilang.title_uz } : {}),
-      ...(multilang?.title_en ? { title_en: multilang.title_en } : {}),
+      ...payload,
+      translation_updated_at: new Date().toISOString(),
     })
     .select()
     .single();
@@ -169,9 +187,12 @@ export async function createAgendaItem(
 
 export async function updateAgendaItem(
   id: string,
-  fields: { title?: string; presenter?: string | null; order_index?: number }
+  fields: Partial<AgendaItemPayload> & { order_index?: number }
 ): Promise<void> {
-  const { error } = await supabase.from("agenda_items").update(fields).eq("id", id);
+  const { error } = await supabase
+    .from("agenda_items")
+    .update({ ...fields, translation_updated_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) {
     console.error("updateAgendaItem error:", error);
     throw new Error(error.message);

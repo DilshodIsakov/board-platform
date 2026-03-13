@@ -5,6 +5,7 @@ import type { Profile, Organization } from "../lib/profile";
 import { fetchMeetings, type Meeting } from "../lib/meetings";
 import { getIntlLocale } from "../i18n";
 import { getLocalizedField } from "../lib/i18nHelpers";
+import BoardWorkPlanPage from "./BoardWorkPlanPage";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "#9ca3af",
@@ -41,11 +42,12 @@ function dateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export default function CalendarPage({ profile }: Props) {
+export default function CalendarPage({ profile, org }: Props) {
   const { t } = useTranslation();
   const weekdays = t("calendar.weekdays", { returnObjects: true }) as string[];
   const monthNames = t("calendar.months", { returnObjects: true }) as string[];
   const [searchParams] = useSearchParams();
+  const [tab, setTab] = useState<"calendar" | "workplan">("calendar");
   const today = new Date();
   const paramYear = searchParams.get("year");
   const paramMonth = searchParams.get("month");
@@ -92,14 +94,51 @@ export default function CalendarPage({ profile }: Props) {
     setMonth(today.getMonth());
   };
 
-  if (loading) {
-    return (
-      <div style={{ color: "#9CA3AF" }}>{t("common.loading")}</div>
-    );
-  }
-
   return (
     <div>
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: "1px solid #E5E7EB", paddingBottom: 0 }}>
+        <button
+          onClick={() => setTab("calendar")}
+          style={{
+            padding: "8px 20px",
+            fontSize: 14,
+            fontWeight: 500,
+            background: "none",
+            border: "none",
+            borderBottom: tab === "calendar" ? "2px solid #3B82F6" : "2px solid transparent",
+            color: tab === "calendar" ? "#3B82F6" : "#6B7280",
+            cursor: "pointer",
+            marginBottom: -1,
+          }}
+        >
+          {t("calendar.tabCalendar")}
+        </button>
+        <button
+          onClick={() => setTab("workplan")}
+          style={{
+            padding: "8px 20px",
+            fontSize: 14,
+            fontWeight: 500,
+            background: "none",
+            border: "none",
+            borderBottom: tab === "workplan" ? "2px solid #3B82F6" : "2px solid transparent",
+            color: tab === "workplan" ? "#3B82F6" : "#6B7280",
+            cursor: "pointer",
+            marginBottom: -1,
+          }}
+        >
+          {t("calendar.tabWorkplan")}
+        </button>
+      </div>
+
+      {/* Work plan tab */}
+      {tab === "workplan" && <BoardWorkPlanPage profile={profile} org={org} />}
+
+      {/* Calendar tab */}
+      {tab === "calendar" && <div>
+      {loading && <div style={{ color: "#9CA3AF" }}>{t("common.loading")}</div>}
+      {!loading && <>
       {/* Заголовок с навигацией */}
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
         <button onClick={prevMonth} style={navBtnStyle}>&lt;</button>
@@ -185,6 +224,8 @@ export default function CalendarPage({ profile }: Props) {
         <span><span style={legendDotStyle("#16a34a")} /> {t("meetingStatus.completed")}</span>
         <span><span style={legendDotStyle("#7C3AED")} /> {t("calendar.planNS")}</span>
       </div>
+      </>}
+      </div>}
     </div>
   );
 }

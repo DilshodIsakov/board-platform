@@ -36,7 +36,6 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 export interface Organization {
   id: string;
   name: string;
-  is_active: boolean;
   created_at: string;
 }
 
@@ -168,7 +167,17 @@ export async function resendConfirmationEmail(email: string): Promise<boolean> {
 }
 
 export async function getMyOrg(): Promise<Organization | null> {
-  return null;
+  const { data, error } = await supabase
+    .from("organizations")
+    .select("id, name, created_at")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error("getMyOrg error:", error);
+    return null;
+  }
+  return data as Organization | null;
 }
 
 export async function updateProfileLocale(_locale: string): Promise<void> {}

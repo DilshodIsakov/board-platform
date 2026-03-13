@@ -74,7 +74,6 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount: 
     { to: "/chat", label: t("sidebar.chat"), icon: "chat" },
     { to: "/documents", label: t("sidebar.documents"), icon: "docs" },
     { to: "/tasks", label: t("sidebar.tasks"), icon: "tasks" },
-    { to: "/board-work-plan", label: t("sidebar.workplan"), icon: "workplan" },
     { to: "/videoconference", label: t("sidebar.videoconference"), icon: "video" },
     { to: "/stats", label: t("sidebar.stats"), icon: "stats" },
     { to: "/shareholder-meeting", label: t("sidebar.shareholders"), icon: "shareholders" },

@@ -21,6 +21,13 @@ import {
   type BoardTaskComment,
   type BoardTaskAttachment,
 } from "../lib/tasks";
+import { getLocalizedField } from "../lib/i18nHelpers";
+import {
+  generateTaskTranslations,
+  translationStatusColor,
+  translationStatusLabel,
+  type SupportedLang,
+} from "../lib/translationService";
 
 interface Props {
   profile: Profile | null;
@@ -71,6 +78,23 @@ export default function TaskDetailsPage({ profile, org }: Props) {
   const [editDueDate, setEditDueDate] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Multilingual edit states
+  const [editSourceLang, setEditSourceLang] = useState<SupportedLang>("ru");
+  const [editLangTab, setEditLangTab] = useState<SupportedLang>("ru");
+  const [editTitleRu, setEditTitleRu] = useState("");
+  const [editTitleUz, setEditTitleUz] = useState("");
+  const [editTitleEn, setEditTitleEn] = useState("");
+  const [editDescRu, setEditDescRu] = useState("");
+  const [editDescUz, setEditDescUz] = useState("");
+  const [editDescEn, setEditDescEn] = useState("");
+  const [editStatusRu, setEditStatusRu] = useState<string>("original");
+  const [editStatusUz, setEditStatusUz] = useState<string>("missing");
+  const [editStatusEn, setEditStatusEn] = useState<string>("missing");
+  const [editTranslating, setEditTranslating] = useState(false);
+  const [editTranslationGenerated, setEditTranslationGenerated] = useState(false);
+  const [editTranslationError, setEditTranslationError] = useState("");
+  const [editSourceSnapshot, setEditSourceSnapshot] = useState({ title: "", desc: "" });
+
   // Comment
   const [commentText, setCommentText] = useState("");
   const [sendingComment, setSendingComment] = useState(false);
@@ -106,6 +130,20 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       setEditDesc(t.description || "");
       setEditPriority(t.priority);
       setEditDueDate(t.due_date || "");
+      // multilingual
+      const srcLang = (t.source_language as SupportedLang) || "ru";
+      setEditSourceLang(srcLang);
+      setEditLangTab(srcLang);
+      setEditTitleRu(t.title_ru || "");
+      setEditTitleUz(t.title_uz || "");
+      setEditTitleEn(t.title_en || "");
+      setEditDescRu(t.description_ru || "");
+      setEditDescUz(t.description_uz || "");
+      setEditDescEn(t.description_en || "");
+      setEditStatusRu(t.translation_status_ru || "original");
+      setEditStatusUz(t.translation_status_uz || "missing");
+      setEditStatusEn(t.translation_status_en || "missing");
+      setEditTranslationGenerated(false);
     }
     setLoading(false);
   };
@@ -127,19 +165,54 @@ export default function TaskDetailsPage({ profile, org }: Props) {
   const handleSaveEdit = async () => {
     if (!task) return;
     setSaving(true);
+    // Derive legacy title/description from source language
+    const srcTitle = (editSourceLang === "ru" ? editTitleRu : editSourceLang === "uz" ? editTitleUz : editTitleEn).trim();
+    const srcDesc  = (editSourceLang === "ru" ? editDescRu  : editSourceLang === "uz" ? editDescUz  : editDescEn).trim();
+    // Safety net: if user typed content in non-source tab but status is still "missing", promote to "reviewed"
+    const resolveEditStatus = (lang: SupportedLang, status: string) => {
+      if (lang === editSourceLang) return status;
+      const titleVal = lang === "ru" ? editTitleRu : lang === "uz" ? editTitleUz : editTitleEn;
+      const descVal  = lang === "ru" ? editDescRu  : lang === "uz" ? editDescUz  : editDescEn;
+      if (status === "missing" && (titleVal.trim() || descVal.trim())) return "reviewed";
+      return status;
+    };
+    const resolvedRu = resolveEditStatus("ru", editStatusRu);
+    const resolvedUz = resolveEditStatus("uz", editStatusUz);
+    const resolvedEn = resolveEditStatus("en", editStatusEn);
     try {
       await updateTask(task.id, {
-        title: editTitle.trim(),
-        description: editDesc.trim() || null,
-        priority: editPriority as BoardTask["priority"],
-        due_date: editDueDate || null,
+        title:       srcTitle || editTitle.trim(),
+        description: srcDesc || editDesc.trim() || null,
+        priority:    editPriority as BoardTask["priority"],
+        due_date:    editDueDate || null,
+        source_language:       editSourceLang,
+        title_ru:              editTitleRu || null,
+        title_uz:              editTitleUz || null,
+        title_en:              editTitleEn || null,
+        description_ru:        editDescRu || null,
+        description_uz:        editDescUz || null,
+        description_en:        editDescEn || null,
+        translation_status_ru: resolvedRu,
+        translation_status_uz: resolvedUz,
+        translation_status_en: resolvedEn,
+        translation_updated_at: new Date().toISOString(),
       });
       setTask({
         ...task,
-        title: editTitle.trim(),
-        description: editDesc.trim() || null,
-        priority: editPriority as BoardTask["priority"],
-        due_date: editDueDate || null,
+        title:       srcTitle || editTitle.trim(),
+        description: srcDesc || editDesc.trim() || null,
+        priority:    editPriority as BoardTask["priority"],
+        due_date:    editDueDate || null,
+        source_language:       editSourceLang,
+        title_ru:              editTitleRu || null,
+        title_uz:              editTitleUz || null,
+        title_en:              editTitleEn || null,
+        description_ru:        editDescRu || null,
+        description_uz:        editDescUz || null,
+        description_en:        editDescEn || null,
+        translation_status_ru: resolvedRu,
+        translation_status_uz: resolvedUz,
+        translation_status_en: resolvedEn,
       });
       setEditing(false);
     } catch (err) {
@@ -277,37 +350,207 @@ export default function TaskDetailsPage({ profile, org }: Props) {
 
       {/* Header card */}
       <div style={cardStyle}>
-        {editing ? (
-          <>
-            <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} style={{ ...inputStyle, fontSize: 20, fontWeight: 600, marginBottom: 12 }} />
-            <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} style={{ ...inputStyle, marginBottom: 12, resize: "vertical" }} placeholder={t("taskDetails.descriptionPlaceholder")} />
-            <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-              <div style={{ flex: 1 }}>
-                <label style={metaLabelStyle}>{t("taskTable.priority")}</label>
-                <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)} style={inputStyle}>
-                  <option value="low">{t("taskPriority.low")}</option>
-                  <option value="medium">{t("taskPriority.medium")}</option>
-                  <option value="high">{t("taskPriority.high")}</option>
+        {editing ? (() => {
+          const getEditTitle = (lang: SupportedLang) => lang === "ru" ? editTitleRu : lang === "uz" ? editTitleUz : editTitleEn;
+          const setEditTitleForLang = (lang: SupportedLang, v: string) => {
+            if (lang === "ru") setEditTitleRu(v);
+            else if (lang === "uz") setEditTitleUz(v);
+            else setEditTitleEn(v);
+            // Update translation status when user manually types in a non-source tab
+            if (lang !== editSourceLang) {
+              const descVal = lang === "ru" ? editDescRu : lang === "uz" ? editDescUz : editDescEn;
+              const newStatus = (v.trim() || descVal.trim()) ? "reviewed" : "missing";
+              if (lang === "ru") setEditStatusRu(newStatus);
+              else if (lang === "uz") setEditStatusUz(newStatus);
+              else setEditStatusEn(newStatus);
+            }
+          };
+          const getEditDesc = (lang: SupportedLang) => lang === "ru" ? editDescRu : lang === "uz" ? editDescUz : editDescEn;
+          const setEditDescForLang = (lang: SupportedLang, v: string) => {
+            if (lang === "ru") setEditDescRu(v);
+            else if (lang === "uz") setEditDescUz(v);
+            else setEditDescEn(v);
+            // Update translation status when user manually types in a non-source tab
+            if (lang !== editSourceLang) {
+              const titleVal = lang === "ru" ? editTitleRu : lang === "uz" ? editTitleUz : editTitleEn;
+              const newStatus = (titleVal.trim() || v.trim()) ? "reviewed" : "missing";
+              if (lang === "ru") setEditStatusRu(newStatus);
+              else if (lang === "uz") setEditStatusUz(newStatus);
+              else setEditStatusEn(newStatus);
+            }
+          };
+          const editSourceTitle = getEditTitle(editSourceLang);
+          const editSourceDesc = getEditDesc(editSourceLang);
+          const isStale = editTranslationGenerated && (editSourceTitle !== editSourceSnapshot.title || editSourceDesc !== editSourceSnapshot.desc);
+
+          const tabDot = (lang: SupportedLang) => {
+            const st = lang === "ru" ? editStatusRu : lang === "uz" ? editStatusUz : editStatusEn;
+            const hasTitle = !!getEditTitle(lang).trim();
+            const color = hasTitle ? translationStatusColor(st as Parameters<typeof translationStatusColor>[0]) : "#D1D5DB";
+            return <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: color, marginRight: 5 }} />;
+          };
+
+          const handleGenerate = async () => {
+            if (!editSourceTitle.trim()) return;
+            setEditTranslating(true);
+            setEditTranslationError("");
+            try {
+              const draft = await generateTaskTranslations(editSourceLang, editSourceTitle.trim(), editSourceDesc.trim());
+              setEditTitleRu(draft.title_ru);
+              setEditTitleUz(draft.title_uz);
+              setEditTitleEn(draft.title_en);
+              setEditDescRu(draft.description_ru);
+              setEditDescUz(draft.description_uz);
+              setEditDescEn(draft.description_en);
+              setEditStatusRu(draft.status_ru);
+              setEditStatusUz(draft.status_uz);
+              setEditStatusEn(draft.status_en);
+              setEditTranslationGenerated(true);
+              setEditSourceSnapshot({ title: editSourceTitle.trim(), desc: editSourceDesc.trim() });
+            } catch (err) {
+              console.error("[translate] error:", err);
+              setEditTranslationError(err instanceof Error ? err.message : t("taskTable.translationError"));
+            } finally {
+              setEditTranslating(false);
+            }
+          };
+
+          return (
+            <>
+              {/* Source language selector */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                <label style={{ ...metaLabelStyle, margin: 0, whiteSpace: "nowrap" }}>{t("taskTable.sourceLang")}</label>
+                <select
+                  value={editSourceLang}
+                  onChange={(e) => {
+                    const lang = e.target.value as SupportedLang;
+                    setEditSourceLang(lang);
+                    setEditLangTab(lang);
+                    setEditStatusRu(lang === "ru" ? "original" : "missing");
+                    setEditStatusUz(lang === "uz" ? "original" : "missing");
+                    setEditStatusEn(lang === "en" ? "original" : "missing");
+                    setEditTranslationGenerated(false);
+                  }}
+                  style={{ ...inputStyle, width: "auto" }}
+                >
+                  <option value="ru">{t("langTabs.ru")}</option>
+                  <option value="uz">{t("langTabs.uz")}</option>
+                  <option value="en">{t("langTabs.en")}</option>
                 </select>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={metaLabelStyle}>{t("taskTable.deadline")}</label>
-                <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} style={inputStyle} />
+
+              {/* Lang tabs */}
+              <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #E5E7EB", marginBottom: 12 }}>
+                {(["ru", "uz", "en"] as SupportedLang[]).map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => setEditLangTab(lang)}
+                    style={{
+                      padding: "6px 16px",
+                      background: "none",
+                      border: "none",
+                      borderBottom: editLangTab === lang ? "2px solid #3B82F6" : "2px solid transparent",
+                      marginBottom: -2,
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: editLangTab === lang ? 600 : 400,
+                      color: editLangTab === lang ? "#3B82F6" : "#6B7280",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {tabDot(lang)}
+                    {t(`langTabs.${lang}`)}
+                    {lang === editSourceLang && (
+                      <span style={{ fontSize: 10, marginLeft: 5, background: "#DBEAFE", color: "#1E40AF", padding: "1px 5px", borderRadius: 4 }}>src</span>
+                    )}
+                  </button>
+                ))}
               </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button onClick={() => setEditing(false)} style={cancelBtnStyle}>{t("common.cancel")}</button>
-              <button onClick={handleSaveEdit} disabled={saving} style={saveBtnStyle}>
-                {saving ? t("common.saving") : t("common.save")}
-              </button>
-            </div>
-          </>
-        ) : (
+
+              {/* Title */}
+              <input
+                value={getEditTitle(editLangTab)}
+                onChange={(e) => setEditTitleForLang(editLangTab, e.target.value)}
+                style={{ ...inputStyle, fontSize: 18, fontWeight: 600, marginBottom: 10 }}
+                placeholder={t("taskTable.titlePlaceholder")}
+              />
+
+              {/* Description */}
+              <textarea
+                value={getEditDesc(editLangTab)}
+                onChange={(e) => setEditDescForLang(editLangTab, e.target.value)}
+                rows={3}
+                style={{ ...inputStyle, marginBottom: 10, resize: "vertical" }}
+                placeholder={t("taskDetails.descriptionPlaceholder")}
+              />
+
+              {/* Generate translations */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <button
+                    type="button"
+                    onClick={handleGenerate}
+                    disabled={editTranslating || !editSourceTitle.trim()}
+                    style={{ padding: "6px 12px", background: "#F3F4F6", border: "1px solid #D1D5DB", borderRadius: 7, fontSize: 12, cursor: editSourceTitle.trim() ? "pointer" : "default", color: "#374151" }}
+                  >
+                    {editTranslating ? t("taskTable.generating") : t("taskTable.generateTranslations")}
+                  </button>
+                  {isStale && (
+                    <span style={{ fontSize: 12, color: "#D97706", background: "#FEF3C7", padding: "3px 8px", borderRadius: 6 }}>
+                      ⚠ {t("taskTable.translationStale")}
+                    </span>
+                  )}
+                  {!isStale && editTranslationGenerated && !editTranslationError && (
+                    <span style={{ fontSize: 12, color: "#059669" }}>
+                      {translationStatusLabel("auto_translated")} {t("nsMeetings.translationStatus")}
+                    </span>
+                  )}
+                </div>
+                {!editTranslating && !editTranslationError && (
+                  <div style={{ fontSize: 11, color: "#7C3AED", marginTop: 4 }}>
+                    {t("taskTable.translationProviderNote")}
+                  </div>
+                )}
+                {editTranslationError && (
+                  <div style={{ fontSize: 12, color: "#DC2626", marginTop: 4, background: "#FEE2E2", padding: "5px 10px", borderRadius: 6 }}>
+                    ⚠ {editTranslationError}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={metaLabelStyle}>{t("taskTable.priority")}</label>
+                  <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)} style={inputStyle}>
+                    <option value="low">{t("taskPriority.low")}</option>
+                    <option value="medium">{t("taskPriority.medium")}</option>
+                    <option value="high">{t("taskPriority.high")}</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={metaLabelStyle}>{t("taskTable.deadline")}</label>
+                  <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} style={inputStyle} />
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                <button onClick={() => setEditing(false)} style={cancelBtnStyle}>{t("common.cancel")}</button>
+                <button onClick={handleSaveEdit} disabled={saving} style={saveBtnStyle}>
+                  {saving ? t("common.saving") : t("common.save")}
+                </button>
+              </div>
+            </>
+          );
+        })() : (
           <>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, marginBottom: 8 }}>{task.title}</h1>
-            {task.description && (
-              <p style={{ color: "#4B5563", fontSize: 15, margin: "0 0 16px", lineHeight: 1.6 }}>{task.description}</p>
-            )}
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, marginBottom: 8 }}>
+              {getLocalizedField(task as unknown as Record<string, unknown>, "title") || task.title}
+            </h1>
+            {(() => {
+              const desc = getLocalizedField(task as unknown as Record<string, unknown>, "description") || task.description;
+              return desc ? <p style={{ color: "#4B5563", fontSize: 15, margin: "0 0 16px", lineHeight: 1.6 }}>{desc}</p> : null;
+            })()}
 
             {/* Meta row */}
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>

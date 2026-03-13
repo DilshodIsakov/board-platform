@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Юкланмоқда...",
+    "loadError": "Маълумотларни юклаб бўлмади. Саҳифани янгилаб кўринг.",
     "save": "Сақлаш",
     "saving": "Сақланмоқда...",
     "cancel": "Бекор қилиш",
@@ -122,7 +123,9 @@
     "today": "Бугун",
     "weekdays": ["Ду", "Се", "Чо", "Па", "Жу", "Ша", "Як"],
     "months": ["Январ", "Феврал", "Март", "Апрел", "Май", "Июн", "Июл", "Август", "Сентябр", "Октябр", "Ноябр", "Декабр"],
-    "planNS": "КК режаси"
+    "planNS": "КК режаси",
+    "tabCalendar": "Календар",
+    "tabWorkplan": "КК иш режаси"
   },
   "voting": {
     "title": "Овоз бериш тизими",
@@ -195,7 +198,16 @@
     "deadlineLabel": "Муддат",
     "assigneesLabel": "Ижрочилар",
     "mainExecutorLabel": "Асосий ижрочи",
-    "coExecutorNote": "Қолганлар ҳам-ижрочи сифатида тайинланади"
+    "coExecutorNote": "Қолганлар ҳам-ижрочи сифатида тайинланади",
+    "sourceLang": "Манба тили",
+    "generateTranslations": "Таржималарни яратиш",
+    "generating": "Яратилмоқда...",
+    "translationStale": "Манба матн ўзгарди. Қайта яратасизми?",
+    "translationProviderNote": "OpenAI орқали автотаржима ✦",
+    "translationError": "Таржималарни яратиб бўлмади. Қайта уриниб кўринг.",
+    "titlePlaceholderRu": "Топшириқ номи русча",
+    "titlePlaceholderUz": "Топшириқ номи ўзбекча",
+    "titlePlaceholderEn": "Топшириқ номи инглизча"
   },
   "taskStatus": {
     "open": "Очиқ",
@@ -325,7 +337,33 @@
       "scheduled": "Режалаштирилган",
       "completed": "Тугалланган",
       "cancelled": "Бекор қилинган"
-    }
+    },
+    "noAgendaItems": "Кун тартиби масалалари ҳали қўшилмаган.",
+    "editPlan": "Режани таҳрирлаш",
+    "addMeeting": "Мажлис қўшиш",
+    "editMeeting": "Мажлисни таҳрирлаш",
+    "deleteMeeting": "Мажлисни ўчириш",
+    "confirmDeleteMeeting": "Ушбу мажлисни ўчиришни хоҳлайсизми?",
+    "addAgendaItem": "Масала қўшиш",
+    "editAgendaItem": "Масалани таҳрирлаш",
+    "deleteAgendaItem": "Масалани ўчириш",
+    "confirmDeleteAgendaItem": "Ушбу кун тартиби масаласини ўчиришни хоҳлайсизми?",
+    "meetingDateFrom": "Бошланиш санаси",
+    "meetingDateTo": "Тугаш санаси",
+    "meetingStatus": "Ҳолат",
+    "datesRequired": "Иккала санани ҳам кўрсатинг.",
+    "datesInvalid": "Бошланиш санаси тугаш санасидан олдин бўлиши керак.",
+    "planTitle": "Режа номи",
+    "planPeriodStart": "Давр бошланиши",
+    "planPeriodEnd": "Давр тугаши",
+    "planStatusLabel": "Режа ҳолати",
+    "agendaItemTitle": "Кун тартиби масаласининг номи",
+    "generateTranslations": "Автоматик таржима",
+    "generating": "Таржима қилинмоқда...",
+    "translationError": "Таржима олишда хатолик. Яна уриниб кўринг.",
+    "titleRequired": "Ном мажбурий.",
+    "saveError": "Сақлаш хатоси.",
+    "deleteError": "Ўчириш хатоси."
   },
   "shareholder": {
     "meetingStatus": {
@@ -470,6 +508,7 @@
     "noMeetingSelectedHint": "Тафсилотларни кўриш учун чапдаги мажлисни босинг",
     "agenda": "Кун тартиби",
     "addAgendaItem": "Масала қўшиш",
+    "editAgendaItem": "Масалани таҳрирлаш",
     "agendaTitle": "Масала номи",
     "speaker": "Маърузачи",
     "speakerPlaceholder": "Маърузачи исми ва лавозими",
@@ -503,7 +542,8 @@
     "translationStale": "Манба матни ўзгарди. Таржималарни қайта генерация қилинсинми?",
     "regenerateTranslations": "Қайта генерация",
     "keepTranslations": "Сақлаш",
-    "translationProviderNote": "Автотаржима учун таржима провайдерини улаш (OpenAI / DeepL / Google)",
+    "translationProviderNote": "OpenAI орқали автотаржима ✦",
+    "translationError": "Таржималарни яратиб бўлмади. Қайта уриниб кўринг.",
     "translationPlaceholder": "Таржима бу ерда пайдо бўлади"
   },
   "admin": {
@@ -614,5 +654,39 @@
     "uz": "Ўзбекча",
     "en": "English",
     "optional": "(ихтиёрий)"
+  },
+  "nsVoting": {
+    "title": "Овоз бериш",
+    "notStarted": "Овоз бериш бошланмаган",
+    "active": "Овоз бериш жараёнда",
+    "closed": "Овоз бериш якунланган",
+    "activate": "Овоз беришни фаоллаштириш",
+    "closeVoting": "Овоз беришни якунлаш",
+    "activateConfirm": "Бу кун тартиби бўйича овоз беришни фаоллаштириласизми?",
+    "closeConfirm": "Бу масала бўйича овоз беришни якунлайсизми?",
+    "voteFor": "Ёқлаб",
+    "voteAgainst": "Қарши",
+    "voteAbstain": "Бетараф",
+    "myVote": "Менинг овозим",
+    "signPackage": "Овоз бериш натижаларини имзолаш",
+    "signConfirm": "Ушбу мажлис бўйича барча овозларни тасдиқлайсизми?",
+    "signed": "Овоз бериш натижалари имзоланган",
+    "signedAt": "Имзоланган",
+    "allVotedReady": "Барча овозлар берилди — имзолашга тайёр",
+    "notAllVoted": "Барча фаол масалалар бўйича овоз беринг",
+    "activateSuccess": "Овоз бериш фаоллаштирилди",
+    "closeSuccess": "Овоз бериш якунланди",
+    "voteSaved": "Овоз сақланди",
+    "signSuccess": "Овоз бериш натижалари имзоланди",
+    "signError": "Имзолашда хатолик",
+    "dashSubtitle": "Кузатув кенгаши мажлислари бўйича овоз бериш шарҳи",
+    "activeMeetings": "Фаол овоз беришлар",
+    "completedMeetings": "Якунланган овоз беришлар",
+    "noActiveMeetings": "Фаол овоз беришлар йўқ",
+    "noMeetingsWithVotings": "Овоз беришлар ҳали йўқ",
+    "openQuestions": "фаол масала",
+    "allClosed": "Барчаси якунланган",
+    "needsVote": "Овоз кутилмоқда",
+    "goToMeeting": "Мажлисга ўтиш"
   }
 }

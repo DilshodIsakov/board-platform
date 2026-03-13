@@ -11,6 +11,13 @@ import {
   type BoardTask,
   type TaskFilters,
 } from "../lib/tasks";
+import { getLocalizedField } from "../lib/i18nHelpers";
+import {
+  generateTaskTranslations,
+  translationStatusColor,
+  translationStatusLabel,
+  type SupportedLang,
+} from "../lib/translationService";
 
 interface Props {
   profile: Profile | null;
@@ -41,6 +48,7 @@ export default function TasksListPage({ profile, org }: Props) {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<BoardTask[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   // Filters
@@ -59,20 +67,31 @@ export default function TasksListPage({ profile, org }: Props) {
   }, [search]);
 
   useEffect(() => {
-    if (org) loadTasks();
+    loadTasks();
   }, [org, statusFilter, priorityFilter, duePeriod, debouncedSearch]);
 
   const loadTasks = async () => {
-    if (!org) return;
+    if (!org) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setLoadError(null);
     const filters: TaskFilters = {};
     if (statusFilter !== "all") filters.status = statusFilter;
     if (priorityFilter !== "all") filters.priority = priorityFilter;
     if (duePeriod !== "all") filters.duePeriod = duePeriod;
     if (debouncedSearch.trim()) filters.search = debouncedSearch.trim();
-    const data = await listTasks(org.id, filters);
-    setTasks(data);
-    setLoading(false);
+    try {
+      const data = await listTasks(org.id, filters);
+      setTasks(data);
+    } catch (err) {
+      console.error("loadTasks error:", err);
+      setLoadError(err instanceof Error ? err.message : t("common.loadError"));
+      setTasks([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getInitials = (name: string) => {
@@ -133,6 +152,11 @@ export default function TasksListPage({ profile, org }: Props) {
       {/* Table */}
       {loading ? (
         <div style={{ color: "#9CA3AF", padding: "40px 0" }}>{t("common.loading")}</div>
+      ) : loadError ? (
+        <div style={{ ...emptyStyle, color: "#DC2626" }}>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{t("common.loadError")}</div>
+          <p style={{ fontSize: 14, color: "#9CA3AF" }}>{loadError}</p>
+        </div>
       ) : tasks.length === 0 ? (
         <div style={emptyStyle}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
@@ -180,12 +204,17 @@ export default function TasksListPage({ profile, org }: Props) {
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     <td style={{ ...tdStyle, maxWidth: 400 }}>
-                      <div style={{ fontWeight: 500, color: "#111827" }}>{task.title}</div>
-                      {task.description && (
-                        <div style={{ color: "#9CA3AF", fontSize: 13, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 380 }}>
-                          {task.description}
-                        </div>
-                      )}
+                      <div style={{ fontWeight: 500, color: "#111827" }}>
+                        {getLocalizedField(task as unknown as Record<string, unknown>, "title") || task.title}
+                      </div>
+                      {(() => {
+                        const desc = getLocalizedField(task as unknown as Record<string, unknown>, "description") || task.description;
+                        return desc ? (
+                          <div style={{ color: "#9CA3AF", fontSize: 13, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 380 }}>
+                            {desc}
+                          </div>
+                        ) : null;
+                      })()}
                     </td>
                     <td style={tdStyle}>
                       <span style={{ ...badgeStyle, background: sc.bg, color: sc.color }}>
@@ -278,6 +307,8 @@ export default function TasksListPage({ profile, org }: Props) {
 // Create Task Modal
 // ============================================================
 
+const LANG_TABS: SupportedLang[] = ["ru", "uz", "en"];
+
 function CreateTaskModal({
   profile,
   org,
@@ -291,8 +322,8 @@ function CreateTaskModal({
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+
+  // Meta fields
   const [priority, setPriority] = useState("medium");
   const [dueDate, setDueDate] = useState("");
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
@@ -300,6 +331,66 @@ function CreateTaskModal({
   const [orgProfiles, setOrgProfiles] = useState<{ id: string; full_name: string; role: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  // Multilingual fields
+  const [sourceLang, setSourceLang] = useState<SupportedLang>("ru");
+  const [langTab, setLangTab] = useState<SupportedLang>("ru");
+  const [titleRu, setTitleRu] = useState("");
+  const [titleUz, setTitleUz] = useState("");
+  const [titleEn, setTitleEn] = useState("");
+  const [descRu, setDescRu] = useState("");
+  const [descUz, setDescUz] = useState("");
+  const [descEn, setDescEn] = useState("");
+  const [statusRu, setStatusRu] = useState<string>("original");
+  const [statusUz, setStatusUz] = useState<string>("missing");
+  const [statusEn, setStatusEn] = useState<string>("missing");
+  const [translating, setTranslating] = useState(false);
+  const [translationGenerated, setTranslationGenerated] = useState(false);
+  const [translationError, setTranslationError] = useState("");
+  const [sourceSnapshot, setSourceSnapshot] = useState({ title: "", desc: "" });
+
+  // When source language changes, switch tab to match
+  const handleSourceLangChange = (lang: SupportedLang) => {
+    setSourceLang(lang);
+    setLangTab(lang);
+    setStatusRu(lang === "ru" ? "original" : "missing");
+    setStatusUz(lang === "uz" ? "original" : "missing");
+    setStatusEn(lang === "en" ? "original" : "missing");
+    setTranslationGenerated(false);
+  };
+
+  const getTitle = (lang: SupportedLang) => lang === "ru" ? titleRu : lang === "uz" ? titleUz : titleEn;
+  const setTitle = (lang: SupportedLang, v: string) => {
+    if (lang === "ru") setTitleRu(v);
+    else if (lang === "uz") setTitleUz(v);
+    else setTitleEn(v);
+    // Update translation status when user manually types in a non-source tab
+    if (lang !== sourceLang) {
+      const descVal = lang === "ru" ? descRu : lang === "uz" ? descUz : descEn;
+      const newStatus = (v.trim() || descVal.trim()) ? "reviewed" : "missing";
+      if (lang === "ru") setStatusRu(newStatus);
+      else if (lang === "uz") setStatusUz(newStatus);
+      else setStatusEn(newStatus);
+    }
+  };
+  const getDesc = (lang: SupportedLang) => lang === "ru" ? descRu : lang === "uz" ? descUz : descEn;
+  const setDesc = (lang: SupportedLang, v: string) => {
+    if (lang === "ru") setDescRu(v);
+    else if (lang === "uz") setDescUz(v);
+    else setDescEn(v);
+    // Update translation status when user manually types in a non-source tab
+    if (lang !== sourceLang) {
+      const titleVal = lang === "ru" ? titleRu : lang === "uz" ? titleUz : titleEn;
+      const newStatus = (titleVal.trim() || v.trim()) ? "reviewed" : "missing";
+      if (lang === "ru") setStatusRu(newStatus);
+      else if (lang === "uz") setStatusUz(newStatus);
+      else setStatusEn(newStatus);
+    }
+  };
+
+  const sourceTitle = getTitle(sourceLang);
+  const sourceDesc = getDesc(sourceLang);
+  const isStale = translationGenerated && (sourceTitle !== sourceSnapshot.title || sourceDesc !== sourceSnapshot.desc);
 
   useEffect(() => {
     listOrgProfiles(org.id).then(setOrgProfiles);
@@ -309,34 +400,75 @@ function CreateTaskModal({
     setSelectedAssignees((prev) => {
       if (prev.includes(id)) {
         const next = prev.filter((x) => x !== id);
-        // If removed assignee was main executor, reset
         if (mainExecutor === id) setMainExecutor(next[0] || "");
         return next;
       }
       const next = [...prev, id];
-      // Auto-set first selected as main executor
       if (!mainExecutor) setMainExecutor(id);
       return next;
     });
   };
 
+  const handleGenerateTranslations = async () => {
+    if (!sourceTitle.trim()) return;
+    setTranslating(true);
+    setTranslationError("");
+    try {
+      const draft = await generateTaskTranslations(sourceLang, sourceTitle.trim(), sourceDesc.trim());
+      setTitleRu(draft.title_ru);
+      setTitleUz(draft.title_uz);
+      setTitleEn(draft.title_en);
+      setDescRu(draft.description_ru);
+      setDescUz(draft.description_uz);
+      setDescEn(draft.description_en);
+      setStatusRu(draft.status_ru);
+      setStatusUz(draft.status_uz);
+      setStatusEn(draft.status_en);
+      setTranslationGenerated(true);
+      setSourceSnapshot({ title: sourceTitle.trim(), desc: sourceDesc.trim() });
+    } catch (err) {
+      console.error("[translate] error:", err);
+      setTranslationError(err instanceof Error ? err.message : t("taskTable.translationError"));
+    } finally {
+      setTranslating(false);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!sourceTitle.trim()) return;
     setSaving(true);
     setError("");
+
+    // Safety net: if user typed content in non-source tab but status is still "missing", promote to "reviewed"
+    const resolveStatus = (lang: SupportedLang, status: string) => {
+      if (lang === sourceLang) return status;
+      const titleVal = lang === "ru" ? titleRu : lang === "uz" ? titleUz : titleEn;
+      const descVal = lang === "ru" ? descRu : lang === "uz" ? descUz : descEn;
+      if (status === "missing" && (titleVal.trim() || descVal.trim())) return "reviewed";
+      return status;
+    };
 
     try {
       const task = await createTask({
         organization_id: org.id,
-        created_by: profile.id,
-        title: title.trim(),
-        description: description.trim() || undefined,
+        created_by:      profile.id,
+        title:           sourceTitle.trim(),
+        description:     sourceDesc.trim() || undefined,
         priority,
-        due_date: dueDate || undefined,
+        due_date:        dueDate || undefined,
+        source_language: sourceLang,
+        title_ru:        titleRu || undefined,
+        title_uz:        titleUz || undefined,
+        title_en:        titleEn || undefined,
+        description_ru:  descRu || undefined,
+        description_uz:  descUz || undefined,
+        description_en:  descEn || undefined,
+        translation_status_ru: resolveStatus("ru", statusRu),
+        translation_status_uz: resolveStatus("uz", statusUz),
+        translation_status_en: resolveStatus("en", statusEn),
       });
 
-      // Add assignees with role distinction
       for (const pid of selectedAssignees) {
         const roleInTask = pid === mainExecutor ? "executor" : "co_executor";
         await addAssigneeToTask(task.id, pid, roleInTask);
@@ -351,6 +483,13 @@ function CreateTaskModal({
     }
   };
 
+  const tabDot = (lang: SupportedLang) => {
+    const st = lang === "ru" ? statusRu : lang === "uz" ? statusUz : statusEn;
+    const hasTitle = !!getTitle(lang).trim();
+    const color = hasTitle ? translationStatusColor(st as Parameters<typeof translationStatusColor>[0]) : "#D1D5DB";
+    return <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: color, marginRight: 5 }} />;
+  };
+
   return (
     <div style={overlayStyle} onClick={onClose}>
       <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
@@ -360,28 +499,118 @@ function CreateTaskModal({
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Title */}
-          <label style={labelStyle}>{t("taskTable.titleLabel")}</label>
+          {/* Source language selector */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <label style={{ ...labelStyle, margin: 0, whiteSpace: "nowrap" }}>{t("taskTable.sourceLang")}</label>
+            <select
+              value={sourceLang}
+              onChange={(e) => handleSourceLangChange(e.target.value as SupportedLang)}
+              style={{ ...inputStyle, width: "auto", flex: 1 }}
+            >
+              <option value="ru">{t("langTabs.ru")}</option>
+              <option value="uz">{t("langTabs.uz")}</option>
+              <option value="en">{t("langTabs.en")}</option>
+            </select>
+          </div>
+
+          {/* Language tabs */}
+          <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #E5E7EB", marginBottom: 16 }}>
+            {LANG_TABS.map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => setLangTab(lang)}
+                style={{
+                  padding: "8px 18px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: langTab === lang ? "2px solid #3B82F6" : "2px solid transparent",
+                  marginBottom: -2,
+                  cursor: "pointer",
+                  fontSize: 14,
+                  fontWeight: langTab === lang ? 600 : 400,
+                  color: langTab === lang ? "#3B82F6" : "#6B7280",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                {tabDot(lang)}
+                {t(`langTabs.${lang}`)}
+                {lang === sourceLang && (
+                  <span style={{ fontSize: 10, marginLeft: 5, background: "#DBEAFE", color: "#1E40AF", padding: "1px 5px", borderRadius: 4 }}>
+                    src
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Title for active tab */}
+          <label style={labelStyle}>
+            {t(`taskTable.titleLabel`)} {langTab === sourceLang ? "*" : t("langTabs.optional")}
+          </label>
           <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={t("taskTable.titlePlaceholder")}
+            value={getTitle(langTab)}
+            onChange={(e) => setTitle(langTab, e.target.value)}
+            placeholder={t(`taskTable.titlePlaceholder${langTab.charAt(0).toUpperCase() + langTab.slice(1)}`, t("taskTable.titlePlaceholder"))}
             style={inputStyle}
-            required
+            required={langTab === sourceLang}
           />
 
-          {/* Description */}
+          {/* Description for active tab */}
           <label style={labelStyle}>{t("taskTable.descriptionLabel")}</label>
           <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={getDesc(langTab)}
+            onChange={(e) => setDesc(langTab, e.target.value)}
             placeholder={t("taskTable.descriptionPlaceholder")}
             rows={3}
             style={{ ...inputStyle, resize: "vertical" }}
           />
 
+          {/* Generate translations button */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+            <button
+              type="button"
+              onClick={handleGenerateTranslations}
+              disabled={translating || !sourceTitle.trim()}
+              style={{
+                padding: "7px 14px",
+                background: "#F3F4F6",
+                border: "1px solid #D1D5DB",
+                borderRadius: 7,
+                fontSize: 13,
+                cursor: sourceTitle.trim() ? "pointer" : "default",
+                color: "#374151",
+              }}
+            >
+              {translating ? t("taskTable.generating") : t("taskTable.generateTranslations")}
+            </button>
+            {isStale && (
+              <span style={{ fontSize: 12, color: "#D97706", background: "#FEF3C7", padding: "4px 10px", borderRadius: 6 }}>
+                ⚠ {t("taskTable.translationStale")}
+              </span>
+            )}
+            {!isStale && translationGenerated && (
+              <span style={{ fontSize: 12, color: "#059669" }}>
+                {translationStatusLabel("auto_translated")} {t("nsMeetings.translationStatus")}
+              </span>
+            )}
+          </div>
+
+          {/* Provider note / error */}
+          {!translating && !translationError && (
+            <div style={{ fontSize: 11, color: "#7C3AED", marginTop: 4 }}>
+              {t("taskTable.translationProviderNote")}
+            </div>
+          )}
+          {translationError && (
+            <div style={{ fontSize: 12, color: "#DC2626", marginTop: 4, background: "#FEE2E2", padding: "6px 10px", borderRadius: 6 }}>
+              ⚠ {translationError}
+            </div>
+          )}
+
           {/* Priority + Due date row */}
-          <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
             <div style={{ flex: 1 }}>
               <label style={labelStyle}>{t("taskTable.priorityLabel")}</label>
               <select value={priority} onChange={(e) => setPriority(e.target.value)} style={inputStyle}>
@@ -443,7 +672,7 @@ function CreateTaskModal({
 
           <div style={{ display: "flex", gap: 12, marginTop: 20, justifyContent: "flex-end" }}>
             <button type="button" onClick={onClose} style={cancelBtnStyle}>{t("common.cancel")}</button>
-            <button type="submit" disabled={saving || !title.trim()} style={submitBtnStyle}>
+            <button type="submit" disabled={saving || !sourceTitle.trim()} style={submitBtnStyle}>
               {saving ? t("common.creating") : t("common.create")}
             </button>
           </div>

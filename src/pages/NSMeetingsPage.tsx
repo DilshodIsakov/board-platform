@@ -1580,17 +1580,6 @@ const materialCardStyle: React.CSSProperties = {
   marginBottom: 6,
 };
 
-const inlineFormStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 10,
-  padding: 16,
-  background: "#F9FAFB",
-  borderRadius: 10,
-  border: "1px solid #E5E7EB",
-  marginBottom: 16,
-};
-
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "8px 12px",

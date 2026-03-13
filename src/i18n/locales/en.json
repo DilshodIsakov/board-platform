@@ -699,6 +699,8 @@
     "openQuestions": "active items",
     "allClosed": "All closed",
     "needsVote": "Needs vote",
-    "goToMeeting": "Go to meeting"
+    "goToMeeting": "Go to meeting",
+    "decisionAccepted": "Decision accepted",
+    "decisionNotAccepted": "Decision not accepted"
   }
 }

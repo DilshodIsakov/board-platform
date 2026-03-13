@@ -115,8 +115,8 @@ export default function VideoConferencePage({ profile, org }: Props) {
 
       {/* ===== Create Conference Form ===== */}
       {showForm && (
-        <div style={overlayStyle} onClick={() => setShowForm(false)}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+        <div style={overlayStyle}>
+          <div style={modalStyle}>
             <h3 style={{ margin: "0 0 16px" }}>{t("video.createConference")}</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div>

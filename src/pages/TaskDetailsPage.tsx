@@ -765,8 +765,8 @@ export default function TaskDetailsPage({ profile, org }: Props) {
 
       {/* Assignees Modal */}
       {showAssignees && (
-        <div style={overlayStyle} onClick={() => setShowAssignees(false)}>
-          <div style={modalSmallStyle} onClick={(e) => e.stopPropagation()}>
+        <div style={overlayStyle}>
+          <div style={modalSmallStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ margin: 0, fontSize: 18 }}>{t("taskDetails.manageAssignees")}</h3>
               <button onClick={() => setShowAssignees(false)} style={closeBtnStyle}>&times;</button>

@@ -217,8 +217,8 @@ export default function AdminUsersPage() {
 
       {/* ===== Create / Edit Modal ===== */}
       {showModal && (
-        <div style={overlayStyle} onClick={closeModal}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+        <div style={overlayStyle}>
+          <div style={modalStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h3 style={{ margin: 0, fontSize: 18 }}>
                 {editingProfile ? t("admin.editUser") : t("admin.createUserTitle")}

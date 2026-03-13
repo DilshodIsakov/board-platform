@@ -690,6 +690,8 @@
     "openQuestions": "активных вопросов",
     "allClosed": "Все завершены",
     "needsVote": "Ожидает голоса",
-    "goToMeeting": "Перейти к заседанию"
+    "goToMeeting": "Перейти к заседанию",
+    "decisionAccepted": "Решение принято",
+    "decisionNotAccepted": "Решение не принято"
   }
 }

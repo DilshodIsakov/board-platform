@@ -1157,8 +1157,8 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
       {/* ===== Create/Edit Agenda Item Modal ===== */}
       {showAgendaModal && (
-        <div style={overlayStyle} onClick={() => setShowAgendaModal(false)}>
-          <div style={{ ...modalStyle, maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+        <div style={overlayStyle}>
+          <div style={{ ...modalStyle, maxWidth: 560 }}>
             <h3 style={{ margin: "0 0 16px" }}>
               {editingAgendaItem ? t("nsMeetings.editAgendaItem") : t("nsMeetings.addAgendaItem")}
             </h3>
@@ -1298,8 +1298,8 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
       {/* ===== Create/Edit Meeting Modal ===== */}
       {showMeetingForm && (
-        <div style={overlayStyle} onClick={() => setShowMeetingForm(false)}>
-          <div style={{ ...modalStyle, maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
+        <div style={overlayStyle}>
+          <div style={{ ...modalStyle, maxWidth: 540 }}>
             <h3 style={{ margin: "0 0 16px" }}>
               {editingMeeting ? t("nsMeetings.editMeeting") : t("nsMeetings.createMeeting")}
             </h3>

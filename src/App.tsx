@@ -67,9 +67,13 @@ export default function App() {
 
       setLoading(false);
 
-      if (u) {
+      // Only load profile on actual sign-in or initial load.
+      // TOKEN_REFRESHED fires silently on window refocus and must NOT trigger
+      // profile reload — that would create a new object reference, re-run all
+      // useEffect([profile]) hooks, and reset page UI state.
+      if (u && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
         loadProfileAndOrg();
-      } else {
+      } else if (!u) {
         setProfile(null);
         setOrg(null);
       }
@@ -95,11 +99,7 @@ export default function App() {
   // Auth guard helper
   const auth = (page: React.ReactNode) =>
     user ? (
-      profileLoading ? (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "#9CA3AF" }}>
-          {t("common.loading")}
-        </div>
-      ) : profile ? (
+      profile ? (
         <Layout profile={profile} org={org} onSignOut={handleSignOut}>
           {page}
         </Layout>

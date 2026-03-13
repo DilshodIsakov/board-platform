@@ -182,27 +182,37 @@ function MeetingVotingCard({
           const myVote = (v.votes || []).find((vote) => vote.voter_id === profileId);
           return (
             <div key={v.id} style={votingRowStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
-                <span style={getVotingDotStyle(v.status)} />
-                <span style={{ fontSize: 13, color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {v.title}
-                </span>
+              {/* Title row */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
+                  <span style={getVotingDotStyle(v.status)} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {v.title}
+                  </span>
+                </div>
+                <div style={{ flexShrink: 0, marginLeft: 12 }}>
+                  {myVote ? (
+                    <span style={getMyVoteBadgeStyle(myVote.choice)}>
+                      {myVote.choice === "for" ? "✔ " + t("nsVoting.voteFor")
+                        : myVote.choice === "against" ? "✖ " + t("nsVoting.voteAgainst")
+                        : "◯ " + t("nsVoting.voteAbstain")}
+                    </span>
+                  ) : v.status === "open" ? (
+                    <span style={{ fontSize: 12, color: "#D97706", fontWeight: 600, background: "#FEF3C7", padding: "2px 8px", borderRadius: 5 }}>
+                      ● {t("nsVoting.needsVote")}
+                    </span>
+                  ) : null}
+                </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-                <span style={{ fontSize: 12, color: "#6B7280" }}>
-                  ✓{tally.forCount} ✗{tally.againstCount} –{tally.abstainCount}
-                </span>
-                {myVote && (
-                  <span style={getMyVoteBadgeStyle(myVote.choice)}>
-                    {myVote.choice === "for" ? t("nsVoting.voteFor")
-                      : myVote.choice === "against" ? t("nsVoting.voteAgainst")
-                      : t("nsVoting.voteAbstain")}
-                  </span>
-                )}
-                {!myVote && v.status === "open" && (
-                  <span style={{ fontSize: 12, color: "#F59E0B", fontWeight: 500 }}>
-                    {t("nsVoting.needsVote")}
-                  </span>
+              {/* Tally chips */}
+              <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
+                <span style={tallyChipFor}>✔ {t("nsVoting.voteFor")}: {tally.forCount}</span>
+                <span style={tallyChipAgainst}>✖ {t("nsVoting.voteAgainst")}: {tally.againstCount}</span>
+                <span style={tallyChipAbstain}>◯ {t("nsVoting.voteAbstain")}: {tally.abstainCount}</span>
+                {v.status === "closed" && tally.total > 0 && (
+                  tally.forCount > tally.againstCount
+                    ? <span style={decisionAcceptedStyle}>✔ {t("nsVoting.decisionAccepted")}</span>
+                    : <span style={decisionRejectedStyle}>⚠ {t("nsVoting.decisionNotAccepted")}</span>
                 )}
               </div>
             </div>
@@ -263,8 +273,34 @@ const signedBadge: React.CSSProperties = {
 };
 
 const votingRowStyle: React.CSSProperties = {
-  display: "flex", justifyContent: "space-between", alignItems: "center",
-  gap: 12, padding: "6px 10px", borderRadius: 6, background: "#F9FAFB",
+  display: "flex", flexDirection: "column",
+  padding: "10px 12px", borderRadius: 8, background: "#F9FAFB",
+  border: "1px solid #F3F4F6",
+};
+
+const tallyChipFor: React.CSSProperties = {
+  padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600,
+  background: "#D1FAE5", color: "#065F46", whiteSpace: "nowrap",
+};
+
+const tallyChipAgainst: React.CSSProperties = {
+  padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600,
+  background: "#FEE2E2", color: "#991B1B", whiteSpace: "nowrap",
+};
+
+const tallyChipAbstain: React.CSSProperties = {
+  padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600,
+  background: "#FEF9C3", color: "#92400E", whiteSpace: "nowrap",
+};
+
+const decisionAcceptedStyle: React.CSSProperties = {
+  padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600,
+  background: "#D1FAE5", color: "#065F46", whiteSpace: "nowrap", marginLeft: 4,
+};
+
+const decisionRejectedStyle: React.CSSProperties = {
+  padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600,
+  background: "#FEF3C7", color: "#92400E", whiteSpace: "nowrap", marginLeft: 4,
 };
 
 const goToMeetingBtnStyle: React.CSSProperties = {

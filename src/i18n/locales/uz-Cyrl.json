@@ -687,6 +687,8 @@
     "openQuestions": "фаол масала",
     "allClosed": "Барчаси якунланган",
     "needsVote": "Овоз кутилмоқда",
-    "goToMeeting": "Мажлисга ўтиш"
+    "goToMeeting": "Мажлисга ўтиш",
+    "decisionAccepted": "Қарор қабул қилинди",
+    "decisionNotAccepted": "Қарор қабул қилинмади"
   }
 }

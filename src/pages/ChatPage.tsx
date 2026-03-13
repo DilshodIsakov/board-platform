@@ -721,8 +721,8 @@ export default function ChatPage({ profile, org }: Props) {
 
       {/* === Create Group Modal === */}
       {showCreateGroup && (
-        <div style={overlayStyle} onClick={() => setShowCreateGroup(false)}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+        <div style={overlayStyle}>
+          <div style={modalStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ margin: 0, fontSize: 18 }}>{t("chat.newGroup")}</h3>
               <button onClick={() => setShowCreateGroup(false)} style={closeBtnStyle}>&times;</button>
@@ -766,8 +766,8 @@ export default function ChatPage({ profile, org }: Props) {
 
       {/* === Group Members Modal === */}
       {showGroupMembers && selectedGroup && (
-        <div style={overlayStyle} onClick={() => setShowGroupMembers(false)}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+        <div style={overlayStyle}>
+          <div style={modalStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ margin: 0, fontSize: 18 }}>{t("chat.membersTitle", { name: selectedGroup.name })}</h3>
               <button onClick={() => setShowGroupMembers(false)} style={closeBtnStyle}>&times;</button>

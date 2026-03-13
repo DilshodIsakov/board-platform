@@ -240,8 +240,8 @@ export default function DocumentsPage({ profile, org }: Props) {
 
       {/* Modal */}
       {showModal && (
-        <div style={overlayStyle} onClick={handleCloseModal}>
-          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+        <div style={overlayStyle}>
+          <div style={modalStyle}>
             <h3 style={{ marginTop: 0, fontSize: 16 }}>
               {editingLink ? t("documents.editLink") : t("documents.addLinkTitle")}
             </h3>

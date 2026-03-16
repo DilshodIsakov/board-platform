@@ -28,3 +28,20 @@ export function formatDateTime(date: string | Date, lng?: string): string {
 export function formatNumber(value: number, lng?: string): string {
   return new Intl.NumberFormat(getIntlLocale(lng)).format(value);
 }
+
+/**
+ * Download a file from URL without navigating away or opening a new tab.
+ * Fetches as blob, creates a temporary object URL, and triggers download via anchor click.
+ */
+export async function downloadFileByUrl(url: string, fileName: string): Promise<void> {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(objectUrl);
+}

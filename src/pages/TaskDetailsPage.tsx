@@ -22,6 +22,7 @@ import {
   type BoardTaskAttachment,
 } from "../lib/tasks";
 import { getLocalizedField } from "../lib/i18nHelpers";
+import { downloadFileByUrl } from "../lib/format";
 import {
   generateTaskTranslations,
   translationStatusColor,
@@ -253,8 +254,12 @@ export default function TaskDetailsPage({ profile, org }: Props) {
   };
 
   const handleDownload = async (att: BoardTaskAttachment) => {
-    const url = await getAttachmentUrl(att.file_path);
-    if (url) window.open(url, "_blank");
+    try {
+      const url = await getAttachmentUrl(att.file_path);
+      if (url) await downloadFileByUrl(url, att.file_name);
+    } catch (e) {
+      console.error("Download error:", e);
+    }
   };
 
   const handleDeleteAttachment = async (att: BoardTaskAttachment) => {

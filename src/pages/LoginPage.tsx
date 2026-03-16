@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 import { supabase } from "../lib/supabaseClient";
 
 export default function LoginPage() {
@@ -32,8 +33,24 @@ export default function LoginPage() {
     setLoading(false);
   };
 
+  const handleLanguageChange = (lng: string) => {
+    i18n.changeLanguage(lng);
+    localStorage.setItem("locale", lng);
+  };
+
   return (
-    <div style={{ maxWidth: 360, margin: "80px auto", fontFamily: "system-ui" }}>
+    <div style={{ maxWidth: 360, margin: "80px auto", fontFamily: "system-ui", position: "relative" }}>
+      <div style={{ position: "absolute", top: -40, right: 0 }}>
+        <select
+          value={i18n.language}
+          onChange={(e) => handleLanguageChange(e.target.value)}
+          style={langSelectStyle}
+        >
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+          <option value="uz-Cyrl">Ўзбекча</option>
+        </select>
+      </div>
       <h1>Board Platform</h1>
       <p style={{ color: "#888" }}>{t("login.title")}</p>
 
@@ -92,5 +109,15 @@ const btnStyle: React.CSSProperties = {
   fontSize: 15,
   borderRadius: 6,
   border: "1px solid #ccc",
+  cursor: "pointer",
+};
+
+const langSelectStyle: React.CSSProperties = {
+  background: "#fff",
+  border: "1px solid #E5E7EB",
+  borderRadius: 6,
+  padding: "5px 10px",
+  fontSize: 13,
+  color: "#6B7280",
   cursor: "pointer",
 };

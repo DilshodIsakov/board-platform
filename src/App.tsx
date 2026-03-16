@@ -32,7 +32,9 @@ export default function App() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [org, setOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const loadProfileAndOrg = async () => {
+    setProfileLoading(true);
     try {
       const [p, o] = await Promise.all([getMyProfile(), getMyOrg()]);
       console.log("[DEBUG] Loaded profile:", p);
@@ -50,6 +52,8 @@ export default function App() {
       console.error("loadProfileAndOrg error:", e);
       setProfile(null);
       setOrg(null);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -58,7 +62,16 @@ export default function App() {
       console.log("[Board Platform] auth event:", event, session?.user?.email ?? "no user");
 
       const u = session?.user ?? null;
-      setUser(u);
+
+      // Only update user state when the identity actually changes.
+      // TOKEN_REFRESHED fires on every tab refocus and creates a new User
+      // object reference — calling setUser(u) would trigger a full App
+      // re-render, cascading new props to all pages and causing visible
+      // UI reset (selected meeting lost, modals closed, forms cleared).
+      setUser((prev) => {
+        if (prev?.id === u?.id) return prev;
+        return u;
+      });
 
       setLoading(false);
 
@@ -94,7 +107,11 @@ export default function App() {
   // Auth guard helper
   const auth = (page: React.ReactNode) =>
     user ? (
-      profile ? (
+      profileLoading ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "#9CA3AF" }}>
+          {t("common.loading")}
+        </div>
+      ) : profile ? (
         <Layout profile={profile} org={org} onSignOut={handleSignOut}>
           {page}
         </Layout>

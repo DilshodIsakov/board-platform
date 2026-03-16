@@ -26,7 +26,13 @@ export default function CompanyInfoPage({ profile }: Props) {
   const navigate = useNavigate();
   const [members, setMembers] = useState<MemberProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabKey>("board");
+  const [activeTab, setActiveTabRaw] = useState<TabKey>(
+    () => (sessionStorage.getItem("companyInfo_tab") as TabKey) || "board"
+  );
+  const setActiveTab = (tab: TabKey) => {
+    setActiveTabRaw(tab);
+    sessionStorage.setItem("companyInfo_tab", tab);
+  };
 
   useEffect(() => {
     if (!profile) {

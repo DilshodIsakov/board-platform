@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
 import type { Profile, Organization } from "../lib/profile";
@@ -26,6 +27,7 @@ import {
   type BriefLang,
 } from "../lib/nsMeetings";
 import { getLocalizedField, isTranslationStale, getStatusBadgeStyle } from "../lib/i18nHelpers";
+import { downloadFileByUrl } from "../lib/format";
 import {
   generateMeetingTranslations,
   generateAgendaTranslations,
@@ -51,13 +53,31 @@ interface Props {
   org: Organization | null;
 }
 
+const SS_KEY = "nsMeetings_selectedId";
+
 export default function NSMeetingsPage({ profile, org }: Props) {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isAdmin = profile?.role === "admin";
 
   const [meetings, setMeetings] = useState<NSMeeting[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Restore selectedId from URL > sessionStorage > null
+  const [selectedId, setSelectedIdRaw] = useState<string | null>(() => {
+    return searchParams.get("meetingId") || sessionStorage.getItem(SS_KEY) || null;
+  });
   const [loading, setLoading] = useState(true);
+
+  // Wrap setSelectedId to sync URL + sessionStorage
+  const setSelectedId = useCallback((id: string | null) => {
+    setSelectedIdRaw(id);
+    if (id) {
+      sessionStorage.setItem(SS_KEY, id);
+      setSearchParams({ meetingId: id }, { replace: true });
+    } else {
+      sessionStorage.removeItem(SS_KEY);
+      setSearchParams({}, { replace: true });
+    }
+  }, [setSearchParams]);
 
   // Meeting form
   const [showMeetingForm, setShowMeetingForm] = useState(false);
@@ -504,8 +524,12 @@ export default function NSMeetingsPage({ profile, org }: Props) {
   };
 
   const handleDownload = async (mat: Material) => {
-    const url = await getMaterialUrl(mat.storage_path);
-    if (url) window.open(url, "_blank");
+    try {
+      const url = await getMaterialUrl(mat.storage_path);
+      if (url) await downloadFileByUrl(url, mat.file_name);
+    } catch (e) {
+      console.error("Download error:", e);
+    }
   };
 
   // ---------- AI Brief ----------

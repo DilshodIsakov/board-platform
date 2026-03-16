@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, type FormEvent } from "react"
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
+import { downloadFileByUrl } from "../lib/format";
 import type { Profile, Organization } from "../lib/profile";
 import {
   fetchContactsWithUnread,
@@ -40,11 +41,22 @@ interface Props {
 
 type SidebarTab = "personal" | "groups";
 
+const SS_CHAT_TAB = "chat_sidebarTab";
+const SS_CHAT_CONTACT = "chat_selectedContactId";
+const SS_CHAT_GROUP = "chat_selectedGroupId";
+
 export default function ChatPage({ profile, org }: Props) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { refresh } = useNotifications();
-  const [sidebarTab, setSidebarTab] = useState<SidebarTab>("personal");
+  const [sidebarTab, setSidebarTabRaw] = useState<SidebarTab>(
+    () => (sessionStorage.getItem(SS_CHAT_TAB) as SidebarTab) || "personal"
+  );
+
+  const setSidebarTab = (tab: SidebarTab) => {
+    setSidebarTabRaw(tab);
+    sessionStorage.setItem(SS_CHAT_TAB, tab);
+  };
 
   // --- Personal chat state ---
   const [contacts, setContacts] = useState<ContactProfile[]>([]);
@@ -93,7 +105,20 @@ export default function ChatPage({ profile, org }: Props) {
 
   useEffect(() => {
     selectedContactRef.current = selectedContact;
+    if (selectedContact) {
+      sessionStorage.setItem(SS_CHAT_CONTACT, selectedContact.id);
+    } else {
+      sessionStorage.removeItem(SS_CHAT_CONTACT);
+    }
   }, [selectedContact]);
+
+  useEffect(() => {
+    if (selectedGroup) {
+      sessionStorage.setItem(SS_CHAT_GROUP, selectedGroup.id);
+    } else {
+      sessionStorage.removeItem(SS_CHAT_GROUP);
+    }
+  }, [selectedGroup]);
 
   // Load contacts along with unread counters
   useEffect(() => {
@@ -102,20 +127,21 @@ export default function ChatPage({ profile, org }: Props) {
     fetchContactsWithUnread(profile.id).then((data) => {
       setContacts(data);
       setLoadingContacts(false);
+      // Restore selected contact from URL > sessionStorage
+      const urlUserId = searchParams.get("userId");
+      const savedId = urlUserId || sessionStorage.getItem(SS_CHAT_CONTACT);
+      if (savedId && !selectedContact) {
+        const found = data.find((c) => c.id === savedId);
+        if (found) {
+          setSelectedContact(found);
+          if (urlUserId) {
+            setSidebarTab("personal");
+            setSearchParams({}, { replace: true });
+          }
+        }
+      }
     });
   }, [profile]);
-
-  // Auto-select contact from URL param ?userId=...
-  useEffect(() => {
-    const userId = searchParams.get("userId");
-    if (!userId || contacts.length === 0) return;
-    const found = contacts.find((c) => c.id === userId);
-    if (found) {
-      setSelectedContact(found);
-      setSidebarTab("personal");
-      setSearchParams({}, { replace: true });
-    }
-  }, [contacts, searchParams]);
 
   // Load groups
   useEffect(() => {
@@ -123,6 +149,12 @@ export default function ChatPage({ profile, org }: Props) {
     fetchGroups().then((data) => {
       setGroups(data);
       setLoadingGroups(false);
+      // Restore selected group from sessionStorage
+      const savedGroupId = sessionStorage.getItem(SS_CHAT_GROUP);
+      if (savedGroupId && !selectedGroup) {
+        const found = data.find((g) => g.id === savedGroupId);
+        if (found) setSelectedGroup(found);
+      }
     });
   }, [profile]);
 
@@ -380,11 +412,8 @@ export default function ChatPage({ profile, org }: Props) {
     }
 
     return (
-      <a
-        href={url || "#"}
-        target="_blank"
-        rel="noopener noreferrer"
-        download={fileName}
+      <div
+        onClick={() => { if (url) downloadFileByUrl(url, fileName).catch(console.error); }}
         style={{
           display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
           background: isMine ? "rgba(255,255,255,0.15)" : "#e5e7eb",
@@ -397,7 +426,7 @@ export default function ChatPage({ profile, org }: Props) {
           <div style={{ fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fileName}</div>
           <div style={{ fontSize: 11, color: isMine ? "rgba(255,255,255,0.6)" : "#6b7280" }}>{formatFileSize(fileSize)}</div>
         </div>
-      </a>
+      </div>
     );
   };
 

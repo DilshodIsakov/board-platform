@@ -95,11 +95,7 @@ export async function getAllProfiles(): Promise<Profile[]> {
 
 export async function updateUserProfile(
   userId: string,
-  updates: {
-    full_name?: string; full_name_en?: string | null; full_name_uz?: string | null;
-    role?: UserRole;
-    role_details?: string | null; role_details_en?: string | null; role_details_uz?: string | null;
-  }
+  updates: Record<string, unknown>
 ): Promise<{ ok: boolean; errorMessage?: string }> {
   const { error } = await supabase
     .from("profiles")

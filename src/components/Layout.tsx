@@ -79,7 +79,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
       unsubscribeFromNotifications(insertChannel);
       unsubscribeFromNotifications(updateChannel);
     };
-  }, [profile]);
+  }, [profile?.id]);
 
   // Закрытие дропдауна при клике вне
   useEffect(() => {

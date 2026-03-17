@@ -207,7 +207,9 @@
     "translationError": "Не удалось сгенерировать переводы. Попробуйте ещё раз.",
     "titlePlaceholderRu": "Название поручения на русском",
     "titlePlaceholderUz": "Название поручения на узбекском",
-    "titlePlaceholderEn": "Название поручения на английском"
+    "titlePlaceholderEn": "Название поручения на английском",
+    "basisLabel": "Основание",
+    "basisPlaceholder": "Например: Протокол заседания НС №5 от 15.05.2026"
   },
   "taskStatus": {
     "open": "Открыто",
@@ -325,6 +327,7 @@
   },
   "workplan": {
     "noPlans": "Планы работ не найдены.",
+    "createPlan": "Создать план работ",
     "period": "Период: {{start}} — {{end}}",
     "approved": "Утверждён",
     "upcomingMeetings": "Предстоящие заседания ({{count}})",
@@ -533,6 +536,8 @@
     "briefError": "Ошибка генерации brief",
     "noMaterialsForBrief": "Загрузите материалы для генерации brief",
     "briefFilesUsed": "Обработано файлов",
+    "aiBriefEnabled": "Разрешить генерацию AI-Brief",
+    "aiBriefDisabledHint": "AI-Brief отключён — материалы этого заседания не будут отправляться в AI (конфиденциальное заседание).",
     "downloadDocx": "Скачать Word (.docx)",
     "briefLang": "Язык брифа",
     "sourceLanguage": "Язык источника",

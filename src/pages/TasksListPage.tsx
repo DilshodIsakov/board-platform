@@ -329,6 +329,7 @@ function CreateTaskModal({
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [mainExecutor, setMainExecutor] = useState<string>("");
   const [orgProfiles, setOrgProfiles] = useState<{ id: string; full_name: string; role: string }[]>([]);
+  const [basis, setBasis] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -455,6 +456,7 @@ function CreateTaskModal({
         created_by:      profile.id,
         title:           sourceTitle.trim(),
         description:     sourceDesc.trim() || undefined,
+        basis:           basis.trim() || undefined,
         priority,
         due_date:        dueDate || undefined,
         source_language: sourceLang,
@@ -564,6 +566,16 @@ function CreateTaskModal({
             onChange={(e) => setDesc(langTab, e.target.value)}
             placeholder={t("taskTable.descriptionPlaceholder")}
             rows={3}
+            style={{ ...inputStyle, resize: "vertical" }}
+          />
+
+          {/* Basis */}
+          <label style={labelStyle}>{t("taskTable.basisLabel")}</label>
+          <textarea
+            value={basis}
+            onChange={(e) => setBasis(e.target.value)}
+            placeholder={t("taskTable.basisPlaceholder")}
+            rows={2}
             style={{ ...inputStyle, resize: "vertical" }}
           />
 

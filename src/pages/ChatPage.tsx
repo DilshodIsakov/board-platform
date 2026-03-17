@@ -141,7 +141,7 @@ export default function ChatPage({ profile, org }: Props) {
         }
       }
     });
-  }, [profile]);
+  }, [profile?.id]);
 
   // Load groups
   useEffect(() => {
@@ -156,7 +156,7 @@ export default function ChatPage({ profile, org }: Props) {
         if (found) setSelectedGroup(found);
       }
     });
-  }, [profile]);
+  }, [profile?.id]);
 
   // Load personal conversation — sequential: mark read → load → refresh badge
   useEffect(() => {
@@ -182,7 +182,7 @@ export default function ChatPage({ profile, org }: Props) {
       // 4. Refresh sidebar badge from DB (notifications are already marked)
       refresh();
     })();
-  }, [profile, selectedContact]);
+  }, [profile?.id, selectedContact]);
 
   // Load group messages + subscribe
   useEffect(() => {
@@ -243,7 +243,7 @@ export default function ChatPage({ profile, org }: Props) {
       }
     });
     return () => unsubscribeFromMessages(channel);
-  }, [profile]);
+  }, [profile?.id]);
 
   // Auto-scroll
   useEffect(() => {

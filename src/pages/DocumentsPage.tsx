@@ -54,7 +54,7 @@ export default function DocumentsPage({ profile, org }: Props) {
       return;
     }
     loadData();
-  }, [profile]);
+  }, [profile?.id]);
 
   // Open modal for create
   const handleOpenCreate = () => {

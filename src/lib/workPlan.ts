@@ -56,6 +56,7 @@ export interface WorkPlanUpdatePayload {
   period_start?: string;
   period_end?: string;
   status?: string;
+  organization_id?: string;
 }
 
 export interface PlanMeetingPayload {
@@ -143,6 +144,20 @@ export async function fetchPlanMeetings(planId: string): Promise<PlanMeeting[]> 
 }
 
 // ─── Work Plan CRUD ───────────────────────────────────────────────────────────
+
+export async function createWorkPlan(payload: WorkPlanUpdatePayload): Promise<WorkPlan> {
+  const { data, error } = await supabase
+    .from("board_work_plans")
+    .insert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("createWorkPlan error:", error);
+    throw new Error(error.message);
+  }
+  return data as WorkPlan;
+}
 
 export async function updateWorkPlan(id: string, fields: WorkPlanUpdatePayload): Promise<void> {
   const { error } = await supabase.from("board_work_plans").update(fields).eq("id", id);

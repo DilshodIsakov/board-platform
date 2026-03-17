@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { Profile, Organization } from "../lib/profile";
@@ -46,13 +46,43 @@ export default function CalendarPage({ profile, org }: Props) {
   const { t } = useTranslation();
   const weekdays = t("calendar.weekdays", { returnObjects: true }) as string[];
   const monthNames = t("calendar.months", { returnObjects: true }) as string[];
+  const SS_TAB = "calendar_tab";
+  const SS_YEAR = "calendar_year";
+  const SS_MONTH = "calendar_month";
+
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<"calendar" | "workplan">("calendar");
   const today = new Date();
   const paramYear = searchParams.get("year");
   const paramMonth = searchParams.get("month");
-  const [year, setYear] = useState(paramYear ? Number(paramYear) : today.getFullYear());
-  const [month, setMonth] = useState(paramMonth ? Number(paramMonth) : today.getMonth());
+
+  const [tab, setTabRaw] = useState<"calendar" | "workplan">(() => {
+    const saved = sessionStorage.getItem(SS_TAB);
+    return saved === "workplan" ? "workplan" : "calendar";
+  });
+  const setTab = useCallback((t: "calendar" | "workplan") => {
+    setTabRaw(t);
+    sessionStorage.setItem(SS_TAB, t);
+  }, []);
+
+  const [year, setYearRaw] = useState(() => {
+    if (paramYear) return Number(paramYear);
+    const saved = sessionStorage.getItem(SS_YEAR);
+    return saved ? Number(saved) : today.getFullYear();
+  });
+  const setYear = useCallback((y: number) => {
+    setYearRaw(y);
+    sessionStorage.setItem(SS_YEAR, String(y));
+  }, []);
+
+  const [month, setMonthRaw] = useState(() => {
+    if (paramMonth) return Number(paramMonth);
+    const saved = sessionStorage.getItem(SS_MONTH);
+    return saved ? Number(saved) : today.getMonth();
+  });
+  const setMonth = useCallback((m: number) => {
+    setMonthRaw(m);
+    sessionStorage.setItem(SS_MONTH, String(m));
+  }, []);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +95,7 @@ export default function CalendarPage({ profile, org }: Props) {
       setMeetings(data);
       setLoading(false);
     });
-  }, [profile]);
+  }, [profile?.id]);
 
   // Группируем заседания по дате
   const meetingsByDate: Record<string, Meeting[]> = {};

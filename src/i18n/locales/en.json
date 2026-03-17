@@ -207,7 +207,9 @@
     "translationError": "Failed to generate translations. Check your connection and try again.",
     "titlePlaceholderRu": "Task title in Russian",
     "titlePlaceholderUz": "Task title in Uzbek",
-    "titlePlaceholderEn": "Task title in English"
+    "titlePlaceholderEn": "Task title in English",
+    "basisLabel": "Basis",
+    "basisPlaceholder": "E.g.: Supervisory Board meeting protocol No.5 dated 15.05.2026"
   },
   "taskStatus": {
     "open": "Open",
@@ -325,6 +327,7 @@
   },
   "workplan": {
     "noPlans": "No work plans found.",
+    "createPlan": "Create work plan",
     "period": "Period: {{start}} — {{end}}",
     "approved": "Approved",
     "upcomingMeetings": "Upcoming meetings ({{count}})",
@@ -530,6 +533,8 @@
     "briefError": "Brief generation error",
     "noMaterialsForBrief": "Upload materials to generate a brief",
     "briefFilesUsed": "Files processed",
+    "aiBriefEnabled": "Allow AI-Brief generation",
+    "aiBriefDisabledHint": "AI-Brief is disabled — materials of this meeting will not be sent to AI (confidential meeting).",
     "downloadDocx": "Download Word (.docx)",
     "briefLang": "Brief language",
     "sourceLanguage": "Source language",

@@ -72,7 +72,7 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
       return;
     }
     loadMeetings();
-  }, [profile]);
+  }, [profile?.id]);
 
   const loadMeetings = async () => {
     const data = await fetchShareholderMeetings();

@@ -24,7 +24,7 @@ export default function ProtocolsPage({ profile }: Props) {
       setMeetings(data);
       setLoading(false);
     })();
-  }, [profile]);
+  }, [profile?.id]);
 
   if (loading) {
     return <div style={{ color: "#9CA3AF" }}>{t("common.loading")}</div>;

@@ -118,6 +118,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
   const [agendaTranslating, setAgendaTranslating] = useState(false);
   const [agendaTranslationError, setAgendaTranslationError] = useState("");
   const [agendaSaveError, setAgendaSaveError] = useState("");
+  const [agendaAiBriefEnabled, setAgendaAiBriefEnabled] = useState(true);
   const [agendaSaving, setAgendaSaving] = useState(false);
 
   // Materials per agenda item
@@ -153,7 +154,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
     loadMeetings();
-  }, [profile]);
+  }, [profile?.id]);
 
   useEffect(() => {
     if (selectedId) {
@@ -371,6 +372,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
     setAgendaTitleRu(""); setAgendaTitleUz(""); setAgendaTitleEn("");
     setAgendaPresenterRu(""); setAgendaPresenterUz(""); setAgendaPresenterEn("");
     setAgendaStatusRu("original"); setAgendaStatusUz("missing"); setAgendaStatusEn("missing");
+    setAgendaAiBriefEnabled(true);
     setAgendaTranslationError("");
     setAgendaSaveError("");
     setShowAgendaModal(true);
@@ -390,6 +392,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
     setAgendaStatusRu((item.translation_status_ru || "original") as TranslationStatus);
     setAgendaStatusUz((item.translation_status_uz || "missing") as TranslationStatus);
     setAgendaStatusEn((item.translation_status_en || "missing") as TranslationStatus);
+    setAgendaAiBriefEnabled(item.ai_brief_enabled !== false);
     setAgendaTranslationError("");
     setAgendaSaveError("");
     setShowAgendaModal(true);
@@ -477,6 +480,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
       translation_status_ru: resolveStatus("ru", agendaStatusRu),
       translation_status_uz: resolveStatus("uz", agendaStatusUz),
       translation_status_en: resolveStatus("en", agendaStatusEn),
+      ai_brief_enabled: agendaAiBriefEnabled,
     };
 
     try {
@@ -904,8 +908,8 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                           })}
                         </div>
 
-                        {/* AI-Brief Section */}
-                        <div style={{ marginTop: 14 }}>
+                        {/* AI-Brief Section — only when enabled on this agenda item */}
+                        {item.ai_brief_enabled !== false && <div style={{ marginTop: 14 }}>
                           {(() => {
                             const lang = getCurrentLang(item.id);
                             const key = briefKey(item.id, lang);
@@ -979,7 +983,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                               </>
                             );
                           })()}
-                        </div>
+                        </div>}
 
                         {/* ===== Voting Section per agenda item ===== */}
                         {(() => {
@@ -1292,6 +1296,31 @@ export default function NSMeetingsPage({ profile, org }: Props) {
               {agendaTranslationError && (
                 <p style={{ fontSize: 12, color: "#DC2626", margin: "-4px 0 0", background: "#FEE2E2", padding: "6px 10px", borderRadius: 6 }}>
                   ⚠ {agendaTranslationError}
+                </p>
+              )}
+
+              {/* AI-Brief toggle */}
+              <div style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 12px", borderRadius: 8,
+                background: agendaAiBriefEnabled ? "#F0FDF4" : "#FEF2F2",
+                border: `1px solid ${agendaAiBriefEnabled ? "#BBF7D0" : "#FECACA"}`,
+              }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flex: 1 }}>
+                  <input
+                    type="checkbox"
+                    checked={agendaAiBriefEnabled}
+                    onChange={(e) => setAgendaAiBriefEnabled(e.target.checked)}
+                    style={{ width: 18, height: 18, accentColor: "#7C3AED", cursor: "pointer" }}
+                  />
+                  <span style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>
+                    {t("nsMeetings.aiBriefEnabled")}
+                  </span>
+                </label>
+              </div>
+              {!agendaAiBriefEnabled && (
+                <p style={{ fontSize: 12, color: "#92400E", margin: "-4px 0 0", background: "#FEF3C7", padding: "6px 10px", borderRadius: 6 }}>
+                  {t("nsMeetings.aiBriefDisabledHint")}
                 </p>
               )}
 

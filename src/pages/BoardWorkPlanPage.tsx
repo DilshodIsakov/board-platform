@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
@@ -6,6 +6,7 @@ import type { Profile, Organization } from "../lib/profile";
 import {
   fetchWorkPlans,
   fetchPlanMeetings,
+  createWorkPlan,
   updateWorkPlan,
   createPlanMeeting,
   updatePlanMeeting,
@@ -41,16 +42,32 @@ const STATUS_COLORS: Record<string, string> = {
 const MEETING_STATUS_OPTIONS = ["planned", "completed", "canceled"];
 const PLAN_STATUS_OPTIONS = ["draft", "approved", "archived"];
 
-export default function BoardWorkPlanPage({ profile }: Props) {
+export default function BoardWorkPlanPage({ profile, org }: Props) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = profile?.role === "admin" || profile?.role === "corp_secretary";
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const [plans, setPlans] = useState<WorkPlan[]>([]);
   const [meetings, setMeetings] = useState<PlanMeeting[]>([]);
-  const [expandedMeeting, setExpandedMeeting] = useState<string | null>(null);
+  const SS_EXPANDED = "workplan_expandedMeeting";
+  const [expandedMeeting, setExpandedMeetingRaw] = useState<string | null>(
+    () => sessionStorage.getItem(SS_EXPANDED) || null
+  );
+  const setExpandedMeeting = useCallback((id: string | null) => {
+    setExpandedMeetingRaw(id);
+    if (id) sessionStorage.setItem(SS_EXPANDED, id);
+    else sessionStorage.removeItem(SS_EXPANDED);
+  }, []);
   const [loading, setLoading] = useState(true);
+
+  // ── Create plan modal ────────────────────────────────────────────────────
+  const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
+  const [newPlanTitle, setNewPlanTitle] = useState("");
+  const [newPlanPeriodStart, setNewPlanPeriodStart] = useState("");
+  const [newPlanPeriodEnd, setNewPlanPeriodEnd] = useState("");
+  const [newPlanSaving, setNewPlanSaving] = useState(false);
+  const [newPlanError, setNewPlanError] = useState<string | null>(null);
 
   // ── Plan edit modal ───────────────────────────────────────────────────────
   const [showPlanModal, setShowPlanModal] = useState(false);
@@ -94,18 +111,136 @@ export default function BoardWorkPlanPage({ profile }: Props) {
   const [agendaSaving, setAgendaSaving] = useState(false);
   const [agendaSaveError, setAgendaSaveError] = useState<string | null>(null);
 
+  // ── Draft persistence ────────────────────────────────────────────────────
+  const SS_DRAFT = "workplan_modalDraft";
+  const draftRestored = useRef(false);
+
+  // Restore draft after data loads — re-open modal with saved form values
+  const restoreDraft = useCallback((loadedMeetings: PlanMeeting[]) => {
+    const raw = sessionStorage.getItem(SS_DRAFT);
+    if (!raw) return;
+    try {
+      const d = JSON.parse(raw);
+      if (d.modal === "editPlan") {
+        setPlanSrcLang(d.planSrcLang ?? "ru");
+        setPlanLangTab(d.planLangTab ?? "ru");
+        setPlanTitleRu(d.planTitleRu ?? "");
+        setPlanTitleUz(d.planTitleUz ?? "");
+        setPlanTitleEn(d.planTitleEn ?? "");
+        setPlanStatusRu(d.planStatusRu ?? "original");
+        setPlanStatusUz(d.planStatusUz ?? "missing");
+        setPlanStatusEn(d.planStatusEn ?? "missing");
+        setPlanStatusEdit(d.planStatusEdit ?? "approved");
+        setPlanPeriodStart(d.planPeriodStart ?? "");
+        setPlanPeriodEnd(d.planPeriodEnd ?? "");
+        setShowPlanModal(true);
+      } else if (d.modal === "createPlan") {
+        setNewPlanTitle(d.newPlanTitle ?? "");
+        setNewPlanPeriodStart(d.newPlanPeriodStart ?? "");
+        setNewPlanPeriodEnd(d.newPlanPeriodEnd ?? "");
+        setShowCreatePlanModal(true);
+      } else if (d.modal === "meeting") {
+        setMeetDateFrom(d.meetDateFrom ?? "");
+        setMeetStatus("planned");
+        if (d.editingMeetingId) {
+          const found = loadedMeetings.find((m) => m.id === d.editingMeetingId);
+          setEditingMeeting(found ?? null);
+        } else {
+          setEditingMeeting(null);
+        }
+        setShowMeetingModal(true);
+      } else if (d.modal === "agenda") {
+        setAgendaMeetingId(d.agendaMeetingId ?? null);
+        setAgendaSrcLang(d.agendaSrcLang ?? "ru");
+        setAgendaLangTab(d.agendaLangTab ?? "ru");
+        setAgendaTitleRu(d.agendaTitleRu ?? "");
+        setAgendaTitleUz(d.agendaTitleUz ?? "");
+        setAgendaTitleEn(d.agendaTitleEn ?? "");
+        setAgendaStatusRu(d.agendaStatusRu ?? "original");
+        setAgendaStatusUz(d.agendaStatusUz ?? "missing");
+        setAgendaStatusEn(d.agendaStatusEn ?? "missing");
+        if (d.editingAgendaItemId) {
+          for (const m of loadedMeetings) {
+            const found = (m.agenda_items || []).find((ai) => ai.id === d.editingAgendaItemId);
+            if (found) { setEditingAgendaItem(found); break; }
+          }
+        } else {
+          setEditingAgendaItem(null);
+        }
+        setShowAgendaModal(true);
+      }
+    } catch { /* ignore corrupt draft */ }
+  }, []);
+
+  // Save draft whenever a modal is open and fields change
+  useEffect(() => {
+    const openModal = showPlanModal ? "editPlan"
+      : showCreatePlanModal ? "createPlan"
+      : showMeetingModal ? "meeting"
+      : showAgendaModal ? "agenda"
+      : null;
+
+    if (!openModal) {
+      sessionStorage.removeItem(SS_DRAFT);
+      return;
+    }
+
+    const draft: Record<string, unknown> = { modal: openModal };
+
+    if (openModal === "editPlan") {
+      Object.assign(draft, {
+        planSrcLang, planLangTab, planTitleRu, planTitleUz, planTitleEn,
+        planStatusRu, planStatusUz, planStatusEn, planStatusEdit,
+        planPeriodStart, planPeriodEnd,
+      });
+    } else if (openModal === "createPlan") {
+      Object.assign(draft, { newPlanTitle, newPlanPeriodStart, newPlanPeriodEnd });
+    } else if (openModal === "meeting") {
+      Object.assign(draft, { meetDateFrom, editingMeetingId: editingMeeting?.id ?? null });
+    } else if (openModal === "agenda") {
+      Object.assign(draft, {
+        agendaMeetingId, editingAgendaItemId: editingAgendaItem?.id ?? null,
+        agendaSrcLang, agendaLangTab, agendaTitleRu, agendaTitleUz, agendaTitleEn,
+        agendaStatusRu, agendaStatusUz, agendaStatusEn,
+      });
+    }
+
+    sessionStorage.setItem(SS_DRAFT, JSON.stringify(draft));
+  }, [
+    showPlanModal, showCreatePlanModal, showMeetingModal, showAgendaModal,
+    planSrcLang, planLangTab, planTitleRu, planTitleUz, planTitleEn,
+    planStatusRu, planStatusUz, planStatusEn, planStatusEdit,
+    planPeriodStart, planPeriodEnd,
+    newPlanTitle, newPlanPeriodStart, newPlanPeriodEnd,
+    meetDateFrom, editingMeeting,
+    agendaMeetingId, editingAgendaItem, agendaSrcLang, agendaLangTab,
+    agendaTitleRu, agendaTitleUz, agendaTitleEn,
+    agendaStatusRu, agendaStatusUz, agendaStatusEn,
+  ]);
+
   // ── Load data ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
     fetchWorkPlans().then((data) => {
       setPlans(data);
       if (data.length > 0) {
-        fetchPlanMeetings(data[0].id).then((m) => { setMeetings(m); setLoading(false); });
+        fetchPlanMeetings(data[0].id).then((m) => {
+          setMeetings(m);
+          setLoading(false);
+          if (!draftRestored.current) {
+            draftRestored.current = true;
+            restoreDraft(m);
+          }
+        });
       } else {
         setLoading(false);
+        if (!draftRestored.current) {
+          draftRestored.current = true;
+          restoreDraft([]);
+        }
       }
     });
-  }, [profile]);
+  }, [profile?.id, restoreDraft]);
 
   const reload = async (planId: string) => {
     const m = await fetchPlanMeetings(planId);
@@ -113,6 +248,41 @@ export default function BoardWorkPlanPage({ profile }: Props) {
   };
 
   // ── Plan modal ────────────────────────────────────────────────────────────
+  const openCreatePlan = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    setNewPlanTitle("");
+    setNewPlanPeriodStart(`${year}-01-01`);
+    setNewPlanPeriodEnd(`${year}-12-31`);
+    setNewPlanError(null);
+    setShowCreatePlanModal(true);
+  };
+
+  const handleCreateNewPlan = async () => {
+    if (!newPlanTitle.trim()) { setNewPlanError(t("workplan.titleRequired")); return; }
+    if (!newPlanPeriodStart || !newPlanPeriodEnd) { setNewPlanError(t("workplan.datesRequired")); return; }
+    setNewPlanSaving(true);
+    setNewPlanError(null);
+    try {
+      await createWorkPlan({
+        title: newPlanTitle.trim(),
+        title_ru: newPlanTitle.trim(),
+        source_language: "ru",
+        period_start: newPlanPeriodStart,
+        period_end: newPlanPeriodEnd,
+        status: "draft",
+        organization_id: org?.id,
+      });
+      setPlans(await fetchWorkPlans());
+      setMeetings([]);
+      setShowCreatePlanModal(false);
+    } catch (e) {
+      setNewPlanError(e instanceof Error ? e.message : t("workplan.saveError"));
+    } finally {
+      setNewPlanSaving(false);
+    }
+  };
+
   const openEditPlan = () => {
     const plan = plans[0];
     if (!plan) return;
@@ -349,9 +519,61 @@ export default function BoardWorkPlanPage({ profile }: Props) {
     }
   };
 
+  // ── Create plan modal renderer ───────────────────────────────────────────
+  const renderCreatePlanModal = () => (
+    <div style={overlayStyle}>
+      <div style={{ ...modalStyle, maxWidth: 480 }}>
+        <h2 style={modalTitleStyle}>{t("workplan.createPlan")}</h2>
+
+        <label style={labelStyle}>{t("workplan.planTitle")}</label>
+        <input
+          value={newPlanTitle}
+          onChange={(e) => setNewPlanTitle(e.target.value)}
+          style={inputStyle}
+          placeholder={t("workplan.planTitle")}
+        />
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
+          <div>
+            <label style={labelStyle}>{t("workplan.planPeriodStart")}</label>
+            <input type="date" value={newPlanPeriodStart} onChange={(e) => setNewPlanPeriodStart(e.target.value)} style={inputStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>{t("workplan.planPeriodEnd")}</label>
+            <input type="date" value={newPlanPeriodEnd} onChange={(e) => setNewPlanPeriodEnd(e.target.value)} style={inputStyle} />
+          </div>
+        </div>
+
+        {newPlanError && <div style={errorStyle}>{newPlanError}</div>}
+
+        <div style={modalFooterStyle}>
+          <button onClick={() => setShowCreatePlanModal(false)} style={cancelBtnStyle}>{t("common.cancel")}</button>
+          <button onClick={handleCreateNewPlan} disabled={newPlanSaving} style={primaryBtnStyle}>
+            {newPlanSaving ? t("common.saving") : t("common.save")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   // ── Render ────────────────────────────────────────────────────────────────
   if (loading) return <div style={{ color: "#9CA3AF" }}>{t("common.loading")}</div>;
-  if (plans.length === 0) return <div style={{ color: "#9CA3AF" }}>{t("workplan.noPlans")}</div>;
+  if (plans.length === 0) {
+    return (
+      <div>
+        <div style={{ textAlign: "center", padding: "60px 20px" }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
+          <div style={{ fontSize: 16, color: "#9CA3AF", marginBottom: 20 }}>{t("workplan.noPlans")}</div>
+          {isAdmin && (
+            <button onClick={openCreatePlan} style={primaryBtnStyle}>
+              + {t("workplan.createPlan")}
+            </button>
+          )}
+        </div>
+        {showCreatePlanModal && renderCreatePlanModal()}
+      </div>
+    );
+  }
 
   const plan = plans[0];
   const today = new Date().toISOString().slice(0, 10);
@@ -517,13 +739,6 @@ export default function BoardWorkPlanPage({ profile }: Props) {
               <label style={labelStyle}>{t("workplan.meetingDateFrom")}</label>
               <input type="date" value={meetDateFrom} onChange={(e) => setMeetDateFrom(e.target.value)} style={inputStyle} />
             </div>
-
-            <label style={{ ...labelStyle, marginTop: 16 }}>{t("workplan.meetingStatus")}</label>
-            <select value={meetStatus} onChange={(e) => setMeetStatus(e.target.value)} style={selectStyle}>
-              {MEETING_STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>{t(`workplan.planStatus.${s === "planned" ? "scheduled" : s === "canceled" ? "cancelled" : s}`)}</option>
-              ))}
-            </select>
 
             {meetError && <div style={errorStyle}>{meetError}</div>}
 

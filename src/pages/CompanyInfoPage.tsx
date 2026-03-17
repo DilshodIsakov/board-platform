@@ -40,7 +40,7 @@ export default function CompanyInfoPage({ profile }: Props) {
       return;
     }
     loadMembers();
-  }, [profile]);
+  }, [profile?.id]);
 
   const loadMembers = async () => {
     const { data, error } = await supabase

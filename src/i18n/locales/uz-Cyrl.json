@@ -207,7 +207,9 @@
     "translationError": "Таржималарни яратиб бўлмади. Қайта уриниб кўринг.",
     "titlePlaceholderRu": "Топшириқ номи русча",
     "titlePlaceholderUz": "Топшириқ номи ўзбекча",
-    "titlePlaceholderEn": "Топшириқ номи инглизча"
+    "titlePlaceholderEn": "Топшириқ номи инглизча",
+    "basisLabel": "Асос",
+    "basisPlaceholder": "Масалан: НК мажлиси баённомаси №5, 15.05.2026"
   },
   "taskStatus": {
     "open": "Очиқ",
@@ -325,6 +327,7 @@
   },
   "workplan": {
     "noPlans": "Иш режалари топилмади.",
+    "createPlan": "Иш режасини яратиш",
     "period": "Давр: {{start}} — {{end}}",
     "approved": "Тасдиқланган",
     "upcomingMeetings": "Келгуси мажлислар ({{count}})",
@@ -530,6 +533,8 @@
     "briefError": "Brief яратиш хатоси",
     "noMaterialsForBrief": "Brief яратиш учун материал юкланг",
     "briefFilesUsed": "Ишланган файллар",
+    "aiBriefEnabled": "AI-Brief яратишга рухсат бериш",
+    "aiBriefDisabledHint": "AI-Brief ўчирилган — бу мажлис материаллари AI га юборилмайди (махфий мажлис).",
     "downloadDocx": "Word юклаб олиш (.docx)",
     "briefLang": "Бриф тили",
     "sourceLanguage": "Манба тили",

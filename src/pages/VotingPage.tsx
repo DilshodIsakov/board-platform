@@ -37,7 +37,7 @@ export default function VotingPage({ profile }: Props) {
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
     loadData();
-  }, [profile]);
+  }, [profile?.id]);
 
   const loadData = async () => {
     if (!profile) return;

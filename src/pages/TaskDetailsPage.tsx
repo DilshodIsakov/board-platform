@@ -75,6 +75,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [editBasis, setEditBasis] = useState("");
   const [editPriority, setEditPriority] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
   const [saving, setSaving] = useState(false);
@@ -129,6 +130,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
     if (t) {
       setEditTitle(t.title);
       setEditDesc(t.description || "");
+      setEditBasis(t.basis || "");
       setEditPriority(t.priority);
       setEditDueDate(t.due_date || "");
       // multilingual
@@ -184,6 +186,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       await updateTask(task.id, {
         title:       srcTitle || editTitle.trim(),
         description: srcDesc || editDesc.trim() || null,
+        basis:       editBasis.trim() || null,
         priority:    editPriority as BoardTask["priority"],
         due_date:    editDueDate || null,
         source_language:       editSourceLang,
@@ -202,6 +205,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
         ...task,
         title:       srcTitle || editTitle.trim(),
         description: srcDesc || editDesc.trim() || null,
+        basis:       editBasis.trim() || null,
         priority:    editPriority as BoardTask["priority"],
         due_date:    editDueDate || null,
         source_language:       editSourceLang,
@@ -491,6 +495,18 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                 placeholder={t("taskDetails.descriptionPlaceholder")}
               />
 
+              {/* Basis */}
+              <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 4, display: "block" }}>
+                {t("taskTable.basisLabel")}
+              </label>
+              <textarea
+                value={editBasis}
+                onChange={(e) => setEditBasis(e.target.value)}
+                rows={2}
+                style={{ ...inputStyle, marginBottom: 10, resize: "vertical" }}
+                placeholder={t("taskTable.basisPlaceholder")}
+              />
+
               {/* Generate translations */}
               <div style={{ marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -556,6 +572,13 @@ export default function TaskDetailsPage({ profile, org }: Props) {
               const desc = getLocalizedField(task as unknown as Record<string, unknown>, "description") || task.description;
               return desc ? <p style={{ color: "#4B5563", fontSize: 15, margin: "0 0 16px", lineHeight: 1.6 }}>{desc}</p> : null;
             })()}
+
+            {task.basis && (
+              <div style={{ marginBottom: 16 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#6B7280" }}>{t("taskTable.basisLabel")}:</span>
+                <p style={{ color: "#4B5563", fontSize: 14, margin: "4px 0 0", lineHeight: 1.5 }}>{task.basis}</p>
+              </div>
+            )}
 
             {/* Meta row */}
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>

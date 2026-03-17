@@ -39,6 +39,7 @@ export interface AgendaItem {
   translation_status_ru: string;
   translation_status_uz: string;
   translation_status_en: string;
+  ai_brief_enabled: boolean;
   translation_updated_at: string | null;
 }
 
@@ -55,6 +56,7 @@ export interface AgendaItemPayload {
   translation_status_ru?: string;
   translation_status_uz?: string;
   translation_status_en?: string;
+  ai_brief_enabled?: boolean;
 }
 
 export interface Material {

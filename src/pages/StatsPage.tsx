@@ -36,7 +36,7 @@ export default function StatsPage({ profile }: Props) {
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
     loadData();
-  }, [profile, period]);
+  }, [profile?.id, period]);
 
   const loadData = async () => {
     setLoading(true);

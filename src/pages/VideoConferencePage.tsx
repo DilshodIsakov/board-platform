@@ -37,7 +37,7 @@ export default function VideoConferencePage({ profile, org }: Props) {
       setConferences(vc);
       setLoading(false);
     });
-  }, [profile]);
+  }, [profile?.id]);
 
   const scheduledMeetings = meetings.filter((m) => m.status === "scheduled");
   const now = new Date();

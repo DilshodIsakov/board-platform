@@ -67,7 +67,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
     }
     loadMeetings();
     loadShareholderData();
-  }, [profile]);
+  }, [profile?.id]);
 
   const loadShareholderData = async () => {
     const shData = await fetchShareholderMeetings();

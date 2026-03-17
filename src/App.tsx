@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "./lib/supabaseClient";
@@ -33,21 +33,37 @@ export default function App() {
   const [org, setOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  // Track whether we've done the initial profile load.
+  // After the first successful load, we NEVER show the loading screen again,
+  // because that unmounts the entire page tree (Layout + page component),
+  // destroying all React state: open modals, form inputs, scroll position, etc.
+  const profileLoadedRef = useRef(false);
+
   const loadProfileAndOrg = async () => {
-    setProfileLoading(true);
+    if (!profileLoadedRef.current) {
+      setProfileLoading(true);
+    }
     try {
       const [p, o] = await Promise.all([getMyProfile(), getMyOrg()]);
-      console.log("[DEBUG] Loaded profile:", p);
-      console.log("[DEBUG] Profile role:", p?.role);
-      setProfile(p);
+      // Stabilize references: only update if the identity actually changed.
+      // This prevents cascading re-renders in child components that depend
+      // on profile/org via useEffect — a new object reference with the same
+      // data would re-trigger every [profile]-dependent effect, reloading
+      // data and resetting UI state across all pages.
+      setProfile((prev) => {
+        if (prev?.id === p?.id) return prev;
+        return p;
+      });
+      setOrg((prev) => {
+        if (prev?.id === o?.id) return prev;
+        return o;
+      });
+      profileLoadedRef.current = true;
       // Sync locale from profile
-      if (p?.created_at && p.created_at !== i18n.language) {
-        const savedLocale = localStorage.getItem("locale");
-        if (savedLocale && savedLocale !== i18n.language) {
-          i18n.changeLanguage(savedLocale);
-        }
+      const savedLocale = localStorage.getItem("locale");
+      if (savedLocale && savedLocale !== i18n.language) {
+        i18n.changeLanguage(savedLocale);
       }
-      setOrg(o);
     } catch (e) {
       console.error("loadProfileAndOrg error:", e);
       setProfile(null);
@@ -79,7 +95,9 @@ export default function App() {
       // TOKEN_REFRESHED fires silently on window refocus and must NOT trigger
       // profile reload — that would create a new object reference, re-run all
       // useEffect([profile]) hooks, and reset page UI state.
-      if (u && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+      // Also skip if profile is already loaded for the same user — Supabase
+      // can fire SIGNED_IN on tab refocus even for existing sessions.
+      if (u && (event === "SIGNED_IN" || event === "INITIAL_SESSION") && !profileLoadedRef.current) {
         loadProfileAndOrg();
       } else if (!u) {
         setProfile(null);

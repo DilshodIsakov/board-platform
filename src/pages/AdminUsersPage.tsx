@@ -3,7 +3,10 @@ import { useTranslation } from "react-i18next";
 import {
   getAllProfiles,
   updateUserProfile,
-  adminCreateUser,
+  adminInviteUser,
+  adminApproveUser,
+  adminRejectUser,
+  adminResetPassword,
   adminDeleteUser,
   ROLE_OPTIONS,
   ROLE_LABELS,
@@ -20,15 +23,21 @@ export default function AdminUsersPage() {
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState<"invite" | "edit">("invite");
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Approve modal
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [approvingProfile, setApprovingProfile] = useState<Profile | null>(null);
+  const [approveRole, setApproveRole] = useState<UserRole>("board_member");
+  const [approveRoleDetails, setApproveRoleDetails] = useState("");
 
   const { t } = useTranslation();
 
   // Form fields
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
-  const [formPassword, setFormPassword] = useState("");
   const [formRole, setFormRole] = useState<UserRole>("board_member");
   const [formRoleDetails, setFormRoleDetails] = useState("");
 
@@ -45,23 +54,28 @@ export default function AdminUsersPage() {
 
   const clearMessages = () => { setError(""); setSuccess(""); };
 
-  const openCreateModal = () => {
+  const pendingProfiles = profiles.filter((p) => p.approval_status === "pending");
+  const approvedProfiles = profiles.filter((p) => p.approval_status !== "pending");
+
+  // ===== Invite modal =====
+  const openInviteModal = () => {
     clearMessages();
+    setModalMode("invite");
     setEditingProfile(null);
     setFormName("");
     setFormEmail("");
-    setFormPassword("");
     setFormRole("board_member");
     setFormRoleDetails("");
     setShowModal(true);
   };
 
+  // ===== Edit modal =====
   const openEditModal = (p: Profile) => {
     clearMessages();
+    setModalMode("edit");
     setEditingProfile(p);
     setFormName(p.full_name || "");
     setFormEmail(p.email);
-    setFormPassword("");
     setFormRole(p.role);
     setFormRoleDetails(p.role_details || "");
     setShowModal(true);
@@ -78,7 +92,7 @@ export default function AdminUsersPage() {
     setSaving(true);
 
     try {
-      if (editingProfile) {
+      if (modalMode === "edit" && editingProfile) {
         const result = await updateUserProfile(editingProfile.id, {
           full_name: formName.trim() || undefined,
           role: formRole,
@@ -100,19 +114,18 @@ export default function AdminUsersPage() {
         );
         setSuccess(t("admin.userUpdated"));
       } else {
+        // Invite flow
         if (!formEmail.trim()) throw new Error(t("admin.emailRequired"));
-        if (!formPassword || formPassword.length < 6) throw new Error(t("admin.passwordMinLength"));
 
-        await adminCreateUser(
+        await adminInviteUser(
           formEmail.trim(),
-          formPassword,
           formName.trim(),
           formRole,
           formRole === "admin" ? null : (formRoleDetails.trim() || null)
         );
 
         await loadProfiles();
-        setSuccess(t("admin.userCreated"));
+        setSuccess(t("admin.inviteSent"));
       }
       closeModal();
     } catch (err) {
@@ -122,6 +135,71 @@ export default function AdminUsersPage() {
     }
   };
 
+  // ===== Approve =====
+  const openApproveModal = (p: Profile) => {
+    clearMessages();
+    setApprovingProfile(p);
+    setApproveRole(p.role || "board_member");
+    setApproveRoleDetails(p.role_details || "");
+    setShowApproveModal(true);
+  };
+
+  const handleApprove = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!approvingProfile) return;
+    clearMessages();
+    setSaving(true);
+    try {
+      await adminApproveUser(
+        approvingProfile.id,
+        approveRole,
+        approveRole === "admin" ? null : (approveRoleDetails.trim() || null)
+      );
+      setProfiles((prev) =>
+        prev.map((p) =>
+          p.id === approvingProfile.id
+            ? { ...p, approval_status: "approved" as const, role: approveRole, role_details: approveRoleDetails.trim() || null }
+            : p
+        )
+      );
+      setSuccess(t("admin.userApproved"));
+      setShowApproveModal(false);
+      setApprovingProfile(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("common.error"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ===== Reject =====
+  const handleReject = async (p: Profile) => {
+    clearMessages();
+    const msg = t("admin.rejectConfirm", { name: p.full_name || p.email });
+    if (!confirm(msg)) return;
+    try {
+      await adminRejectUser(p.id);
+      setProfiles((prev) => prev.filter((x) => x.id !== p.id));
+      setSuccess(t("admin.userRejected"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("common.error"));
+    }
+  };
+
+  // ===== Reset password =====
+  const handleResetPassword = async (p: Profile) => {
+    clearMessages();
+    const msg = t("admin.resetPasswordConfirm", { email: p.email });
+    if (!confirm(msg)) return;
+    try {
+      await adminResetPassword(p.id);
+      setSuccess(t("admin.resetPasswordSent"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("common.error"));
+    }
+  };
+
+  // ===== Delete =====
   const handleDelete = async (p: Profile) => {
     clearMessages();
     const msg = t("admin.confirmDelete", { name: p.full_name || p.email });
@@ -144,7 +222,7 @@ export default function AdminUsersPage() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
         <h1 style={{ margin: 0 }}>{t("admin.title")}</h1>
-        <button onClick={openCreateModal} style={createBtnStyle}>{t("admin.createUser")}</button>
+        <button onClick={openInviteModal} style={createBtnStyle}>{t("admin.inviteUser")}</button>
       </div>
       <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 20px" }}>
         {t("admin.subtitle")}
@@ -163,7 +241,45 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {profiles.length === 0 ? (
+      {/* ===== Pending Approvals Section ===== */}
+      {pendingProfiles.length > 0 && (
+        <div style={{ marginBottom: 28 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: "#B45309", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: "50%", background: "#FEF3C7", color: "#B45309", fontSize: 13, fontWeight: 700 }}>
+              {pendingProfiles.length}
+            </span>
+            {t("admin.pendingApprovals")}
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {pendingProfiles.map((p) => (
+              <div key={p.id} style={pendingCardStyle}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>
+                    {p.full_name || p.email}
+                  </div>
+                  <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>
+                    {p.email}
+                  </div>
+                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>
+                    {new Date(p.created_at).toLocaleDateString(getIntlLocale())}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <button onClick={() => openApproveModal(p)} style={approveBtnStyle}>
+                    {t("admin.approve")}
+                  </button>
+                  <button onClick={() => handleReject(p)} style={rejectBtnStyle}>
+                    {t("admin.reject")}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ===== Users Table ===== */}
+      {approvedProfiles.length === 0 ? (
         <p style={{ color: "#9CA3AF" }}>{t("admin.noUsers")}</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
@@ -175,11 +291,11 @@ export default function AdminUsersPage() {
                 <th style={thStyle}>{t("admin.mainRole")}</th>
                 <th style={thStyle}>{t("admin.roleDetails")}</th>
                 <th style={thStyle}>{t("admin.createdAt")}</th>
-                <th style={{ ...thStyle, textAlign: "center", width: 100 }}>{t("admin.actions")}</th>
+                <th style={{ ...thStyle, textAlign: "center", width: 140 }}>{t("admin.actions")}</th>
               </tr>
             </thead>
             <tbody>
-              {profiles.map((p) => (
+              {approvedProfiles.map((p) => (
                 <tr key={p.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
                   <td style={tdStyle}>{p.email}</td>
                   <td style={tdStyle}>{p.full_name || "—"}</td>
@@ -200,6 +316,12 @@ export default function AdminUsersPage() {
                           <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                         </svg>
                       </button>
+                      <button onClick={() => handleResetPassword(p)} style={actBtnStyle} title={t("admin.resetPassword")}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                          <path d="M7 11V7a5 5 0 0110 0v4" />
+                        </svg>
+                      </button>
                       <button onClick={() => handleDelete(p)} style={delBtnStyle} title={t("admin.delete")}>
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6" />
@@ -215,35 +337,29 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* ===== Create / Edit Modal ===== */}
+      {/* ===== Invite / Edit Modal ===== */}
       {showModal && (
         <div style={overlayStyle}>
           <div style={modalStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h3 style={{ margin: 0, fontSize: 18 }}>
-                {editingProfile ? t("admin.editUser") : t("admin.createUserTitle")}
+                {modalMode === "edit" ? t("admin.editUser") : t("admin.inviteUserTitle")}
               </h3>
               <button onClick={closeModal} style={closeBtnStyle}>&times;</button>
             </div>
 
             <form onSubmit={handleSave}>
+              {modalMode === "invite" && (
+                <div style={fldStyle}>
+                  <label style={lblStyle}>{`${t("admin.email")} *`}</label>
+                  <input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="user@example.com" style={inpStyle} required />
+                </div>
+              )}
+
               <div style={fldStyle}>
                 <label style={lblStyle}>{t("admin.fullName")}</label>
                 <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder={t("admin.fullNamePlaceholder")} style={inpStyle} />
               </div>
-
-              {!editingProfile && (
-                <>
-                  <div style={fldStyle}>
-                    <label style={lblStyle}>{`${t("admin.email")} *`}</label>
-                    <input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="user@example.com" style={inpStyle} required />
-                  </div>
-                  <div style={fldStyle}>
-                    <label style={lblStyle}>{`${t("admin.password")} *`}</label>
-                    <input type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} placeholder={t("admin.passwordPlaceholder")} style={inpStyle} required minLength={6} />
-                  </div>
-                </>
-              )}
 
               <div style={fldStyle}>
                 <label style={lblStyle}>{`${t("admin.mainRole")} *`}</label>
@@ -262,10 +378,61 @@ export default function AdminUsersPage() {
                 </div>
               )}
 
+              {modalMode === "invite" && (
+                <div style={{ fontSize: 13, color: "#6B7280", background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 8, padding: "10px 14px", marginTop: 8 }}>
+                  {t("admin.inviteHint")}
+                </div>
+              )}
+
               <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                 <button type="button" onClick={closeModal} style={cancelBtnStyle}>{t("common.cancel")}</button>
                 <button type="submit" disabled={saving} style={{ ...saveBtnStyle, opacity: saving ? 0.6 : 1 }}>
-                  {saving ? t("common.saving") : t("common.save")}
+                  {saving ? t("common.saving") : modalMode === "edit" ? t("common.save") : t("admin.inviteUser")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Approve Modal ===== */}
+      {showApproveModal && approvingProfile && (
+        <div style={overlayStyle}>
+          <div style={modalStyle}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 18 }}>
+                {t("admin.approve")}: {approvingProfile.full_name || approvingProfile.email}
+              </h3>
+              <button onClick={() => { setShowApproveModal(false); setApprovingProfile(null); }} style={closeBtnStyle}>&times;</button>
+            </div>
+
+            <form onSubmit={handleApprove}>
+              <div style={{ fontSize: 14, color: "#374151", marginBottom: 16 }}>
+                {approvingProfile.email}
+              </div>
+
+              <div style={fldStyle}>
+                <label style={lblStyle}>{`${t("admin.mainRole")} *`}</label>
+                <select value={approveRole} onChange={(e) => setApproveRole(e.target.value as UserRole)} style={selStyle}>
+                  {ROLE_OPTIONS.map((r) => (
+                    <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                  ))}
+                </select>
+              </div>
+
+              {approveRole !== "admin" && (
+                <div style={fldStyle}>
+                  <label style={lblStyle}>{t("admin.roleDetails")}</label>
+                  <input value={approveRoleDetails} onChange={(e) => setApproveRoleDetails(e.target.value)} placeholder={t("admin.roleDetailsPlaceholder")} style={inpStyle} />
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => { setShowApproveModal(false); setApprovingProfile(null); }} style={cancelBtnStyle}>
+                  {t("common.cancel")}
+                </button>
+                <button type="submit" disabled={saving} style={{ ...approveBtnStyle, opacity: saving ? 0.6 : 1, padding: "10px 24px" }}>
+                  {saving ? t("common.saving") : t("admin.approve")}
                 </button>
               </div>
             </form>
@@ -310,6 +477,22 @@ function roleBadge(role: string): React.CSSProperties {
   const v = c[role] || { bg: "#F3F4F6", fg: "#374151" };
   return { display: "inline-block", padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600, background: v.bg, color: v.fg };
 }
+
+const pendingCardStyle: React.CSSProperties = {
+  display: "flex", alignItems: "center", justifyContent: "space-between",
+  background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 10,
+  padding: "14px 18px",
+};
+
+const approveBtnStyle: React.CSSProperties = {
+  padding: "7px 16px", fontSize: 13, fontWeight: 600, borderRadius: 7,
+  border: "none", background: "#16A34A", color: "#FFFFFF", cursor: "pointer",
+};
+
+const rejectBtnStyle: React.CSSProperties = {
+  padding: "7px 16px", fontSize: 13, fontWeight: 600, borderRadius: 7,
+  border: "1px solid #FECACA", background: "#FEF2F2", color: "#DC2626", cursor: "pointer",
+};
 
 const actBtnStyle: React.CSSProperties = {
   width: 32, height: 32, borderRadius: 6, border: "1px solid #D1D5DB",

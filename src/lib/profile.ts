@@ -2,12 +2,15 @@ import { supabase, supabaseAnonKey } from "./supabaseClient";
 
 export type UserRole = "admin" | "corp_secretary" | "board_member" | "management" | "executive" | "employee" | "auditor" | "department_head" | "chairman";
 
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+
 export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
   role: UserRole;
   role_details?: string | null;
+  approval_status: ApprovalStatus;
   created_at: string;
 }
 
@@ -150,6 +153,39 @@ export async function adminCreateUser(
     role_details: role === "admin" ? null : roleDetails,
   });
   return result.user_id!;
+}
+
+export async function adminInviteUser(
+  email: string,
+  fullName: string,
+  role: UserRole,
+  roleDetails: string | null
+): Promise<{ user_id: string; recovery_link: string | null }> {
+  const result = await callAdminUsersFunction({
+    action: "invite",
+    email,
+    full_name: fullName,
+    role,
+    role_details: role === "admin" ? null : roleDetails,
+  });
+  return { user_id: result.user_id!, recovery_link: (result as Record<string, unknown>).recovery_link as string | null };
+}
+
+export async function adminApproveUser(
+  userId: string,
+  role: UserRole,
+  roleDetails?: string | null
+): Promise<void> {
+  await callAdminUsersFunction({ action: "approve", user_id: userId, role, role_details: roleDetails });
+}
+
+export async function adminRejectUser(userId: string): Promise<void> {
+  await callAdminUsersFunction({ action: "reject", user_id: userId });
+}
+
+export async function adminResetPassword(userId: string): Promise<string | null> {
+  const result = await callAdminUsersFunction({ action: "reset_password", user_id: userId });
+  return (result as Record<string, unknown>).recovery_link as string | null;
 }
 
 export async function adminDeleteUser(userId: string): Promise<void> {

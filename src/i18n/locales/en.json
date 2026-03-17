@@ -578,7 +578,24 @@
     "passwordMinLength": "Password must be at least 6 characters",
     "confirmDelete": "Delete user \"{{name}}\"?\n\nThis action is irreversible.",
     "edit": "Edit",
-    "delete": "Delete"
+    "delete": "Delete",
+    "inviteUser": "Invite User",
+    "inviteUserTitle": "Invite User",
+    "inviteSent": "Invitation sent",
+    "pendingApprovals": "Pending Approvals",
+    "noPendingUsers": "No pending approvals",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approveConfirm": "Approve user \"{{name}}\" with role {{role}}?",
+    "rejectConfirm": "Reject and delete user \"{{name}}\"?",
+    "userApproved": "User approved",
+    "userRejected": "User rejected",
+    "resetPassword": "Reset Password",
+    "resetPasswordConfirm": "Send password reset email to {{email}}?",
+    "resetPasswordSent": "Password reset email sent",
+    "statusPending": "Pending",
+    "statusApproved": "Active",
+    "inviteHint": "User will receive an email with a link to set their password"
   },
   "confirmEmail": {
     "title": "Confirm your email",
@@ -588,6 +605,21 @@
     "sending": "Sending...",
     "resend": "Resend confirmation email",
     "afterConfirm": "After confirming your email, refresh the page (F5)"
+  },
+  "pendingApproval": {
+    "title": "Pending Approval",
+    "message": "Your registration is being reviewed by an administrator. You will receive access once approved.",
+    "refresh": "Check status",
+    "signOut": "Sign out"
+  },
+  "setPassword": {
+    "title": "Set Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "mismatch": "Passwords do not match",
+    "minLength": "Password must be at least 6 characters",
+    "submit": "Set Password",
+    "success": "Password set successfully. Redirecting..."
   },
   "voting_extra": {
     "deadline": "Deadline",

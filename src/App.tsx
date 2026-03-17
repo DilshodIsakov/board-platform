@@ -7,6 +7,8 @@ import type { User } from "@supabase/supabase-js";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import ConfirmEmailPage from "./pages/ConfirmEmailPage";
+import PendingApprovalPage from "./pages/PendingApprovalPage";
+import SetPasswordPage from "./pages/SetPasswordPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import DashboardPage from "./pages/DashboardPage";
 import MeetingPage from "./pages/MeetingPage";
@@ -33,6 +35,7 @@ export default function App() {
   const [org, setOrg] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
   // Track whether we've done the initial profile load.
   // After the first successful load, we NEVER show the loading screen again,
   // because that unmounts the entire page tree (Layout + page component),
@@ -97,11 +100,17 @@ export default function App() {
       // useEffect([profile]) hooks, and reset page UI state.
       // Also skip if profile is already loaded for the same user — Supabase
       // can fire SIGNED_IN on tab refocus even for existing sessions.
+      // Handle password recovery flow (invited user setting password or password reset)
+      if (event === "PASSWORD_RECOVERY") {
+        setPasswordRecovery(true);
+      }
+
       if (u && (event === "SIGNED_IN" || event === "INITIAL_SESSION") && !profileLoadedRef.current) {
         loadProfileAndOrg();
       } else if (!u) {
         setProfile(null);
         setOrg(null);
+        profileLoadedRef.current = false;
       }
     });
 
@@ -130,9 +139,16 @@ export default function App() {
           {t("common.loading")}
         </div>
       ) : profile ? (
-        <Layout profile={profile} org={org} onSignOut={handleSignOut}>
-          {page}
-        </Layout>
+        profile.approval_status === "approved" ? (
+          <Layout profile={profile} org={org} onSignOut={handleSignOut}>
+            {page}
+          </Layout>
+        ) : (
+          <PendingApprovalPage onRefresh={() => {
+            profileLoadedRef.current = false;
+            loadProfileAndOrg();
+          }} />
+        )
       ) : (
         <ConfirmEmailPage user={user} />
       )
@@ -156,6 +172,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+        <Route path="/set-password" element={passwordRecovery ? <SetPasswordPage /> : <Navigate to="/" replace />} />
         <Route path="/" element={auth(<DashboardPage user={user!} profile={profile} org={org} />)} />
         <Route path="/meetings/:id" element={auth(<MeetingPage profile={profile} org={org} />)} />
         <Route path="/chat" element={auth(<ChatPage profile={profile} org={org} />)} />

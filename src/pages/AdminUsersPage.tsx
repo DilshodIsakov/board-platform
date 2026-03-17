@@ -4,6 +4,7 @@ import {
   getAllProfiles,
   updateUserProfile,
   adminInviteUser,
+  adminCreateUser,
   adminApproveUser,
   adminRejectUser,
   adminResetPassword,
@@ -38,8 +39,10 @@ export default function AdminUsersPage() {
   // Form fields
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
+  const [formPassword, setFormPassword] = useState("");
   const [formRole, setFormRole] = useState<UserRole>("board_member");
   const [formRoleDetails, setFormRoleDetails] = useState("");
+  const [createWithPassword, setCreateWithPassword] = useState(false);
 
   useEffect(() => {
     loadProfiles();
@@ -64,8 +67,23 @@ export default function AdminUsersPage() {
     setEditingProfile(null);
     setFormName("");
     setFormEmail("");
+    setFormPassword("");
     setFormRole("board_member");
     setFormRoleDetails("");
+    setCreateWithPassword(false);
+    setShowModal(true);
+  };
+
+  const openCreateModal = () => {
+    clearMessages();
+    setModalMode("invite");
+    setEditingProfile(null);
+    setFormName("");
+    setFormEmail("");
+    setFormPassword("");
+    setFormRole("board_member");
+    setFormRoleDetails("");
+    setCreateWithPassword(true);
     setShowModal(true);
   };
 
@@ -114,18 +132,20 @@ export default function AdminUsersPage() {
         );
         setSuccess(t("admin.userUpdated"));
       } else {
-        // Invite flow
+        // Create / Invite flow
         if (!formEmail.trim()) throw new Error(t("admin.emailRequired"));
+        const roleDetails = formRole === "admin" ? null : (formRoleDetails.trim() || null);
 
-        await adminInviteUser(
-          formEmail.trim(),
-          formName.trim(),
-          formRole,
-          formRole === "admin" ? null : (formRoleDetails.trim() || null)
-        );
-
-        await loadProfiles();
-        setSuccess(t("admin.inviteSent"));
+        if (createWithPassword) {
+          if (!formPassword || formPassword.length < 6) throw new Error(t("admin.passwordMinLength"));
+          await adminCreateUser(formEmail.trim(), formPassword, formName.trim(), formRole, roleDetails);
+          await loadProfiles();
+          setSuccess(t("admin.userCreated"));
+        } else {
+          await adminInviteUser(formEmail.trim(), formName.trim(), formRole, roleDetails);
+          await loadProfiles();
+          setSuccess(t("admin.inviteSent"));
+        }
       }
       closeModal();
     } catch (err) {
@@ -222,7 +242,10 @@ export default function AdminUsersPage() {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
         <h1 style={{ margin: 0 }}>{t("admin.title")}</h1>
-        <button onClick={openInviteModal} style={createBtnStyle}>{t("admin.inviteUser")}</button>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={openCreateModal} style={{ ...createBtnStyle, background: "#3B82F6" }}>{t("admin.createUser")}</button>
+          <button onClick={openInviteModal} style={createBtnStyle}>{t("admin.inviteUser")}</button>
+        </div>
       </div>
       <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 20px" }}>
         {t("admin.subtitle")}
@@ -343,23 +366,46 @@ export default function AdminUsersPage() {
           <div style={modalStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h3 style={{ margin: 0, fontSize: 18 }}>
-                {modalMode === "edit" ? t("admin.editUser") : t("admin.inviteUserTitle")}
+                {modalMode === "edit" ? t("admin.editUser") : (createWithPassword ? t("admin.createUserTitle") : t("admin.inviteUserTitle"))}
               </h3>
               <button onClick={closeModal} style={closeBtnStyle}>&times;</button>
             </div>
 
             <form onSubmit={handleSave}>
               {modalMode === "invite" && (
-                <div style={fldStyle}>
-                  <label style={lblStyle}>{`${t("admin.email")} *`}</label>
-                  <input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="user@example.com" style={inpStyle} required />
-                </div>
+                <>
+                  {/* Toggle: invite vs create */}
+                  <div style={{ display: "flex", gap: 0, marginBottom: 20, borderRadius: 8, overflow: "hidden", border: "1px solid #D1D5DB" }}>
+                    <button type="button" onClick={() => { setCreateWithPassword(false); setFormPassword(""); }}
+                      style={{ flex: 1, padding: "9px 0", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer",
+                        background: !createWithPassword ? "#111827" : "#F9FAFB", color: !createWithPassword ? "#fff" : "#6B7280" }}>
+                      {t("admin.inviteUser")}
+                    </button>
+                    <button type="button" onClick={() => setCreateWithPassword(true)}
+                      style={{ flex: 1, padding: "9px 0", fontSize: 13, fontWeight: 600, border: "none", borderLeft: "1px solid #D1D5DB", cursor: "pointer",
+                        background: createWithPassword ? "#111827" : "#F9FAFB", color: createWithPassword ? "#fff" : "#6B7280" }}>
+                      {t("admin.createUser")}
+                    </button>
+                  </div>
+
+                  <div style={fldStyle}>
+                    <label style={lblStyle}>{`${t("admin.email")} *`}</label>
+                    <input type="email" value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="user@example.com" style={inpStyle} required />
+                  </div>
+                </>
               )}
 
               <div style={fldStyle}>
                 <label style={lblStyle}>{t("admin.fullName")}</label>
                 <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder={t("admin.fullNamePlaceholder")} style={inpStyle} />
               </div>
+
+              {modalMode === "invite" && createWithPassword && (
+                <div style={fldStyle}>
+                  <label style={lblStyle}>{`${t("admin.password")} *`}</label>
+                  <input type="password" value={formPassword} onChange={(e) => setFormPassword(e.target.value)} placeholder={t("admin.passwordPlaceholder")} style={inpStyle} required minLength={6} />
+                </div>
+              )}
 
               <div style={fldStyle}>
                 <label style={lblStyle}>{`${t("admin.mainRole")} *`}</label>
@@ -378,7 +424,7 @@ export default function AdminUsersPage() {
                 </div>
               )}
 
-              {modalMode === "invite" && (
+              {modalMode === "invite" && !createWithPassword && (
                 <div style={{ fontSize: 13, color: "#6B7280", background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 8, padding: "10px 14px", marginTop: 8 }}>
                   {t("admin.inviteHint")}
                 </div>
@@ -387,7 +433,7 @@ export default function AdminUsersPage() {
               <div style={{ display: "flex", gap: 10, marginTop: 24, justifyContent: "flex-end" }}>
                 <button type="button" onClick={closeModal} style={cancelBtnStyle}>{t("common.cancel")}</button>
                 <button type="submit" disabled={saving} style={{ ...saveBtnStyle, opacity: saving ? 0.6 : 1 }}>
-                  {saving ? t("common.saving") : modalMode === "edit" ? t("common.save") : t("admin.inviteUser")}
+                  {saving ? t("common.saving") : modalMode === "edit" ? t("common.save") : (createWithPassword ? t("admin.createUser") : t("admin.inviteUser"))}
                 </button>
               </div>
             </form>

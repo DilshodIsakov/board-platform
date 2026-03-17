@@ -157,8 +157,8 @@ async function callAdminUsersFunction(body: Record<string, unknown>): Promise<{ 
 
 export interface MultilingualUserData {
   full_name: string;
-  full_name_en?: string;
-  full_name_uz?: string;
+  full_name_en?: string | null;
+  full_name_uz?: string | null;
   role: UserRole;
   role_details?: string | null;
   role_details_en?: string | null;

@@ -39,7 +39,6 @@ const STATUS_COLORS: Record<string, string> = {
   canceled: "#9CA3AF",
 };
 
-const MEETING_STATUS_OPTIONS = ["planned", "completed", "canceled"];
 const PLAN_STATUS_OPTIONS = ["draft", "approved", "archived"];
 
 export default function BoardWorkPlanPage({ profile, org }: Props) {

@@ -192,6 +192,21 @@ export async function adminDeleteUser(userId: string): Promise<void> {
   await callAdminUsersFunction({ action: "delete", user_id: userId });
 }
 
+// Public action — no auth needed. Changes password only if admin has set the reset flag.
+export async function changePasswordAfterReset(email: string, newPassword: string): Promise<void> {
+  const url = `${(import.meta.env.VITE_SUPABASE_URL as string)}/functions/v1/admin-users`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "apikey": supabaseAnonKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ action: "change_password_after_reset", email, new_password: newPassword }),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error || `HTTP ${res.status}`);
+}
+
 export async function resendConfirmationEmail(email: string): Promise<boolean> {
   try {
     await supabase.auth.resend({ type: "signup", email });

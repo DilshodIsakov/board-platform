@@ -1,7 +1,7 @@
 // Edge Function: admin-users
 // Handles user management via Supabase Admin API (service_role).
-// Actions: create, invite, approve, reject, delete, reset_password
-// Only admins can call this function.
+// Actions: create, invite, approve, reject, delete, reset_password, change_password_after_reset
+// Most actions require admin auth. change_password_after_reset is public (no auth needed).
 // Deploy: supabase functions deploy admin-users --no-verify-jwt
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -28,7 +28,43 @@ Deno.serve(async (req: Request) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // 1. Verify caller is admin via their JWT
+    // Parse request body first to check action
+    const body = await req.json();
+    const { action } = body;
+
+    // Admin client with service_role key (used by all actions)
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+    // ========== PUBLIC ACTION: change password after admin reset (no auth needed) ==========
+    if (action === "change_password_after_reset") {
+      const { email, new_password } = body;
+      if (!email || !new_password) return json({ error: "email and new_password required" }, 400);
+      if (new_password.length < 6) return json({ error: "Password must be at least 6 characters" }, 400);
+
+      // Find profile by email with reset flag
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("id, password_reset_required")
+        .eq("email", email)
+        .single();
+
+      if (!profile || !profile.password_reset_required) {
+        return json({ error: "Password reset was not requested for this account" }, 400);
+      }
+
+      // Update password via admin API
+      const { error: updateErr } = await adminClient.auth.admin.updateUserById(profile.id, {
+        password: new_password,
+      });
+      if (updateErr) return json({ error: updateErr.message }, 500);
+
+      // Clear the flag
+      await adminClient.from("profiles").update({ password_reset_required: false }).eq("id", profile.id);
+
+      return json({ success: true });
+    }
+
+    // ========== All other actions require admin auth ==========
     const authHeader = req.headers.get("Authorization") ?? "";
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -46,13 +82,6 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Forbidden: admin only" }, 403);
     }
 
-    // 2. Parse request
-    const body = await req.json();
-    const { action } = body;
-
-    // Admin client with service_role key
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
-
     // Helper: get the single organization id
     const getOrgId = async (): Promise<string | null> => {
       const { data } = await adminClient.from("organizations").select("id").limit(1).single();
@@ -67,7 +96,6 @@ Deno.serve(async (req: Request) => {
       const orgId = await getOrgId();
       if (!orgId) return json({ error: "No organization found" }, 500);
 
-      // Create auth user without password, auto-confirm email
       const { data: newUser, error: createErr } = await adminClient.auth.admin.createUser({
         email,
         email_confirm: true,
@@ -75,7 +103,6 @@ Deno.serve(async (req: Request) => {
       });
       if (createErr) return json({ error: createErr.message }, 400);
 
-      // Create profile with approved status (admin-invited = trusted)
       const { error: profileErr } = await adminClient.from("profiles").upsert({
         id: newUser.user!.id,
         organization_id: orgId,
@@ -84,6 +111,7 @@ Deno.serve(async (req: Request) => {
         role,
         role_details: role === "admin" ? null : (role_details || null),
         approval_status: "approved",
+        password_reset_required: true,
       }, { onConflict: "id" });
 
       if (profileErr) {
@@ -91,26 +119,13 @@ Deno.serve(async (req: Request) => {
         return json({ error: profileErr.message }, 500);
       }
 
-      // Generate a password recovery link so user can set their password
-      const { data: linkData, error: linkErr } = await adminClient.auth.admin.generateLink({
-        type: "recovery",
-        email,
-      });
-
-      if (linkErr) {
-        console.error("generateLink error:", linkErr);
-        // User is created but link failed — admin can use reset_password later
-      }
-
       return json({
         success: true,
         user_id: newUser.user!.id,
-        // Return the action link so the frontend/email can use it
-        recovery_link: linkData?.properties?.action_link || null,
       });
     }
 
-    // ========== CREATE USER (with password, legacy) ==========
+    // ========== CREATE USER (with password) ==========
     if (action === "create") {
       const { email, password, full_name, role, role_details } = body;
       if (!email || !password || !role) return json({ error: "email, password, role required" }, 400);
@@ -180,24 +195,24 @@ Deno.serve(async (req: Request) => {
       const { user_id } = body;
       if (!user_id) return json({ error: "user_id required" }, 400);
 
-      // Get user email
-      const { data: targetUser, error: getUserErr } = await adminClient.auth.admin.getUserById(user_id);
-      if (getUserErr || !targetUser?.user?.email) {
-        return json({ error: "User not found" }, 404);
-      }
+      // Generate random password to invalidate the old one
+      const randomPassword = crypto.randomUUID() + "!Aa1";
 
-      // Generate recovery link
-      const { data: linkData, error: linkErr } = await adminClient.auth.admin.generateLink({
-        type: "recovery",
-        email: targetUser.user.email,
+      // Set random password so old password no longer works
+      const { error: pwErr } = await adminClient.auth.admin.updateUserById(user_id, {
+        password: randomPassword,
       });
+      if (pwErr) return json({ error: pwErr.message }, 500);
 
-      if (linkErr) return json({ error: linkErr.message }, 500);
+      // Set password_reset_required flag
+      const { error: flagErr } = await adminClient
+        .from("profiles")
+        .update({ password_reset_required: true })
+        .eq("id", user_id);
 
-      return json({
-        success: true,
-        recovery_link: linkData?.properties?.action_link || null,
-      });
+      if (flagErr) return json({ error: flagErr.message }, 500);
+
+      return json({ success: true });
     }
 
     // ========== DELETE USER ==========

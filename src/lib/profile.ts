@@ -8,10 +8,28 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
+  full_name_en?: string | null;
+  full_name_uz?: string | null;
   role: UserRole;
   role_details?: string | null;
+  role_details_en?: string | null;
+  role_details_uz?: string | null;
   approval_status: ApprovalStatus;
   created_at: string;
+}
+
+/** Returns localized full_name based on current language */
+export function getLocalizedName(profile: { full_name: string | null; full_name_en?: string | null; full_name_uz?: string | null }, lang: string): string {
+  if (lang === "en" && profile.full_name_en) return profile.full_name_en;
+  if (lang === "uz-Cyrl" && profile.full_name_uz) return profile.full_name_uz;
+  return profile.full_name || "";
+}
+
+/** Returns localized role_details based on current language */
+export function getLocalizedRoleDetails(profile: { role_details?: string | null; role_details_en?: string | null; role_details_uz?: string | null }, lang: string): string | null {
+  if (lang === "en" && profile.role_details_en) return profile.role_details_en;
+  if (lang === "uz-Cyrl" && profile.role_details_uz) return profile.role_details_uz;
+  return profile.role_details || null;
 }
 
 export const ROLE_OPTIONS: UserRole[] = [
@@ -77,7 +95,11 @@ export async function getAllProfiles(): Promise<Profile[]> {
 
 export async function updateUserProfile(
   userId: string,
-  updates: { full_name?: string; role?: UserRole; role_details?: string | null }
+  updates: {
+    full_name?: string; full_name_en?: string | null; full_name_uz?: string | null;
+    role?: UserRole;
+    role_details?: string | null; role_details_en?: string | null; role_details_uz?: string | null;
+  }
 ): Promise<{ ok: boolean; errorMessage?: string }> {
   const { error } = await supabase
     .from("profiles")
@@ -137,38 +159,40 @@ async function callAdminUsersFunction(body: Record<string, unknown>): Promise<{ 
   return result;
 }
 
+export interface MultilingualUserData {
+  full_name: string;
+  full_name_en?: string;
+  full_name_uz?: string;
+  role: UserRole;
+  role_details?: string | null;
+  role_details_en?: string | null;
+  role_details_uz?: string | null;
+}
+
 export async function adminCreateUser(
   email: string,
   password: string,
-  fullName: string,
-  role: UserRole,
-  roleDetails: string | null
+  data: MultilingualUserData
 ): Promise<string> {
   const result = await callAdminUsersFunction({
     action: "create",
     email,
     password,
-    full_name: fullName,
-    role,
-    role_details: role === "admin" ? null : roleDetails,
+    ...data,
   });
   return result.user_id!;
 }
 
 export async function adminInviteUser(
   email: string,
-  fullName: string,
-  role: UserRole,
-  roleDetails: string | null
-): Promise<{ user_id: string; recovery_link: string | null }> {
+  data: MultilingualUserData
+): Promise<{ user_id: string }> {
   const result = await callAdminUsersFunction({
     action: "invite",
     email,
-    full_name: fullName,
-    role,
-    role_details: role === "admin" ? null : roleDetails,
+    ...data,
   });
-  return { user_id: result.user_id!, recovery_link: (result as Record<string, unknown>).recovery_link as string | null };
+  return { user_id: result.user_id! };
 }
 
 export async function adminApproveUser(

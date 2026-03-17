@@ -90,7 +90,7 @@ Deno.serve(async (req: Request) => {
 
     // ========== INVITE USER (admin creates, user sets own password) ==========
     if (action === "invite") {
-      const { email, full_name, role, role_details } = body;
+      const { email, full_name, full_name_en, full_name_uz, role, role_details, role_details_en, role_details_uz } = body;
       if (!email || !role) return json({ error: "email and role required" }, 400);
 
       const orgId = await getOrgId();
@@ -103,13 +103,18 @@ Deno.serve(async (req: Request) => {
       });
       if (createErr) return json({ error: createErr.message }, 400);
 
+      const noRoleDetails = role === "admin";
       const { error: profileErr } = await adminClient.from("profiles").upsert({
         id: newUser.user!.id,
         organization_id: orgId,
         email,
         full_name: full_name || null,
+        full_name_en: full_name_en || null,
+        full_name_uz: full_name_uz || null,
         role,
-        role_details: role === "admin" ? null : (role_details || null),
+        role_details: noRoleDetails ? null : (role_details || null),
+        role_details_en: noRoleDetails ? null : (role_details_en || null),
+        role_details_uz: noRoleDetails ? null : (role_details_uz || null),
         approval_status: "approved",
         password_reset_required: true,
       }, { onConflict: "id" });
@@ -127,7 +132,7 @@ Deno.serve(async (req: Request) => {
 
     // ========== CREATE USER (with password) ==========
     if (action === "create") {
-      const { email, password, full_name, role, role_details } = body;
+      const { email, password, full_name, full_name_en, full_name_uz, role, role_details, role_details_en, role_details_uz } = body;
       if (!email || !password || !role) return json({ error: "email, password, role required" }, 400);
 
       const orgId = await getOrgId();
@@ -141,13 +146,18 @@ Deno.serve(async (req: Request) => {
       });
       if (createErr) return json({ error: createErr.message }, 400);
 
+      const noRoleDetails = role === "admin";
       const { error: profileErr } = await adminClient.from("profiles").upsert({
         id: newUser.user!.id,
         organization_id: orgId,
         email,
         full_name: full_name || null,
+        full_name_en: full_name_en || null,
+        full_name_uz: full_name_uz || null,
         role,
-        role_details: role === "admin" ? null : (role_details || null),
+        role_details: noRoleDetails ? null : (role_details || null),
+        role_details_en: noRoleDetails ? null : (role_details_en || null),
+        role_details_uz: noRoleDetails ? null : (role_details_uz || null),
         approval_status: "approved",
       }, { onConflict: "id" });
 

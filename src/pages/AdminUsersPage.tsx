@@ -37,11 +37,15 @@ export default function AdminUsersPage() {
   const { t } = useTranslation();
 
   // Form fields
-  const [formName, setFormName] = useState("");
+  const [formNameRu, setFormNameRu] = useState("");
+  const [formNameEn, setFormNameEn] = useState("");
+  const [formNameUz, setFormNameUz] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formPassword, setFormPassword] = useState("");
   const [formRole, setFormRole] = useState<UserRole>("board_member");
-  const [formRoleDetails, setFormRoleDetails] = useState("");
+  const [formRoleDetailsRu, setFormRoleDetailsRu] = useState("");
+  const [formRoleDetailsEn, setFormRoleDetailsEn] = useState("");
+  const [formRoleDetailsUz, setFormRoleDetailsUz] = useState("");
   const [createWithPassword, setCreateWithPassword] = useState(false);
 
   useEffect(() => {
@@ -60,16 +64,19 @@ export default function AdminUsersPage() {
   const pendingProfiles = profiles.filter((p) => p.approval_status === "pending");
   const approvedProfiles = profiles.filter((p) => p.approval_status !== "pending");
 
+  const resetFormFields = () => {
+    setFormNameRu(""); setFormNameEn(""); setFormNameUz("");
+    setFormEmail(""); setFormPassword("");
+    setFormRole("board_member");
+    setFormRoleDetailsRu(""); setFormRoleDetailsEn(""); setFormRoleDetailsUz("");
+  };
+
   // ===== Invite modal =====
   const openInviteModal = () => {
     clearMessages();
     setModalMode("invite");
     setEditingProfile(null);
-    setFormName("");
-    setFormEmail("");
-    setFormPassword("");
-    setFormRole("board_member");
-    setFormRoleDetails("");
+    resetFormFields();
     setCreateWithPassword(false);
     setShowModal(true);
   };
@@ -78,11 +85,7 @@ export default function AdminUsersPage() {
     clearMessages();
     setModalMode("invite");
     setEditingProfile(null);
-    setFormName("");
-    setFormEmail("");
-    setFormPassword("");
-    setFormRole("board_member");
-    setFormRoleDetails("");
+    resetFormFields();
     setCreateWithPassword(true);
     setShowModal(true);
   };
@@ -92,10 +95,14 @@ export default function AdminUsersPage() {
     clearMessages();
     setModalMode("edit");
     setEditingProfile(p);
-    setFormName(p.full_name || "");
+    setFormNameRu(p.full_name || "");
+    setFormNameEn(p.full_name_en || "");
+    setFormNameUz(p.full_name_uz || "");
     setFormEmail(p.email);
     setFormRole(p.role);
-    setFormRoleDetails(p.role_details || "");
+    setFormRoleDetailsRu(p.role_details || "");
+    setFormRoleDetailsEn(p.role_details_en || "");
+    setFormRoleDetailsUz(p.role_details_uz || "");
     setShowModal(true);
   };
 
@@ -110,39 +117,39 @@ export default function AdminUsersPage() {
     setSaving(true);
 
     try {
+      const noRD = formRole === "admin";
+      const userData = {
+        full_name: formNameRu.trim(),
+        full_name_en: formNameEn.trim() || null,
+        full_name_uz: formNameUz.trim() || null,
+        role: formRole,
+        role_details: noRD ? null : (formRoleDetailsRu.trim() || null),
+        role_details_en: noRD ? null : (formRoleDetailsEn.trim() || null),
+        role_details_uz: noRD ? null : (formRoleDetailsUz.trim() || null),
+      };
+
       if (modalMode === "edit" && editingProfile) {
-        const result = await updateUserProfile(editingProfile.id, {
-          full_name: formName.trim() || undefined,
-          role: formRole,
-          role_details: formRole === "admin" ? null : (formRoleDetails.trim() || null),
-        });
+        const result = await updateUserProfile(editingProfile.id, userData);
         if (!result.ok) throw new Error(`${t("admin.updateError")}: ${result.errorMessage}`);
 
         setProfiles((prev) =>
           prev.map((p) =>
             p.id === editingProfile.id
-              ? {
-                  ...p,
-                  full_name: formName.trim() || null,
-                  role: formRole,
-                  role_details: formRole === "admin" ? null : (formRoleDetails.trim() || null),
-                }
+              ? { ...p, ...userData, full_name: userData.full_name || null }
               : p
           )
         );
         setSuccess(t("admin.userUpdated"));
       } else {
-        // Create / Invite flow
         if (!formEmail.trim()) throw new Error(t("admin.emailRequired"));
-        const roleDetails = formRole === "admin" ? null : (formRoleDetails.trim() || null);
 
         if (createWithPassword) {
           if (!formPassword || formPassword.length < 6) throw new Error(t("admin.passwordMinLength"));
-          await adminCreateUser(formEmail.trim(), formPassword, formName.trim(), formRole, roleDetails);
+          await adminCreateUser(formEmail.trim(), formPassword, userData);
           await loadProfiles();
           setSuccess(t("admin.userCreated"));
         } else {
-          await adminInviteUser(formEmail.trim(), formName.trim(), formRole, roleDetails);
+          await adminInviteUser(formEmail.trim(), userData);
           await loadProfiles();
           setSuccess(t("admin.inviteSent"));
         }
@@ -395,9 +402,18 @@ export default function AdminUsersPage() {
                 </>
               )}
 
+              {/* ФИО — 3 языка */}
               <div style={fldStyle}>
-                <label style={lblStyle}>{t("admin.fullName")}</label>
-                <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder={t("admin.fullNamePlaceholder")} style={inpStyle} />
+                <label style={lblStyle}>{t("admin.fullName")} (RU)</label>
+                <input value={formNameRu} onChange={(e) => setFormNameRu(e.target.value)} placeholder={t("admin.fullNamePlaceholder")} style={inpStyle} />
+              </div>
+              <div style={fldStyle}>
+                <label style={lblStyle}>{t("admin.fullName")} (EN)</label>
+                <input value={formNameEn} onChange={(e) => setFormNameEn(e.target.value)} placeholder="Full Name" style={inpStyle} />
+              </div>
+              <div style={fldStyle}>
+                <label style={lblStyle}>{t("admin.fullName")} (UZ)</label>
+                <input value={formNameUz} onChange={(e) => setFormNameUz(e.target.value)} placeholder="Тўлиқ исм" style={inpStyle} />
               </div>
 
               {modalMode === "invite" && createWithPassword && (
@@ -417,11 +433,21 @@ export default function AdminUsersPage() {
               </div>
 
               {formRole !== "admin" && (
-                <div style={fldStyle}>
-                  <label style={lblStyle}>{t("admin.roleDetails")}</label>
-                  <input value={formRoleDetails} onChange={(e) => setFormRoleDetails(e.target.value)} placeholder={t("admin.roleDetailsPlaceholder")} style={inpStyle} />
-                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{t("admin.roleDetailsHint")}</div>
-                </div>
+                <>
+                  <div style={fldStyle}>
+                    <label style={lblStyle}>{t("admin.roleDetails")} (RU)</label>
+                    <input value={formRoleDetailsRu} onChange={(e) => setFormRoleDetailsRu(e.target.value)} placeholder={t("admin.roleDetailsPlaceholder")} style={inpStyle} />
+                    <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{t("admin.roleDetailsHint")}</div>
+                  </div>
+                  <div style={fldStyle}>
+                    <label style={lblStyle}>{t("admin.roleDetails")} (EN)</label>
+                    <input value={formRoleDetailsEn} onChange={(e) => setFormRoleDetailsEn(e.target.value)} placeholder="e.g. Chairman of Audit Committee" style={inpStyle} />
+                  </div>
+                  <div style={fldStyle}>
+                    <label style={lblStyle}>{t("admin.roleDetails")} (UZ)</label>
+                    <input value={formRoleDetailsUz} onChange={(e) => setFormRoleDetailsUz(e.target.value)} placeholder="Масалан: Аудит қўмитаси раиси" style={inpStyle} />
+                  </div>
+                </>
               )}
 
               {modalMode === "invite" && !createWithPassword && (

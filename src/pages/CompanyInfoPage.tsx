@@ -2,16 +2,21 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "../lib/supabaseClient";
-import type { Profile, Organization } from "../lib/profile";
+import { getLocalizedName, getLocalizedRoleDetails, type Profile, type Organization } from "../lib/profile";
 
-const BOARD_ROLES = ["corp_secretary", "board_member"];
+const BOARD_ROLES = ["board_member", "chairman"];
 const EXECUTIVE_ROLES = ["executive"];
+const STAFF_EXCLUDED_ROLES = ["board_member", "chairman", "executive", "admin"];
 
 interface MemberProfile {
   id: string;
   full_name: string;
+  full_name_en?: string | null;
+  full_name_uz?: string | null;
   role: string;
   role_details: string | null;
+  role_details_en?: string | null;
+  role_details_uz?: string | null;
 }
 
 interface Props {
@@ -19,7 +24,7 @@ interface Props {
   org: Organization | null;
 }
 
-type TabKey = "board" | "executive" | "kpi";
+type TabKey = "board" | "executive" | "staff" | "kpi";
 
 export default function CompanyInfoPage({ profile }: Props) {
   const { t } = useTranslation();
@@ -45,19 +50,20 @@ export default function CompanyInfoPage({ profile }: Props) {
   const loadMembers = async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, role, role_details")
+      .select("id, full_name, full_name_en, full_name_uz, role, role_details, role_details_en, role_details_uz")
       .order("full_name");
 
     if (error) {
       console.error("loadMembers error:", error);
     }
 
-    setMembers((data as MemberProfile[]) || []);
+    setMembers(((data as MemberProfile[]) || []).filter((m) => m.role !== "admin"));
     setLoading(false);
   };
 
   const boardMembers = members.filter((m) => BOARD_ROLES.includes(m.role));
   const executives = members.filter((m) => EXECUTIVE_ROLES.includes(m.role));
+  const staffMembers = members.filter((m) => !STAFF_EXCLUDED_ROLES.includes(m.role));
 
   if (loading) {
     return (
@@ -68,10 +74,11 @@ export default function CompanyInfoPage({ profile }: Props) {
   const TABS: { key: TabKey; label: string }[] = [
     { key: "board", label: t("company.boardTab") },
     { key: "executive", label: t("company.managementTab") },
+    { key: "staff", label: t("company.staffTab") },
     { key: "kpi", label: t("company.kpiTab") },
   ];
 
-  const currentMembers = activeTab === "board" ? boardMembers : activeTab === "executive" ? executives : [];
+  const currentMembers = activeTab === "board" ? boardMembers : activeTab === "executive" ? executives : activeTab === "staff" ? staffMembers : [];
 
   return (
     <div>
@@ -96,6 +103,13 @@ export default function CompanyInfoPage({ profile }: Props) {
           icon="briefcase"
           value={executives.length}
           label={t("company.management")}
+        />
+        <KpiCard
+          color="#059669"
+          bgColor="#D1FAE5"
+          icon="users"
+          value={staffMembers.length}
+          label={t("company.staffTab")}
         />
       </div>
 
@@ -185,30 +199,24 @@ function getInitials(name: string): string {
 function MemberCard({ member, isSelf, onMessage }: { member: MemberProfile; isSelf: boolean; onMessage: () => void }) {
   const { t, i18n } = useTranslation();
 
-  const translateRoleDetail = (detail: string) => {
-    if (i18n.language === "en") {
-      const key = `roleDetails.${detail}`;
-      const translated = t(key);
-      if (translated !== key) return translated;
-    }
-    return detail;
-  };
+  const displayName = getLocalizedName(member, i18n.language);
+  const displayRoleDetails = getLocalizedRoleDetails(member, i18n.language);
   const badgeColors = ROLE_BADGE_COLORS[member.role] || { bg: "#F3F4F6", color: "#374151" };
-  const avatarColor = AVATAR_COLORS[member.full_name.length % AVATAR_COLORS.length];
+  const avatarColor = AVATAR_COLORS[(displayName || "").length % AVATAR_COLORS.length];
 
   return (
     <div style={memberCardStyle}>
       <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
         {/* Avatar */}
         <div style={{ ...memberAvatarStyle, background: avatarColor }}>
-          {getInitials(member.full_name)}
+          {getInitials(displayName)}
         </div>
 
         {/* Info */}
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ fontWeight: 600, fontSize: 20, color: "#111827", letterSpacing: "-0.01em" }}>
-              {member.full_name || t("company.noName")}
+              {displayName || t("company.noName")}
             </div>
             {!isSelf && (
               <button onClick={onMessage} style={messageBtnStyle} title={t("company.sendMessage", "Написать")}>
@@ -226,9 +234,9 @@ function MemberCard({ member, isSelf, onMessage }: { member: MemberProfile; isSe
           }}>
             {t(`roles.${member.role}`, member.role)}
           </span>
-          {member.role_details && (
+          {displayRoleDetails && (
             <div style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginTop: 5 }}>
-              {translateRoleDetail(member.role_details)}
+              {displayRoleDetails}
             </div>
           )}
         </div>
@@ -265,7 +273,7 @@ function KpiTabContent() {
 
 const kpiGridStyle: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(2, 1fr)",
+  gridTemplateColumns: "repeat(3, 1fr)",
   gap: 20,
   marginBottom: 32,
 };

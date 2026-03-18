@@ -29,11 +29,17 @@ export default function DocumentsPage({ profile, org }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [editingLink, setEditingLink] = useState<DocLink | null>(null);
   const [formTitle, setFormTitle] = useState("");
+  const [formTitleEn, setFormTitleEn] = useState("");
+  const [formTitleUz, setFormTitleUz] = useState("");
   const [formUrl, setFormUrl] = useState("");
   const [formDesc, setFormDesc] = useState("");
+  const [formDescEn, setFormDescEn] = useState("");
+  const [formDescUz, setFormDescUz] = useState("");
   const [formSort, setFormSort] = useState(100);
   const [formActive, setFormActive] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [translated, setTranslated] = useState(false);
 
   const { t } = useTranslation();
 
@@ -62,10 +68,15 @@ export default function DocumentsPage({ profile, org }: Props) {
   const handleOpenCreate = () => {
     setEditingLink(null);
     setFormTitle("");
+    setFormTitleEn("");
+    setFormTitleUz("");
     setFormUrl("");
     setFormDesc("");
+    setFormDescEn("");
+    setFormDescUz("");
     setFormSort(100);
     setFormActive(true);
+    setTranslated(false);
     setShowModal(true);
   };
 
@@ -73,16 +84,41 @@ export default function DocumentsPage({ profile, org }: Props) {
   const handleOpenEdit = (link: DocLink) => {
     setEditingLink(link);
     setFormTitle(link.title);
+    setFormTitleEn(link.title_en || "");
+    setFormTitleUz(link.title_uz || "");
     setFormUrl(link.url);
     setFormDesc(link.description || "");
+    setFormDescEn(link.description_en || "");
+    setFormDescUz(link.description_uz || "");
     setFormSort(link.sort_order);
     setFormActive(link.is_active);
+    setTranslated(!!(link.title_en || link.title_uz));
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingLink(null);
+    setTranslated(false);
+  };
+
+  // Translate via OpenAI
+  const handleTranslate = async () => {
+    if (!formTitle.trim()) return;
+    setTranslating(true);
+    try {
+      const result = await generateDocLinkTranslations("ru", formTitle.trim(), formDesc.trim());
+      setFormTitleEn(result.title_en);
+      setFormTitleUz(result.title_uz);
+      setFormDescEn(result.description_en);
+      setFormDescUz(result.description_uz);
+      setTranslated(true);
+    } catch (err) {
+      console.error("Translation error:", err);
+      setError(t("documents.translationError") || "Ошибка перевода");
+    } finally {
+      setTranslating(false);
+    }
   };
 
   const validateUrl = (url: string): boolean => {
@@ -103,25 +139,10 @@ export default function DocumentsPage({ profile, org }: Props) {
     setError("");
 
     try {
-      // Auto-translate title and description via OpenAI
-      let title_en: string | null = null;
-      let title_uz: string | null = null;
-      let description_en: string | null = null;
-      let description_uz: string | null = null;
-
-      try {
-        const translations = await generateDocLinkTranslations(
-          "ru",
-          formTitle.trim(),
-          formDesc.trim()
-        );
-        title_en = translations.title_en || null;
-        title_uz = translations.title_uz || null;
-        description_en = translations.description_en || null;
-        description_uz = translations.description_uz || null;
-      } catch (translErr) {
-        console.warn("Auto-translation failed, saving without translations:", translErr);
-      }
+      const title_en = formTitleEn.trim() || null;
+      const title_uz = formTitleUz.trim() || null;
+      const description_en = formDescEn.trim() || null;
+      const description_uz = formDescUz.trim() || null;
 
       if (editingLink) {
         await updateDocLink(editingLink.id, {
@@ -276,17 +297,74 @@ export default function DocumentsPage({ profile, org }: Props) {
               {editingLink ? t("documents.editLink") : t("documents.addLinkTitle")}
             </h3>
             <form onSubmit={handleSave}>
+              {/* Название (RU) */}
               <div style={{ marginBottom: 12 }}>
-                <label style={labelStyle}>{t("documents.nameLabel")}</label>
+                <label style={labelStyle}>{t("documents.nameLabel")} (RU) *</label>
                 <input
                   type="text"
                   value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
+                  onChange={(e) => { setFormTitle(e.target.value); setTranslated(false); }}
                   placeholder={t("documents.namePlaceholder")}
                   required
                   style={{ ...inputStyle, width: "100%" }}
                 />
               </div>
+              {/* Описание (RU) */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={labelStyle}>{t("documents.descriptionLabel")} (RU)</label>
+                <input
+                  type="text"
+                  value={formDesc}
+                  onChange={(e) => { setFormDesc(e.target.value); setTranslated(false); }}
+                  placeholder={t("documents.descriptionPlaceholder")}
+                  style={{ ...inputStyle, width: "100%" }}
+                />
+              </div>
+
+              {/* Translate button */}
+              <div style={{ marginBottom: 16, textAlign: "center" }}>
+                <button
+                  type="button"
+                  onClick={handleTranslate}
+                  disabled={translating || !formTitle.trim()}
+                  style={{
+                    ...btnPrimaryStyle,
+                    background: translating ? "#9CA3AF" : "#7C3AED",
+                    width: "100%",
+                  }}
+                >
+                  {translating ? "Перевод..." : "Перевести на EN / UZ"}
+                </button>
+              </div>
+
+              {/* Translation fields (shown after translate) */}
+              {translated && (
+                <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 8, padding: 12, marginBottom: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#6B7280", marginBottom: 8 }}>Переводы</div>
+                  <div style={{ marginBottom: 8 }}>
+                    <label style={labelStyle}>Название (EN)</label>
+                    <input type="text" value={formTitleEn} onChange={(e) => setFormTitleEn(e.target.value)} style={{ ...inputStyle, width: "100%" }} />
+                  </div>
+                  <div style={{ marginBottom: 8 }}>
+                    <label style={labelStyle}>Название (UZ)</label>
+                    <input type="text" value={formTitleUz} onChange={(e) => setFormTitleUz(e.target.value)} style={{ ...inputStyle, width: "100%" }} />
+                  </div>
+                  {(formDescEn || formDescUz || formDesc.trim()) && (
+                    <>
+                      <div style={{ marginBottom: 8 }}>
+                        <label style={labelStyle}>Описание (EN)</label>
+                        <input type="text" value={formDescEn} onChange={(e) => setFormDescEn(e.target.value)} style={{ ...inputStyle, width: "100%" }} />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Описание (UZ)</label>
+                        <input type="text" value={formDescUz} onChange={(e) => setFormDescUz(e.target.value)} style={{ ...inputStyle, width: "100%" }} />
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* URL */}
               <div style={{ marginBottom: 12 }}>
                 <label style={labelStyle}>{t("documents.urlLabel")}</label>
                 <input
@@ -295,16 +373,6 @@ export default function DocumentsPage({ profile, org }: Props) {
                   onChange={(e) => setFormUrl(e.target.value)}
                   placeholder={t("documents.urlPlaceholder")}
                   required
-                  style={{ ...inputStyle, width: "100%" }}
-                />
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <label style={labelStyle}>{t("documents.descriptionLabel")}</label>
-                <input
-                  type="text"
-                  value={formDesc}
-                  onChange={(e) => setFormDesc(e.target.value)}
-                  placeholder={t("documents.descriptionPlaceholder")}
                   style={{ ...inputStyle, width: "100%" }}
                 />
               </div>
@@ -432,7 +500,7 @@ const modalStyle: React.CSSProperties = {
   borderRadius: 12,
   padding: 24,
   width: "100%",
-  maxWidth: 480,
+  maxWidth: 560,
   boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
 };
 

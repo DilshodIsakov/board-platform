@@ -623,7 +623,7 @@ export default function ChatPage({ profile, org }: Props) {
                   return (
                     <div key={m.id} style={{ display: "flex", justifyContent: isMine ? "flex-end" : "flex-start", marginBottom: 8 }}>
                       <div style={{ ...bubbleBaseStyle, background: isMine ? "#2563eb" : "#f3f4f6", color: isMine ? "#fff" : "#111827" }}>
-                        {m.content && <div>{m.content}</div>}
+                        {m.body && <div>{m.body}</div>}
                         {m.storage_path && m.file_name && (
                           <AttachmentBubble
                             storagePath={m.storage_path}
@@ -703,7 +703,7 @@ export default function ChatPage({ profile, org }: Props) {
                             {senderName}
                           </div>
                         )}
-                        {m.content && <div>{m.content}</div>}
+                        {m.body && <div>{m.body}</div>}
                         {m.storage_path && m.file_name && (
                           <AttachmentBubble
                             storagePath={m.storage_path}

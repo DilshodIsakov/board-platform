@@ -3,10 +3,10 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 
 export interface Message {
   id: string;
-  org_id: string;
+  organization_id: string;
   sender_id: string;
   receiver_id: string;
-  content: string;
+  body: string;
   is_read: boolean;
   created_at: string;
   file_name?: string | null;
@@ -101,10 +101,10 @@ export async function sendMessage(
   fileInfo?: { file_name: string; file_size: number; mime_type: string; storage_path: string }
 ): Promise<Message | null> {
   const row: Record<string, unknown> = {
-    org_id: orgId,
+    organization_id: orgId,
     sender_id: senderProfileId,
     receiver_id: receiverProfileId,
-    content: fileInfo ? fileInfo.file_name : (content.trim() || " "),
+    body: fileInfo ? fileInfo.file_name : (content.trim() || " "),
   };
   if (fileInfo) {
     row.file_name = fileInfo.file_name;
@@ -237,7 +237,7 @@ export interface GroupMessage {
   id: string;
   group_id: string;
   sender_id: string;
-  content: string;
+  body: string;
   created_at: string;
   sender?: { full_name: string };
   file_name?: string | null;
@@ -369,7 +369,7 @@ export async function sendGroupMessage(
   const row: Record<string, unknown> = {
     group_id: groupId,
     sender_id: senderId,
-    content: fileInfo ? fileInfo.file_name : (content.trim() || " "),
+    body: fileInfo ? fileInfo.file_name : (content.trim() || " "),
   };
   if (fileInfo) {
     row.file_name = fileInfo.file_name;

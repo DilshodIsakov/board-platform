@@ -58,7 +58,7 @@ const SS_KEY = "nsMeetings_selectedId";
 export default function NSMeetingsPage({ profile, org }: Props) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = profile?.role === "admin" || profile?.role === "corp_secretary";
 
   const [meetings, setMeetings] = useState<NSMeeting[]>([]);
   // Restore selectedId from URL > sessionStorage > null

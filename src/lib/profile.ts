@@ -14,6 +14,7 @@ export interface Profile {
   role_details?: string | null;
   role_details_en?: string | null;
   role_details_uz?: string | null;
+  avatar_url?: string | null;
   approval_status: ApprovalStatus;
   created_at: string;
 }

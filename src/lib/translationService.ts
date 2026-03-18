@@ -246,6 +246,77 @@ export async function generateAgendaTranslations(
   };
 }
 
+// ─── Profile translation ──────────────────────────────────────────────────────
+
+export interface ProfileTranslationDraft {
+  [key: string]: string;
+}
+
+/**
+ * Translate multiple profile text fields from any source language to the other two.
+ *
+ * @param sourceLang — the language the user filled in ("ru", "en", or "uz")
+ * @param fields — map of field keys (with suffix, e.g. "current_position_ru") to their values
+ * @returns flat object with translations for the two target languages,
+ *          e.g. { current_position_en: "...", current_position_uz: "..." }
+ */
+export async function generateProfileTranslations(
+  sourceLang: SupportedLang,
+  fields: Record<string, string>
+): Promise<ProfileTranslationDraft> {
+  const entries = Object.entries(fields).filter(([, v]) => v.trim());
+  if (entries.length === 0) return {};
+
+  // Combine all fields into one "description" for a single API call
+  const DELIMITER = "\n===FIELD_SEPARATOR===\n";
+  const combinedText = entries.map(([key, val]) => `[${key}]: ${val}`).join(DELIMITER);
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Not authenticated");
+
+  const url = `${import.meta.env.VITE_SUPABASE_URL as string}/functions/v1/translate-text`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${session.access_token}`,
+      "apikey": supabaseAnonKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      source_language: sourceLang,
+      entity_type: "task",
+      fields: { description: combinedText },
+    }),
+  });
+
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error || `Translation error (HTTP ${res.status})`);
+
+  // Determine target languages (the two that are NOT the source)
+  const targetLangs = (["ru", "en", "uz"] as const).filter((l) => l !== sourceLang);
+  const draft: ProfileTranslationDraft = {};
+
+  const suffixFromSource = sourceLang === "uz" ? "uz" : sourceLang;
+
+  for (const targetLang of targetLangs) {
+    const translatedText = result[targetLang]?.description || "";
+
+    for (const entry of entries) {
+      const key = entry[0]; // e.g. "current_position_ru"
+      // Strip source suffix to get base name
+      const base = key.replace(new RegExp(`_${suffixFromSource}$`), "");
+      const regex = new RegExp(`\\[${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]:\\s*(.+?)(?=\\[|===FIELD_SEPARATOR===|$)`, "s");
+      const match = translatedText.match(regex);
+      if (match) {
+        draft[`${base}_${targetLang}`] = match[1].trim();
+      }
+    }
+  }
+
+  return draft;
+}
+
 // ─── UI helpers ───────────────────────────────────────────────────────────────
 
 /** Human-readable dot/symbol for a translation status */

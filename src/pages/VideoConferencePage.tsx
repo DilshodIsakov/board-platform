@@ -75,7 +75,7 @@ export default function VideoConferencePage({ profile, org }: Props) {
   };
 
   const canDelete = (vc: VideoConference) =>
-    profile && (vc.created_by === profile.id || profile.role === "admin");
+    profile && (vc.created_by === profile.id || profile.role === "admin" || profile.role === "corp_secretary");
 
   const formatDt = (iso: string) =>
     new Date(iso).toLocaleString(getIntlLocale(), {

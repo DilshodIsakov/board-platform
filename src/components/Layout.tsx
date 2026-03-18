@@ -222,9 +222,13 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
 
             {/* User avatar */}
             {profile && (
-              <div style={headerAvatarStyle}>
-                {getInitials(profile.full_name || profile.email)}
-              </div>
+              profile.avatar_url ? (
+                <img src={profile.avatar_url} alt="" style={{ ...headerAvatarStyle, objectFit: "cover" }} />
+              ) : (
+                <div style={headerAvatarStyle}>
+                  {getInitials(profile.full_name || profile.email)}
+                </div>
+              )
             )}
           </div>
         </header>

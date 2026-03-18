@@ -26,6 +26,7 @@ import ShareholderMeetingPage from "./pages/ShareholderMeetingPage";
 import TasksListPage from "./pages/TasksListPage";
 import TaskDetailsPage from "./pages/TaskDetailsPage";
 import BoardWorkPlanPage from "./pages/BoardWorkPlanPage";
+import ProfilePage from "./pages/ProfilePage";
 import i18n from "./i18n";
 
 export default function App() {
@@ -189,6 +190,7 @@ export default function App() {
         <Route path="/tasks" element={auth(<TasksListPage profile={profile} org={org} />)} />
         <Route path="/tasks/:id" element={auth(<TaskDetailsPage profile={profile} org={org} />)} />
         <Route path="/board-work-plan" element={auth(<BoardWorkPlanPage profile={profile} org={org} />)} />
+        <Route path="/profile" element={auth(<ProfilePage profile={profile} org={org} onProfileUpdate={() => loadProfileAndOrg()} />)} />
         <Route path="/admin/users" element={adminAuth(<AdminUsersPage />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

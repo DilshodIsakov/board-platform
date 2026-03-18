@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "../lib/supabaseClient";
 import { getLocalizedName, getLocalizedRoleDetails, type Profile, type Organization } from "../lib/profile";
+import ProfileModal from "../components/ProfileModal";
 
 const BOARD_ROLES = ["board_member", "chairman"];
 const EXECUTIVE_ROLES = ["executive"];
@@ -17,6 +18,7 @@ interface MemberProfile {
   role_details: string | null;
   role_details_en?: string | null;
   role_details_uz?: string | null;
+  avatar_url?: string | null;
 }
 
 interface Props {
@@ -31,6 +33,7 @@ export default function CompanyInfoPage({ profile }: Props) {
   const navigate = useNavigate();
   const [members, setMembers] = useState<MemberProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMember, setSelectedMember] = useState<MemberProfile | null>(null);
   const [activeTab, setActiveTabRaw] = useState<TabKey>(
     () => (sessionStorage.getItem("companyInfo_tab") as TabKey) || "board"
   );
@@ -50,7 +53,7 @@ export default function CompanyInfoPage({ profile }: Props) {
   const loadMembers = async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, full_name_en, full_name_uz, role, role_details, role_details_en, role_details_uz")
+      .select("id, full_name, full_name_en, full_name_uz, role, role_details, role_details_en, role_details_uz, avatar_url")
       .order("full_name");
 
     if (error) {
@@ -141,9 +144,20 @@ export default function CompanyInfoPage({ profile }: Props) {
       ) : (
         <div>
           {currentMembers.map((m) => (
-            <MemberCard key={m.id} member={m} isSelf={m.id === profile?.id} onMessage={() => navigate(`/chat?userId=${m.id}`)} />
+            <MemberCard key={m.id} member={m} isSelf={m.id === profile?.id} onMessage={() => navigate(`/chat?userId=${m.id}`)} onNameClick={() => setSelectedMember(m)} />
           ))}
         </div>
+      )}
+
+      {/* Profile Modal */}
+      {selectedMember && (
+        <ProfileModal
+          member={selectedMember}
+          currentProfileId={profile?.id}
+          isAdmin={profile?.role === "admin" || profile?.role === "corp_secretary"}
+          onClose={() => setSelectedMember(null)}
+          onMessage={() => navigate(`/chat?userId=${selectedMember.id}`)}
+        />
       )}
     </div>
   );
@@ -196,7 +210,7 @@ function getInitials(name: string): string {
   return name[0].toUpperCase();
 }
 
-function MemberCard({ member, isSelf, onMessage }: { member: MemberProfile; isSelf: boolean; onMessage: () => void }) {
+function MemberCard({ member, isSelf, onMessage, onNameClick }: { member: MemberProfile; isSelf: boolean; onMessage: () => void; onNameClick: () => void }) {
   const { t, i18n } = useTranslation();
 
   const displayName = getLocalizedName(member, i18n.language);
@@ -208,14 +222,23 @@ function MemberCard({ member, isSelf, onMessage }: { member: MemberProfile; isSe
     <div style={memberCardStyle}>
       <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
         {/* Avatar */}
-        <div style={{ ...memberAvatarStyle, background: avatarColor }}>
-          {getInitials(displayName)}
-        </div>
+        {member.avatar_url ? (
+          <img src={member.avatar_url} alt="" style={{ ...memberAvatarStyle, objectFit: "cover", cursor: "pointer" }} onClick={onNameClick} />
+        ) : (
+          <div style={{ ...memberAvatarStyle, background: avatarColor, cursor: "pointer" }} onClick={onNameClick}>
+            {getInitials(displayName)}
+          </div>
+        )}
 
         {/* Info */}
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 20, color: "#111827", letterSpacing: "-0.01em" }}>
+            <div
+              onClick={onNameClick}
+              style={{ fontWeight: 600, fontSize: 20, color: "#111827", letterSpacing: "-0.01em", cursor: "pointer", transition: "color 0.15s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#2563EB")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#111827")}
+            >
               {displayName || t("company.noName")}
             </div>
             {!isSelf && (

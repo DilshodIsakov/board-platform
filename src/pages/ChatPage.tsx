@@ -454,7 +454,7 @@ export default function ChatPage({ profile, org }: Props) {
   const availableRoles = [...new Set(contacts.map((c) => c.role))];
 
   const canManageGroup = (g: ChatGroup) =>
-    profile && (g.created_by === profile.id || profile.role === "admin");
+    profile && (g.created_by === profile.id || profile.role === "admin" || profile.role === "corp_secretary");
 
   return (
     <div style={{ display: "flex", height: "calc(100vh - 64px)" }}>

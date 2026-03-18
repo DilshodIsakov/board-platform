@@ -155,17 +155,23 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount: 
       {/* User Profile at bottom */}
       {profile && (
         <div style={userSection}>
-          <div style={userAvatarStyle}>
-            {getInitials(profile.full_name || profile.email)}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <NavLink to="/profile" style={{ textDecoration: "none", flexShrink: 0 }}>
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt="" style={{ ...userAvatarStyle, objectFit: "cover" }} />
+            ) : (
+              <div style={userAvatarStyle}>
+                {getInitials(profile.full_name || profile.email)}
+              </div>
+            )}
+          </NavLink>
+          <NavLink to="/profile" style={{ flex: 1, minWidth: 0, textDecoration: "none", color: "inherit" }}>
             <div style={{ fontWeight: 600, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {profile.full_name || t("sidebar.user")}
             </div>
             <div style={{ fontSize: 12, color: "#9CA3AF" }}>
               {t(`roles.${profile.role}`) || profile.role}
             </div>
-          </div>
+          </NavLink>
           <button onClick={onSignOut} style={logoutBtnStyle} title={t("sidebar.logout")}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />

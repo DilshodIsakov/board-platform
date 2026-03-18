@@ -9,6 +9,8 @@ import {
   deleteDocLink,
   type DocLink,
 } from "../lib/docLinks";
+import { generateDocLinkTranslations } from "../lib/translationService";
+import { getLocalizedField } from "../lib/i18nHelpers";
 
 const CAN_MANAGE = ["admin", "corp_secretary"];
 
@@ -101,11 +103,35 @@ export default function DocumentsPage({ profile, org }: Props) {
     setError("");
 
     try {
+      // Auto-translate title and description via OpenAI
+      let title_en: string | null = null;
+      let title_uz: string | null = null;
+      let description_en: string | null = null;
+      let description_uz: string | null = null;
+
+      try {
+        const translations = await generateDocLinkTranslations(
+          "ru",
+          formTitle.trim(),
+          formDesc.trim()
+        );
+        title_en = translations.title_en || null;
+        title_uz = translations.title_uz || null;
+        description_en = translations.description_en || null;
+        description_uz = translations.description_uz || null;
+      } catch (translErr) {
+        console.warn("Auto-translation failed, saving without translations:", translErr);
+      }
+
       if (editingLink) {
         await updateDocLink(editingLink.id, {
           title: formTitle.trim(),
+          title_en,
+          title_uz,
           url: formUrl.trim(),
           description: formDesc.trim() || undefined,
+          description_en,
+          description_uz,
           sort_order: formSort,
           is_active: formActive,
         });
@@ -115,8 +141,12 @@ export default function DocumentsPage({ profile, org }: Props) {
         await createDocLink({
           org_id: org.id,
           title: formTitle.trim(),
+          title_en,
+          title_uz,
           url: formUrl.trim(),
           description: formDesc.trim() || undefined,
+          description_en,
+          description_uz,
           sort_order: formSort,
           is_active: formActive,
           created_by: profile.id,
@@ -199,14 +229,14 @@ export default function DocumentsPage({ profile, org }: Props) {
                     <line x1="16" y1="17" x2="8" y2="17" />
                     <polyline points="10 9 9 9 8 9" />
                   </svg>
-                  <span style={{ fontWeight: 600, fontSize: 15 }}>{link.title}</span>
+                  <span style={{ fontWeight: 600, fontSize: 15 }}>{getLocalizedField(link as unknown as Record<string, unknown>, "title") || link.title}</span>
                   {!link.is_active && (
                     <span style={inactiveBadgeStyle}>{t("documents.hidden")}</span>
                   )}
                 </div>
-                {link.description && (
+                {(link.description || link.description_en || link.description_uz) && (
                   <p style={{ color: "#6B7280", fontSize: 13, margin: "4px 0 0 26px" }}>
-                    {link.description}
+                    {getLocalizedField(link as unknown as Record<string, unknown>, "description") || link.description}
                   </p>
                 )}
               </div>

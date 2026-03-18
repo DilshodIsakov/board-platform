@@ -4,7 +4,11 @@ export interface DocLink {
   id: string;
   org_id: string;
   title: string;
+  title_en: string | null;
+  title_uz: string | null;
   description: string | null;
+  description_en: string | null;
+  description_uz: string | null;
   url: string;
   sort_order: number;
   is_active: boolean;
@@ -50,8 +54,12 @@ export async function fetchAllDocLinks(): Promise<DocLink[]> {
 export async function createDocLink(params: {
   org_id: string;
   title: string;
+  title_en?: string | null;
+  title_uz?: string | null;
   url: string;
   description?: string;
+  description_en?: string | null;
+  description_uz?: string | null;
   sort_order?: number;
   is_active?: boolean;
   created_by?: string;
@@ -73,7 +81,7 @@ export async function createDocLink(params: {
 /** Update a doc link */
 export async function updateDocLink(
   id: string,
-  params: Partial<Pick<DocLink, "title" | "url" | "description" | "sort_order" | "is_active">>
+  params: Partial<Pick<DocLink, "title" | "title_en" | "title_uz" | "url" | "description" | "description_en" | "description_uz" | "sort_order" | "is_active">>
 ): Promise<void> {
   const { error } = await supabase
     .from("doc_links")

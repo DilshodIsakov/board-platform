@@ -159,6 +159,45 @@ export async function generateTaskTranslations(
   };
 }
 
+export interface DocLinkTranslationDraft {
+  title_ru: string;
+  title_uz: string;
+  title_en: string;
+  description_ru: string;
+  description_uz: string;
+  description_en: string;
+}
+
+/**
+ * Generate translation drafts for a doc link title + description.
+ */
+export async function generateDocLinkTranslations(
+  sourceLang: SupportedLang,
+  title: string,
+  description: string
+): Promise<DocLinkTranslationDraft> {
+  const fields: { title: string; description?: string } = { title: title.trim() };
+  if (description.trim()) fields.description = description.trim();
+
+  const result = await callTranslateTextFunction({
+    source_language: sourceLang,
+    entity_type: "task",
+    fields,
+  });
+
+  const srcTitle = title.trim();
+  const srcDesc  = description.trim();
+
+  return {
+    title_ru:       result.ru.title       ?? (sourceLang === "ru" ? srcTitle : ""),
+    title_uz:       result.uz.title       ?? (sourceLang === "uz" ? srcTitle : ""),
+    title_en:       result.en.title       ?? (sourceLang === "en" ? srcTitle : ""),
+    description_ru: result.ru.description ?? (sourceLang === "ru" ? srcDesc  : ""),
+    description_uz: result.uz.description ?? (sourceLang === "uz" ? srcDesc  : ""),
+    description_en: result.en.description ?? (sourceLang === "en" ? srcDesc  : ""),
+  };
+}
+
 export interface AgendaTranslationDraft {
   title_ru: string;
   title_uz: string;

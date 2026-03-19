@@ -365,6 +365,10 @@ export default function NSMeetingsPage({ profile, org }: Props) {
   const getAgendaSourceTitle = () =>
     agendaSourceLang === "ru" ? agendaTitleRu : agendaSourceLang === "uz" ? agendaTitleUz : agendaTitleEn;
 
+  /** Returns true if at least one language title is filled */
+  const hasAnyAgendaTitle = () =>
+    !!(agendaTitleRu.trim() || agendaTitleUz.trim() || agendaTitleEn.trim());
+
   const openCreateAgendaForm = () => {
     setEditingAgendaItem(null);
     setAgendaSourceLang("ru");
@@ -452,7 +456,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
   };
 
   const handleSaveAgendaItem = async () => {
-    if (!getAgendaSourceTitle().trim() || !selected || !org || !profile) return;
+    if (!hasAnyAgendaTitle() || !selected || !org || !profile) return;
     setAgendaSaving(true);
     setAgendaSaveError("");
 
@@ -464,7 +468,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
       return status;
     };
 
-    const sourceTitle = getAgendaSourceTitle().trim();
+    const sourceTitle = getAgendaSourceTitle().trim() || agendaTitleRu.trim() || agendaTitleUz.trim() || agendaTitleEn.trim();
     const sourcePresenter = (agendaSourceLang === "ru" ? agendaPresenterRu : agendaSourceLang === "uz" ? agendaPresenterUz : agendaPresenterEn).trim() || null;
 
     const payload = {
@@ -1279,10 +1283,10 @@ export default function NSMeetingsPage({ profile, org }: Props) {
               <button
                 type="button"
                 onClick={handleGenerateAgendaTranslations}
-                disabled={agendaTranslating || !getAgendaSourceTitle().trim()}
+                disabled={agendaTranslating || !hasAnyAgendaTitle()}
                 style={{
                   ...smallBtnStyle,
-                  opacity: agendaTranslating || !getAgendaSourceTitle().trim() ? 0.5 : 1,
+                  opacity: agendaTranslating || !hasAnyAgendaTitle() ? 0.5 : 1,
                   fontSize: 13, display: "flex", alignItems: "center", gap: 6,
                 }}
               >
@@ -1335,8 +1339,8 @@ export default function NSMeetingsPage({ profile, org }: Props) {
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                 <button
                   onClick={() => { setAgendaSaveError(""); handleSaveAgendaItem(); }}
-                  disabled={agendaSaving || !getAgendaSourceTitle().trim()}
-                  style={{ ...primaryBtnStyle, opacity: agendaSaving || !getAgendaSourceTitle().trim() ? 0.5 : 1 }}
+                  disabled={agendaSaving || !hasAnyAgendaTitle()}
+                  style={{ ...primaryBtnStyle, opacity: agendaSaving || !hasAnyAgendaTitle() ? 0.5 : 1 }}
                 >
                   {agendaSaving ? t("common.saving") : t("nsMeetings.save")}
                 </button>

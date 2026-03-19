@@ -11,5 +11,13 @@ ALTER TABLE public.documents
 CREATE INDEX IF NOT EXISTS idx_documents_agenda_lang
   ON public.documents(agenda_item_id, language);
 
--- 3. Обновить кэш PostgREST
+-- 3. Исправить RLS: разрешить corp_secretary загружать документы
+DROP POLICY IF EXISTS "documents_insert" ON public.documents;
+CREATE POLICY "documents_insert" ON public.documents
+  FOR INSERT WITH CHECK (
+    org_id = public.get_my_org_id()
+    AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
+  );
+
+-- 4. Обновить кэш PostgREST
 NOTIFY pgrst, 'reload schema';

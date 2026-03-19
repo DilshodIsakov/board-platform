@@ -565,6 +565,8 @@
     "matLangEn": "English",
     "matLangGeneral": "General materials",
     "noMaterialsLang": "No files",
+    "protocolDraft": "Draft Minutes",
+    "noProtocol": "Draft minutes not uploaded",
     "save": "Save",
     "cancel": "Cancel",
     "orderNumber": "No.",

@@ -568,6 +568,8 @@
     "matLangEn": "English",
     "matLangGeneral": "Общие материалы",
     "noMaterialsLang": "Нет файлов",
+    "protocolDraft": "Проект протокола",
+    "noProtocol": "Проект протокола не загружен",
     "save": "Сохранить",
     "cancel": "Отмена",
     "orderNumber": "№",

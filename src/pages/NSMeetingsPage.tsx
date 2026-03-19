@@ -13,6 +13,7 @@ import {
   updateAgendaItem,
   deleteAgendaItem,
   fetchMaterialsByAgenda,
+  fetchMaterialsByMeeting,
   uploadMaterial,
   deleteMaterial,
   getMaterialUrl,
@@ -126,6 +127,9 @@ export default function NSMeetingsPage({ profile, org }: Props) {
   const [materialsMap, setMaterialsMap] = useState<Record<string, Material[]>>({});
   // File input refs keyed by `${agendaItemId}_${lang}`
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  // Protocol draft for the meeting (meeting-level document, no agenda_item)
+  const [protocolDoc, setProtocolDoc] = useState<Material | null>(null);
+  const protocolInputRef = useRef<HTMLInputElement | null>(null);
 
   // Voting — keyed by agendaItemId → Voting; votes keyed by votingId → my Vote
   const [votingsMap, setVotingsMap] = useState<Record<string, Voting>>({});
@@ -164,6 +168,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
     } else {
       setAgendaItems([]);
       setMaterialsMap({});
+      setProtocolDoc(null);
       setVotingsMap({});
       setMyVotesMap({});
       setMeetingSignature(null);
@@ -211,6 +216,10 @@ export default function NSMeetingsPage({ profile, org }: Props) {
       })
     );
     setMaterialsMap(mMap);
+    // Load protocol document (meeting-level, no agenda_item_id)
+    const meetingDocs = await fetchMaterialsByMeeting(meetingId);
+    const proto = meetingDocs.find((d) => !d.agenda_item_id) || null;
+    setProtocolDoc(proto);
     // Load saved briefs (all languages)
     if (items.length > 0) {
       const briefsByAgenda = await fetchBriefsForMeeting(items.map((i) => i.id));
@@ -542,6 +551,28 @@ export default function NSMeetingsPage({ profile, org }: Props) {
     }
   };
 
+  // ---------- Protocol draft ----------
+
+  const handleUploadProtocol = async (file: File) => {
+    if (!org || !profile || !selected) return;
+    try {
+      await uploadMaterial(file, org.id, profile.id, selected.id, null, file.name);
+      await loadAgenda(selected.id);
+    } catch (e) {
+      console.error("Protocol upload error:", e);
+    }
+  };
+
+  const handleDeleteProtocol = async () => {
+    if (!protocolDoc || !selected) return;
+    try {
+      await deleteMaterial(protocolDoc);
+      await loadAgenda(selected.id);
+    } catch (e) {
+      console.error("Protocol delete error:", e);
+    }
+  };
+
   // ---------- AI Brief ----------
 
   const handleGenerateBrief = async (agendaId: string) => {
@@ -787,6 +818,75 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                     </button>
                   </div>
                 )}
+              </div>
+
+              {/* Protocol Draft */}
+              <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: 16, marginBottom: 4 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>
+                    {t("nsMeetings.protocolDraft")}
+                  </span>
+                  {isAdmin && !protocolDoc && (
+                    <>
+                      <button onClick={() => protocolInputRef.current?.click()} style={uploadBtnStyle}>
+                        + {t("nsMeetings.uploadFile")}
+                      </button>
+                      <input
+                        ref={protocolInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleUploadProtocol(f);
+                          e.target.value = "";
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+
+                {!protocolDoc && (
+                  <p style={{ color: "#D1D5DB", fontSize: 13, margin: 0 }}>
+                    {t("nsMeetings.noProtocol")}
+                  </p>
+                )}
+
+                {protocolDoc && (() => {
+                  const ft = fileTypeIcon(protocolDoc.mime_type);
+                  return (
+                    <div style={materialCardStyle}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          width: 36, height: 36, borderRadius: 8, display: "flex",
+                          alignItems: "center", justifyContent: "center",
+                          background: ft.color + "18", color: ft.color,
+                          fontSize: 11, fontWeight: 700, flexShrink: 0,
+                        }}>
+                          {ft.label}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {protocolDoc.file_name}
+                          </div>
+                          <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+                            {formatFileSize(protocolDoc.file_size)} · {new Date(protocolDoc.created_at).toLocaleDateString(getIntlLocale())}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                        <button onClick={() => handleDownload(protocolDoc)} style={downloadBtnStyle}>
+                          ↓ {t("nsMeetings.download")}
+                        </button>
+                        {isAdmin && (
+                          <button onClick={handleDeleteProtocol} style={{ ...deleteBtnStyle, fontSize: 12 }}>
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Agenda Section */}

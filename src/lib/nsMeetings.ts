@@ -266,12 +266,13 @@ export async function uploadMaterial(
   orgId: string,
   uploadedBy: string,
   meetingId: string,
-  agendaItemId: string,
+  agendaItemId: string | null,
   title: string,
   language?: MaterialLang
 ): Promise<Material | null> {
+  const agendaSegment = agendaItemId ? `${agendaItemId}/` : "meeting/";
   const langSegment = language ? `${language}/` : "";
-  const storagePath = `${orgId}/${meetingId}/${agendaItemId}/${langSegment}${Date.now()}_${sanitizeFileName(file.name)}`;
+  const storagePath = `${orgId}/${meetingId}/${agendaSegment}${langSegment}${Date.now()}_${sanitizeFileName(file.name)}`;
 
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, file);
   if (uploadError) {
@@ -284,7 +285,7 @@ export async function uploadMaterial(
     .insert({
       org_id: orgId,
       meeting_id: meetingId,
-      agenda_item_id: agendaItemId,
+      agenda_item_id: agendaItemId || null,
       title,
       file_name: file.name,
       file_size: file.size,

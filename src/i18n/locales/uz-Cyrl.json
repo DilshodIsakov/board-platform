@@ -565,6 +565,8 @@
     "matLangEn": "Инглизча",
     "matLangGeneral": "Умумий материаллар",
     "noMaterialsLang": "Файллар йўқ",
+    "protocolDraft": "Баённома лойиҳаси",
+    "noProtocol": "Баённома лойиҳаси юкланмаган",
     "save": "Сақлаш",
     "cancel": "Бекор қилиш",
     "orderNumber": "№",

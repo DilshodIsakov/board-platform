@@ -160,10 +160,23 @@
   "calendar": {
     "today": "Today",
     "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "weekdaysFull": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
     "planNS": "Board Plan",
     "tabCalendar": "Calendar",
-    "tabWorkplan": "Work Plan"
+    "tabWorkplan": "Work Plan",
+    "viewMonth": "Month",
+    "viewWeek": "Week",
+    "viewList": "List",
+    "filterAll": "All",
+    "filterMeetings": "Meetings",
+    "filterWorkplan": "Work Plan",
+    "more": "more",
+    "eventsCount": "events",
+    "noEvents": "No events this month",
+    "noEventsOnDate": "No events on this date",
+    "openEvent": "Open",
+    "meetingNS": "Board Meeting"
   },
   "voting": {
     "title": "Voting System",

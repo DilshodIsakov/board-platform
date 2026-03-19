@@ -202,8 +202,6 @@ export default function CalendarPage({ profile, org }: Props) {
   const formatTime = (iso: string) =>
     new Date(iso).toLocaleTimeString(getIntlLocale(), { hour: "2-digit", minute: "2-digit" });
 
-  const isAdmin = profile?.role === "admin" || profile?.role === "corp_secretary" || profile?.role === "chairman";
-
   /* ─── Event pill renderer ─── */
   const renderEventPill = (m: Meeting, compact = false) => {
     const isWorkPlan = m.source === "work_plan";

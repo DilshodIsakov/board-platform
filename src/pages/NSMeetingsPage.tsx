@@ -23,6 +23,7 @@ import {
   type NSMeeting,
   type AgendaItem,
   type Material,
+  type MaterialLang,
   type AgendaBrief,
   type BriefLang,
 } from "../lib/nsMeetings";
@@ -121,8 +122,9 @@ export default function NSMeetingsPage({ profile, org }: Props) {
   const [agendaAiBriefEnabled, setAgendaAiBriefEnabled] = useState(true);
   const [agendaSaving, setAgendaSaving] = useState(false);
 
-  // Materials per agenda item
+  // Materials per agenda item (keyed by agendaItemId)
   const [materialsMap, setMaterialsMap] = useState<Record<string, Material[]>>({});
+  // File input refs keyed by `${agendaItemId}_${lang}`
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   // Voting — keyed by agendaItemId → Voting; votes keyed by votingId → my Vote
@@ -512,10 +514,10 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
   // ---------- Materials ----------
 
-  const handleUploadFile = async (agendaItemId: string, file: File) => {
+  const handleUploadFile = async (agendaItemId: string, file: File, language?: MaterialLang) => {
     if (!org || !profile || !selected) return;
     try {
-      await uploadMaterial(file, org.id, profile.id, selected.id, agendaItemId, file.name);
+      await uploadMaterial(file, org.id, profile.id, selected.id, agendaItemId, file.name, language);
       await loadAgenda(selected.id);
     } catch (e) {
       console.error(e);
@@ -840,76 +842,134 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                           )}
                         </div>
 
-                        {/* Materials for this agenda item */}
+                        {/* Materials for this agenda item — grouped by language */}
                         <div style={{ marginTop: 12 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                            <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
-                              {t("nsMeetings.materials")}
-                            </span>
-                            {isAdmin && (
-                              <>
-                                <button
-                                  onClick={() => fileInputRefs.current[item.id]?.click()}
-                                  style={uploadBtnStyle}
-                                >
-                                  + {t("nsMeetings.uploadFile")}
-                                </button>
-                                <input
-                                  ref={(el) => { fileInputRefs.current[item.id] = el; }}
-                                  type="file"
-                                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                  style={{ display: "none" }}
-                                  onChange={(e) => {
-                                    const f = e.target.files?.[0];
-                                    if (f) handleUploadFile(item.id, f);
-                                    e.target.value = "";
-                                  }}
-                                />
-                              </>
-                            )}
-                          </div>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 8 }}>
+                            {t("nsMeetings.materials")}
+                          </span>
 
-                          {mats.length === 0 && (
-                            <p style={{ color: "#D1D5DB", fontSize: 13, margin: 0 }}>
-                              {t("nsMeetings.noMaterials")}
-                            </p>
-                          )}
+                          {(["ru", "uz", "en"] as MaterialLang[]).map((lang) => {
+                            const langMats = mats.filter((m) => m.language === lang);
+                            const refKey = `${item.id}_${lang}`;
+                            const langLabel = lang === "ru" ? t("nsMeetings.matLangRu") : lang === "uz" ? t("nsMeetings.matLangUz") : t("nsMeetings.matLangEn");
 
-                          {mats.map((mat) => {
-                            const ft = fileTypeIcon(mat.mime_type);
                             return (
-                              <div key={mat.id} style={materialCardStyle}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
-                                  <div style={{
-                                    width: 36, height: 36, borderRadius: 8, display: "flex",
-                                    alignItems: "center", justifyContent: "center",
-                                    background: ft.color + "18", color: ft.color,
-                                    fontSize: 11, fontWeight: 700, flexShrink: 0,
-                                  }}>
-                                    {ft.label}
-                                  </div>
-                                  <div style={{ minWidth: 0, flex: 1 }}>
-                                    <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                      {mat.file_name}
-                                    </div>
-                                    <div style={{ fontSize: 12, color: "#9CA3AF" }}>
-                                      {formatFileSize(mat.file_size)} · {new Date(mat.created_at).toLocaleDateString(getIntlLocale())}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                                  <button onClick={() => handleDownload(mat)} style={downloadBtnStyle}>
-                                    ↓ {t("nsMeetings.download")}
-                                  </button>
+                              <div key={lang} style={{ marginBottom: 10, padding: "8px 10px", background: "#F9FAFB", borderRadius: 8, border: "1px solid #F3F4F6" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                    {langLabel}
+                                  </span>
                                   {isAdmin && (
-                                    <button onClick={() => handleDeleteMaterial(mat)} style={{ ...deleteBtnStyle, fontSize: 12 }}>
-                                      ✕
-                                    </button>
+                                    <>
+                                      <button
+                                        onClick={() => fileInputRefs.current[refKey]?.click()}
+                                        style={uploadBtnStyle}
+                                      >
+                                        + {t("nsMeetings.uploadFile")}
+                                      </button>
+                                      <input
+                                        ref={(el) => { fileInputRefs.current[refKey] = el; }}
+                                        type="file"
+                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                        style={{ display: "none" }}
+                                        onChange={(e) => {
+                                          const f = e.target.files?.[0];
+                                          if (f) handleUploadFile(item.id, f, lang);
+                                          e.target.value = "";
+                                        }}
+                                      />
+                                    </>
                                   )}
                                 </div>
+
+                                {langMats.length === 0 && (
+                                  <p style={{ color: "#D1D5DB", fontSize: 12, margin: 0 }}>
+                                    {t("nsMeetings.noMaterialsLang")}
+                                  </p>
+                                )}
+
+                                {langMats.map((mat) => {
+                                  const ft = fileTypeIcon(mat.mime_type);
+                                  return (
+                                    <div key={mat.id} style={materialCardStyle}>
+                                      <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                                        <div style={{
+                                          width: 36, height: 36, borderRadius: 8, display: "flex",
+                                          alignItems: "center", justifyContent: "center",
+                                          background: ft.color + "18", color: ft.color,
+                                          fontSize: 11, fontWeight: 700, flexShrink: 0,
+                                        }}>
+                                          {ft.label}
+                                        </div>
+                                        <div style={{ minWidth: 0, flex: 1 }}>
+                                          <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                            {mat.file_name}
+                                          </div>
+                                          <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+                                            {formatFileSize(mat.file_size)} · {new Date(mat.created_at).toLocaleDateString(getIntlLocale())}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                        <button onClick={() => handleDownload(mat)} style={downloadBtnStyle}>
+                                          ↓ {t("nsMeetings.download")}
+                                        </button>
+                                        {isAdmin && (
+                                          <button onClick={() => handleDeleteMaterial(mat)} style={{ ...deleteBtnStyle, fontSize: 12 }}>
+                                            ✕
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             );
                           })}
+
+                          {/* Legacy materials without language (for backward compat) */}
+                          {mats.filter((m) => !m.language).length > 0 && (
+                            <div style={{ marginBottom: 10, padding: "8px 10px", background: "#F9FAFB", borderRadius: 8, border: "1px solid #F3F4F6" }}>
+                              <span style={{ fontSize: 12, fontWeight: 600, color: "#6B7280", marginBottom: 6, display: "block" }}>
+                                {t("nsMeetings.matLangGeneral")}
+                              </span>
+                              {mats.filter((m) => !m.language).map((mat) => {
+                                const ft = fileTypeIcon(mat.mime_type);
+                                return (
+                                  <div key={mat.id} style={materialCardStyle}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                                      <div style={{
+                                        width: 36, height: 36, borderRadius: 8, display: "flex",
+                                        alignItems: "center", justifyContent: "center",
+                                        background: ft.color + "18", color: ft.color,
+                                        fontSize: 11, fontWeight: 700, flexShrink: 0,
+                                      }}>
+                                        {ft.label}
+                                      </div>
+                                      <div style={{ minWidth: 0, flex: 1 }}>
+                                        <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                          {mat.file_name}
+                                        </div>
+                                        <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+                                          {formatFileSize(mat.file_size)} · {new Date(mat.created_at).toLocaleDateString(getIntlLocale())}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                      <button onClick={() => handleDownload(mat)} style={downloadBtnStyle}>
+                                        ↓ {t("nsMeetings.download")}
+                                      </button>
+                                      {isAdmin && (
+                                        <button onClick={() => handleDeleteMaterial(mat)} style={{ ...deleteBtnStyle, fontSize: 12 }}>
+                                          ✕
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
 
                         {/* AI-Brief Section — only when enabled on this agenda item */}

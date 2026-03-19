@@ -59,6 +59,8 @@ export interface AgendaItemPayload {
   ai_brief_enabled?: boolean;
 }
 
+export type MaterialLang = "ru" | "uz" | "en";
+
 export interface Material {
   id: string;
   org_id: string;
@@ -71,6 +73,7 @@ export interface Material {
   storage_path: string;
   uploaded_by: string;
   created_at: string;
+  language: MaterialLang | null;
 }
 
 // ---------- Meetings ----------
@@ -264,9 +267,11 @@ export async function uploadMaterial(
   uploadedBy: string,
   meetingId: string,
   agendaItemId: string,
-  title: string
+  title: string,
+  language?: MaterialLang
 ): Promise<Material | null> {
-  const storagePath = `${orgId}/${Date.now()}_${sanitizeFileName(file.name)}`;
+  const langSegment = language ? `${language}/` : "";
+  const storagePath = `${orgId}/${meetingId}/${agendaItemId}/${langSegment}${Date.now()}_${sanitizeFileName(file.name)}`;
 
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, file);
   if (uploadError) {
@@ -286,6 +291,7 @@ export async function uploadMaterial(
       mime_type: file.type || "application/octet-stream",
       storage_path: storagePath,
       uploaded_by: uploadedBy,
+      language: language || null,
     })
     .select()
     .single();

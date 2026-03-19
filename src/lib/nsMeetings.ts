@@ -20,6 +20,7 @@ export interface NSMeeting {
   status: "draft" | "scheduled" | "completed";
   created_by: string;
   created_at: string;
+  materials_ready: boolean;
 }
 
 export interface AgendaItem {

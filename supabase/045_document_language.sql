@@ -19,5 +19,9 @@ CREATE POLICY "documents_insert" ON public.documents
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
 
--- 4. Обновить кэш PostgREST
+-- 4. Добавить флаг materials_ready в meetings
+ALTER TABLE public.meetings
+  ADD COLUMN IF NOT EXISTS materials_ready boolean NOT NULL DEFAULT false;
+
+-- 5. Обновить кэш PostgREST
 NOTIFY pgrst, 'reload schema';

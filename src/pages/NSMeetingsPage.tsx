@@ -749,8 +749,10 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                   onClick={() => setSelectedId(m.id)}
                   style={{
                     ...meetingCardStyle,
-                    borderColor: active ? "#3B82F6" : "#E5E7EB",
-                    background: active ? "#EFF6FF" : "#FFFFFF",
+                    borderColor: active ? "#3B82F6" : m.materials_ready ? "#16A34A" : "#E5E7EB",
+                    background: active ? "#EFF6FF" : m.materials_ready ? "#F0FDF4" : "#FFFFFF",
+                    borderLeft: m.materials_ready && !active ? "4px solid #16A34A" : undefined,
+                    boxShadow: m.materials_ready && !active ? "0 0 0 1px #BBF7D0" : undefined,
                   }}
                 >
                   <div style={{ fontWeight: 600, fontSize: 14, color: "#111827", marginBottom: 4 }}>
@@ -1342,6 +1344,33 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                   );
                 })()}
               </div>
+
+              {/* "Ready" button — marks meeting materials as prepared */}
+              {isAdmin && (
+                <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: 20, marginTop: 20, display: "flex", justifyContent: "center" }}>
+                  <button
+                    onClick={async () => {
+                      if (!selected) return;
+                      const next = !selected.materials_ready;
+                      await updateNSMeeting(selected.id, { materials_ready: next } as any);
+                      await loadMeetings();
+                    }}
+                    style={{
+                      padding: "12px 48px",
+                      fontSize: 15,
+                      fontWeight: 700,
+                      borderRadius: 10,
+                      border: selected.materials_ready ? "2px solid #16A34A" : "2px solid #D1D5DB",
+                      background: selected.materials_ready ? "#F0FDF4" : "#FFFFFF",
+                      color: selected.materials_ready ? "#16A34A" : "#374151",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {selected.materials_ready ? "✓ " : ""}{t("nsMeetings.ready")}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

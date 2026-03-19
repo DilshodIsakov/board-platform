@@ -79,7 +79,7 @@ export async function fetchNSMeetings(): Promise<NSMeeting[]> {
   const { data, error } = await supabase
     .from("meetings")
     .select("*")
-    .order("start_at", { ascending: false });
+    .order("start_at", { ascending: true });
 
   if (error) {
     console.error("fetchNSMeetings error:", error);

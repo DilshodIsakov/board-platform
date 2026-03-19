@@ -749,10 +749,10 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                   onClick={() => setSelectedId(m.id)}
                   style={{
                     ...meetingCardStyle,
-                    borderColor: active ? "#3B82F6" : m.materials_ready ? "#16A34A" : "#E5E7EB",
-                    background: active ? "#EFF6FF" : m.materials_ready ? "#F0FDF4" : "#FFFFFF",
-                    borderLeft: m.materials_ready && !active ? "4px solid #16A34A" : undefined,
-                    boxShadow: m.materials_ready && !active ? "0 0 0 1px #BBF7D0" : undefined,
+                    borderColor: m.materials_ready ? "#16A34A" : active ? "#3B82F6" : "#E5E7EB",
+                    background: m.materials_ready ? "#F0FDF4" : active ? "#EFF6FF" : "#FFFFFF",
+                    borderLeft: m.materials_ready ? "4px solid #16A34A" : undefined,
+                    boxShadow: active && !m.materials_ready ? "0 0 0 1px #93C5FD" : m.materials_ready ? "0 0 0 1px #BBF7D0" : undefined,
                   }}
                 >
                   <div style={{ fontWeight: 600, fontSize: 14, color: "#111827", marginBottom: 4 }}>

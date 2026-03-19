@@ -27,6 +27,7 @@ import TasksListPage from "./pages/TasksListPage";
 import TaskDetailsPage from "./pages/TaskDetailsPage";
 import BoardWorkPlanPage from "./pages/BoardWorkPlanPage";
 import ProfilePage from "./pages/ProfilePage";
+import NotificationsPage from "./pages/NotificationsPage";
 import i18n from "./i18n";
 
 export default function App() {
@@ -191,6 +192,7 @@ export default function App() {
         <Route path="/tasks/:id" element={auth(<TaskDetailsPage profile={profile} org={org} />)} />
         <Route path="/board-work-plan" element={auth(<BoardWorkPlanPage profile={profile} org={org} />)} />
         <Route path="/profile" element={auth(<ProfilePage profile={profile} org={org} onProfileUpdate={() => loadProfileAndOrg()} />)} />
+        <Route path="/notifications" element={auth(<NotificationsPage profile={profile} org={org} />)} />
         <Route path="/admin/users" element={adminAuth(<AdminUsersPage />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -164,6 +164,8 @@ export function getNotificationRoute(n: Notification): string {
       return "/chat";
     case "meeting":
       return `/meetings/${n.related_entity_id}`;
+    case "voting":
+      return "/voting";
     default:
       return "/";
   }

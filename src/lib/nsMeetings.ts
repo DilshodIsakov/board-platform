@@ -21,6 +21,14 @@ export interface NSMeeting {
   created_by: string;
   created_at: string;
   materials_ready: boolean;
+  // Video conference
+  video_conference_url: string | null;
+  video_conference_provider: string | null;
+  video_conference_enabled: boolean;
+  video_conference_started_at: string | null;
+  video_conference_started_by: string | null;
+  video_conference_title: string | null;
+  video_conference_notes: string | null;
 }
 
 export interface AgendaItem {
@@ -78,6 +86,16 @@ export interface Material {
 }
 
 // ---------- Meetings ----------
+
+export async function fetchNSMeetingById(id: string): Promise<NSMeeting | null> {
+  const { data, error } = await supabase
+    .from("meetings")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error) { console.error("fetchNSMeetingById error:", error); return null; }
+  return data as NSMeeting;
+}
 
 export async function fetchNSMeetings(): Promise<NSMeeting[]> {
   const { data, error } = await supabase
@@ -425,4 +443,65 @@ export async function generateBrief(agendaId: string, lang: BriefLang = "ru"): P
   }
 
   return result as unknown as GenerateBriefResult;
+}
+
+// ---------- Video Conference ----------
+
+export interface VideoConferencePayload {
+  video_conference_url?: string | null;
+  video_conference_provider?: string | null;
+  video_conference_title?: string | null;
+  video_conference_notes?: string | null;
+  video_conference_enabled?: boolean;
+  video_conference_started_at?: string | null;
+  video_conference_started_by?: string | null;
+}
+
+export async function updateMeetingVideoConference(
+  meetingId: string,
+  fields: VideoConferencePayload
+): Promise<void> {
+  const { error } = await supabase
+    .from("meetings")
+    .update(fields)
+    .eq("id", meetingId);
+  if (error) {
+    console.error("updateMeetingVideoConference error:", error);
+    throw new Error(error.message);
+  }
+}
+
+export async function activateMeetingVideoConference(
+  meetingId: string,
+  startedBy: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("meetings")
+    .update({
+      video_conference_enabled: true,
+      video_conference_started_at: new Date().toISOString(),
+      video_conference_started_by: startedBy,
+    })
+    .eq("id", meetingId);
+  if (error) {
+    console.error("activateMeetingVideoConference error:", error);
+    throw new Error(error.message);
+  }
+}
+
+export async function deactivateMeetingVideoConference(
+  meetingId: string
+): Promise<void> {
+  const { error } = await supabase
+    .from("meetings")
+    .update({
+      video_conference_enabled: false,
+      video_conference_started_at: null,
+      video_conference_started_by: null,
+    })
+    .eq("id", meetingId);
+  if (error) {
+    console.error("deactivateMeetingVideoConference error:", error);
+    throw new Error(error.message);
+  }
 }

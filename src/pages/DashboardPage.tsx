@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import type { Profile, Organization } from "../lib/profile";
@@ -94,7 +94,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
     }
   };
 
-  const handleCreate = async (e: FormEvent) => {
+  const handleCreate = async (e: React.BaseSyntheticEvent) => {
     e.preventDefault();
     if (!profile || !org) return;
 
@@ -114,7 +114,9 @@ export default function DashboardPage({ user, profile, org }: Props) {
     }
   };
 
-  const scheduledMeetings = meetings.filter((m) => m.status === "scheduled");
+  const scheduledMeetings = meetings
+    .filter((m) => m.status === "scheduled")
+    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
   const recentMeetings = meetings.slice(0, 5);
 
   return (
@@ -189,7 +191,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {scheduledMeetings.slice(0, 5).map((m) => (
-                <Link key={m.id} to={`/meetings/${m.id}`} style={meetingItemStyle}>
+                <Link key={m.id} to={`/ns-meetings?meetingId=${m.id}`} style={meetingItemStyle}>
                   <div>
                     <div style={{ fontWeight: 500, fontSize: 15, color: "#111827" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title")}</div>
                     <div style={{ fontSize: 13, color: "#9CA3AF" }}>
@@ -272,7 +274,7 @@ export default function DashboardPage({ user, profile, org }: Props) {
               {recentMeetings.map((m) => (
                 <tr key={m.id} style={{ borderBottom: "1px solid #F3F4F6" }}>
                   <td style={tdStyle}>
-                    <Link to={`/meetings/${m.id}`} style={{ color: "#3B82F6" }}>
+                    <Link to={`/ns-meetings?meetingId=${m.id}`} style={{ color: "#3B82F6" }}>
                       {m.title}
                     </Link>
                   </td>

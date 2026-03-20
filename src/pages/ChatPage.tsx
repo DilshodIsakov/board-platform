@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
 import { downloadFileByUrl } from "../lib/format";
@@ -70,6 +70,42 @@ function getAvatarColor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+/** Рендерит круглый аватар: фото если есть, иначе инициалы */
+function UserAvatar({
+  name,
+  avatarUrl,
+  size = 44,
+  style,
+}: {
+  name: string;
+  avatarUrl?: string | null;
+  size?: number;
+  style?: React.CSSProperties;
+}) {
+  const base: React.CSSProperties = {
+    width: size,
+    height: size,
+    borderRadius: "50%",
+    flexShrink: 0,
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: size * 0.3,
+    fontWeight: 700,
+    color: "#fff",
+    ...style,
+  };
+  if (avatarUrl) {
+    return <img src={avatarUrl} alt="" style={{ ...base, objectFit: "cover" }} />;
+  }
+  return (
+    <div style={{ ...base, background: getAvatarColor(name) }}>
+      {getInitials(name)}
+    </div>
+  );
+}
+
 function formatMsgTime(iso: string): string {
   const d = new Date(iso);
   const now = new Date();
@@ -102,6 +138,7 @@ function sortGroupsByLatest(groups: ChatGroup[]): ChatGroup[] {
 export default function ChatPage({ profile, org }: Props) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { refresh } = useNotifications();
 
   const [sidebarTab, setSidebarTabRaw] = useState<SidebarTab>(
@@ -920,7 +957,6 @@ export default function ChatPage({ profile, org }: Props) {
             ) : (
               filteredThreads.map((c) => {
                 const isActive = selectedContact?.id === c.id;
-                const color = getAvatarColor(c.full_name);
                 return (
                   <div
                     key={c.id}
@@ -933,14 +969,7 @@ export default function ChatPage({ profile, org }: Props) {
                       background: isActive ? "#DBEAFE" : "transparent",
                     }}
                   >
-                    <div
-                      style={{
-                        ...avatarStyle,
-                        background: color,
-                      }}
-                    >
-                      {getInitials(c.full_name)}
-                    </div>
+                    <UserAvatar name={c.full_name} avatarUrl={c.avatar_url} size={44} />
                     <div style={threadContentStyle}>
                       <div style={threadTopRowStyle}>
                         <span style={threadNameStyle}>{c.full_name || t("chat.noName")}</span>
@@ -1061,19 +1090,18 @@ export default function ChatPage({ profile, org }: Props) {
         {sidebarTab === "personal" && selectedContact && (
           <>
             <div style={chatHeaderStyle}>
-              <div
-                style={{
-                  ...avatarStyle,
-                  width: 36,
-                  height: 36,
-                  fontSize: 13,
-                  background: getAvatarColor(selectedContact.full_name),
-                  flexShrink: 0,
-                }}
-              >
-                {getInitials(selectedContact.full_name)}
+              <div onClick={() => navigate(`/profile/${selectedContact.id}`)}>
+                <UserAvatar
+                  name={selectedContact.full_name}
+                  avatarUrl={selectedContact.avatar_url}
+                  size={36}
+                  style={{ cursor: "pointer" }}
+                />
               </div>
-              <div>
+              <div
+                onClick={() => navigate(`/profile/${selectedContact.id}`)}
+                style={{ cursor: "pointer" }}
+              >
                 <div style={{ fontWeight: 600, fontSize: 15 }}>
                   {selectedContact.full_name || t("chat.noName")}
                 </div>
@@ -1640,18 +1668,7 @@ export default function ChatPage({ profile, org }: Props) {
                     onClick={() => handleStartNewChat(u)}
                     style={newChatUserRowStyle}
                   >
-                    <div
-                      style={{
-                        ...avatarStyle,
-                        width: 36,
-                        height: 36,
-                        fontSize: 13,
-                        background: getAvatarColor(u.full_name),
-                        flexShrink: 0,
-                      }}
-                    >
-                      {getInitials(u.full_name)}
-                    </div>
+                    <UserAvatar name={u.full_name} avatarUrl={u.avatar_url} size={36} />
                     <div>
                       <div style={{ fontWeight: 500, fontSize: 14 }}>
                         {u.full_name}

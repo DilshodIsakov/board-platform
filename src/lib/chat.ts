@@ -21,6 +21,7 @@ export interface ContactProfile {
   id: string;
   full_name: string;
   role: string;
+  avatar_url?: string | null;
   unread_count?: number; // количество непрочитанных сообщений от этого контакта
 }
 
@@ -29,6 +30,7 @@ export interface ConversationThread {
   id: string;           // profile id собеседника
   full_name: string;
   role: string;
+  avatar_url?: string | null;
   last_message?: string;    // превью последнего сообщения
   last_message_at?: string; // ISO timestamp последнего сообщения
   unread_count: number;
@@ -38,7 +40,7 @@ export interface ConversationThread {
 export async function fetchContacts(excludeProfileId: string): Promise<ContactProfile[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, role")
+    .select("id, full_name, role, avatar_url")
     .neq("id", excludeProfileId)
     .order("full_name");
 
@@ -446,13 +448,14 @@ export async function fetchConversationThreads(
 
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, full_name, role")
+    .select("id, full_name, role, avatar_url")
     .in("id", [...threadMap.keys()]);
 
   const threads: ConversationThread[] = (profiles || []).map((p: any) => ({
     id: p.id,
     full_name: p.full_name || "",
     role: p.role || "",
+    avatar_url: p.avatar_url || null,
     ...threadMap.get(p.id)!,
   }));
 
@@ -585,7 +588,7 @@ export async function fetchProfileById(
 ): Promise<ContactProfile | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, role")
+    .select("id, full_name, role, avatar_url")
     .eq("id", profileId)
     .single();
 

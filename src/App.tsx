@@ -21,12 +21,14 @@ import CompanyInfoPage from "./pages/CompanyInfoPage";
 import VotingPage from "./pages/VotingPage";
 import ProtocolsPage from "./pages/ProtocolsPage";
 import NSMeetingsPage from "./pages/NSMeetingsPage";
+import NSMeetingDetailsPage from "./pages/NSMeetingDetailsPage";
 import VideoConferencePage from "./pages/VideoConferencePage";
 import ShareholderMeetingPage from "./pages/ShareholderMeetingPage";
 import TasksListPage from "./pages/TasksListPage";
 import TaskDetailsPage from "./pages/TaskDetailsPage";
 import BoardWorkPlanPage from "./pages/BoardWorkPlanPage";
 import ProfilePage from "./pages/ProfilePage";
+import UserProfilePage from "./pages/UserProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import i18n from "./i18n";
 
@@ -186,12 +188,14 @@ export default function App() {
         <Route path="/voting" element={auth(<VotingPage profile={profile} org={org} />)} />
         <Route path="/protocols" element={auth(<ProtocolsPage profile={profile} org={org} />)} />
         <Route path="/ns-meetings" element={auth(<NSMeetingsPage profile={profile} org={org} />)} />
+        <Route path="/ns-meetings/:id" element={auth(<NSMeetingDetailsPage profile={profile} org={org} />)} />
         <Route path="/videoconference" element={auth(<VideoConferencePage profile={profile} org={org} />)} />
         <Route path="/shareholder-meeting" element={auth(<ShareholderMeetingPage profile={profile} org={org} />)} />
         <Route path="/tasks" element={auth(<TasksListPage profile={profile} org={org} />)} />
         <Route path="/tasks/:id" element={auth(<TaskDetailsPage profile={profile} org={org} />)} />
         <Route path="/board-work-plan" element={auth(<BoardWorkPlanPage profile={profile} org={org} />)} />
         <Route path="/profile" element={auth(<ProfilePage profile={profile} org={org} onProfileUpdate={() => loadProfileAndOrg()} />)} />
+        <Route path="/profile/:id" element={auth(<UserProfilePage />)} />
         <Route path="/notifications" element={auth(<NotificationsPage profile={profile} org={org} />)} />
         <Route path="/admin/users" element={adminAuth(<AdminUsersPage />)} />
         <Route path="*" element={<Navigate to="/" replace />} />

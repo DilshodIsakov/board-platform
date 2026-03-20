@@ -23,8 +23,8 @@ export default i18n;
 export function getIntlLocale(lng?: string): string {
   const lang = lng || i18n.language;
   switch (lang) {
-    case "en": return "en-US";
-    case "uz-Cyrl": return "uz-UZ";
+    case "en": return "en-GB";
+    case "uz-Cyrl": return "ru-RU";
     default: return "ru-RU";
   }
 }

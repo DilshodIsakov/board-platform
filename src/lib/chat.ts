@@ -8,6 +8,8 @@ export interface Message {
   receiver_id: string;
   body: string;
   is_read: boolean;
+  is_deleted?: boolean;
+  is_edited?: boolean;
   created_at: string;
   file_name?: string | null;
   file_size?: number | null;
@@ -20,6 +22,16 @@ export interface ContactProfile {
   full_name: string;
   role: string;
   unread_count?: number; // количество непрочитанных сообщений от этого контакта
+}
+
+/** Диалог (переписка) с конкретным пользователем — только те, у кого есть история */
+export interface ConversationThread {
+  id: string;           // profile id собеседника
+  full_name: string;
+  role: string;
+  last_message?: string;    // превью последнего сообщения
+  last_message_at?: string; // ISO timestamp последнего сообщения
+  unread_count: number;
 }
 
 /** Загрузить список контактов (все активные профили в организации) */
@@ -223,6 +235,8 @@ export interface ChatGroup {
   created_by: string;
   created_at: string;
   member_count?: number;
+  last_message?: string;     // превью последнего сообщения в группе
+  last_message_at?: string;  // ISO timestamp последнего сообщения
 }
 
 export interface ChatGroupMember {
@@ -238,6 +252,8 @@ export interface GroupMessage {
   group_id: string;
   sender_id: string;
   body: string;
+  is_deleted?: boolean;
+  is_edited?: boolean;
   created_at: string;
   sender?: { full_name: string };
   file_name?: string | null;
@@ -386,6 +402,195 @@ export async function sendGroupMessage(
 
   if (error) throw new Error(error.message);
   return data as GroupMessage;
+}
+
+/**
+ * Список диалогов текущего пользователя — только те переписки,
+ * в которых реально были сообщения, отсортированные по последней активности.
+ */
+export async function fetchConversationThreads(
+  myProfileId: string
+): Promise<ConversationThread[]> {
+  const { data: msgs, error } = await supabase
+    .from("messages")
+    .select("sender_id, receiver_id, body, created_at, is_read, file_name")
+    .or(`sender_id.eq.${myProfileId},receiver_id.eq.${myProfileId}`)
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  if (error || !msgs?.length) return [];
+
+  // Группируем по партнёру: берём последнее сообщение и считаем unread
+  const threadMap = new Map<string, {
+    last_message: string;
+    last_message_at: string;
+    unread_count: number;
+  }>();
+
+  for (const msg of msgs as any[]) {
+    const partnerId = msg.sender_id === myProfileId ? msg.receiver_id : msg.sender_id;
+    if (!threadMap.has(partnerId)) {
+      threadMap.set(partnerId, {
+        last_message: msg.file_name
+          ? `📎 ${msg.file_name}`
+          : (msg.body || ""),
+        last_message_at: msg.created_at,
+        unread_count: (msg.receiver_id === myProfileId && !msg.is_read) ? 1 : 0,
+      });
+    } else if (msg.receiver_id === myProfileId && !msg.is_read) {
+      threadMap.get(partnerId)!.unread_count++;
+    }
+  }
+
+  if (threadMap.size === 0) return [];
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, full_name, role")
+    .in("id", [...threadMap.keys()]);
+
+  const threads: ConversationThread[] = (profiles || []).map((p: any) => ({
+    id: p.id,
+    full_name: p.full_name || "",
+    role: p.role || "",
+    ...threadMap.get(p.id)!,
+  }));
+
+  return threads.sort(
+    (a, b) =>
+      new Date(b.last_message_at!).getTime() -
+      new Date(a.last_message_at!).getTime()
+  );
+}
+
+/**
+ * Группы, в которых состоит текущий пользователь,
+ * с превью последнего сообщения и сортировкой по активности.
+ */
+export async function fetchGroupsForMember(
+  myProfileId: string
+): Promise<ChatGroup[]> {
+  const { data: memberships } = await supabase
+    .from("chat_group_members")
+    .select("group_id")
+    .eq("profile_id", myProfileId);
+
+  if (!memberships?.length) return [];
+
+  const groupIds = (memberships as any[]).map((m) => m.group_id);
+
+  const { data: groups, error } = await supabase
+    .from("chat_groups")
+    .select("*, members:chat_group_members(id)")
+    .in("id", groupIds);
+
+  if (error || !groups?.length) return [];
+
+  // Получить последние сообщения всех групп одним запросом
+  const { data: allMsgs } = await supabase
+    .from("chat_group_messages")
+    .select("group_id, body, created_at, file_name")
+    .in("group_id", groupIds)
+    .order("created_at", { ascending: false });
+
+  const latestPerGroup = new Map<string, any>();
+  for (const msg of (allMsgs || []) as any[]) {
+    if (!latestPerGroup.has(msg.group_id)) {
+      latestPerGroup.set(msg.group_id, msg);
+    }
+  }
+
+  const result: ChatGroup[] = (groups as any[]).map((g) => {
+    const latest = latestPerGroup.get(g.id);
+    return {
+      id: g.id,
+      organization_id: g.organization_id,
+      name: g.name,
+      created_by: g.created_by,
+      created_at: g.created_at,
+      member_count: Array.isArray(g.members) ? g.members.length : 0,
+      last_message: latest?.file_name
+        ? `📎 ${latest.file_name}`
+        : latest?.body,
+      last_message_at: latest?.created_at,
+    };
+  });
+
+  return result.sort((a, b) => {
+    const ta = a.last_message_at
+      ? new Date(a.last_message_at).getTime()
+      : new Date(a.created_at).getTime();
+    const tb = b.last_message_at
+      ? new Date(b.last_message_at).getTime()
+      : new Date(b.created_at).getTime();
+    return tb - ta;
+  });
+}
+
+/** Мягкое удаление личного сообщения (только отправитель, ставит is_deleted = true) */
+export async function deleteMessage(messageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("messages")
+    .update({ is_deleted: true })
+    .eq("id", messageId);
+
+  if (error) {
+    console.error("deleteMessage error:", error);
+    throw new Error(error.message);
+  }
+}
+
+/** Мягкое удаление сообщения в группе (только отправитель) */
+export async function deleteGroupMessage(messageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("chat_group_messages")
+    .update({ is_deleted: true })
+    .eq("id", messageId);
+
+  if (error) {
+    console.error("deleteGroupMessage error:", error);
+    throw new Error(error.message);
+  }
+}
+
+/** Редактировать текст личного сообщения (только отправитель, только не удалённые) */
+export async function editMessage(messageId: string, newBody: string): Promise<void> {
+  const { error } = await supabase
+    .from("messages")
+    .update({ body: newBody, is_edited: true })
+    .eq("id", messageId);
+
+  if (error) {
+    console.error("editMessage error:", error);
+    throw new Error(error.message);
+  }
+}
+
+/** Редактировать текст группового сообщения (только отправитель, только не удалённые) */
+export async function editGroupMessage(messageId: string, newBody: string): Promise<void> {
+  const { error } = await supabase
+    .from("chat_group_messages")
+    .update({ body: newBody, is_edited: true })
+    .eq("id", messageId);
+
+  if (error) {
+    console.error("editGroupMessage error:", error);
+    throw new Error(error.message);
+  }
+}
+
+/** Получить профиль по id (для добавления нового диалога по realtime) */
+export async function fetchProfileById(
+  profileId: string
+): Promise<ContactProfile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, role")
+    .eq("id", profileId)
+    .single();
+
+  if (error) return null;
+  return data as ContactProfile;
 }
 
 // ============================================================

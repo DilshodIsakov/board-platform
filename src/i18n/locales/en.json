@@ -517,6 +517,8 @@
     "groupMessagePlaceholder": "Write to group...",
     "uploading": "Uploading...",
     "send": "Send",
+    "messageDeleted": "Message deleted",
+    "messageEdited": "changed",
     "sendError": "Message send error",
     "sendGroupError": "Group message send error",
     "loadingProfile": "Loading profile...",

@@ -517,6 +517,8 @@
     "groupMessagePlaceholder": "Гуруҳга ёзиш...",
     "uploading": "Юкланмоқда...",
     "send": "Юбориш",
+    "messageDeleted": "Хабар ўчирилди",
+    "messageEdited": "ўзгартирилди",
     "sendError": "Хабар юбориш хатоси",
     "sendGroupError": "Гуруҳ хабари юбориш хатоси",
     "loadingProfile": "Профил юкланмоқда...",

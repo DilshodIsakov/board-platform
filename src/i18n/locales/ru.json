@@ -517,6 +517,8 @@
     "groupMessagePlaceholder": "Написать в группу...",
     "uploading": "Загрузка...",
     "send": "Отправить",
+    "messageDeleted": "Сообщение удалено",
+    "messageEdited": "изменено",
     "sendError": "Ошибка отправки сообщения",
     "sendGroupError": "Ошибка отправки сообщения в группу",
     "loadingProfile": "Загрузка профиля...",

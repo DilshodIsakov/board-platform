@@ -8,6 +8,7 @@ import { fetchAllVotingsWithMeeting, type VotingWithMeeting } from "../lib/votin
 import { getLocalizedField } from "../lib/i18nHelpers";
 import { getIntlLocale } from "../i18n";
 import { supabase } from "../lib/supabaseClient";
+import { StatusBadge, SkeletonCard, EmptyState, RoleBadge } from "../components/ui";
 
 interface DashTask {
   id: string;
@@ -167,8 +168,13 @@ export default function DashboardPage({ profile, org }: Props) {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#9CA3AF", fontSize: 15 }}>
-        {t("common.loading")}
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <div style={{ height: 72, background: "#F1F5F9", borderRadius: 12, marginBottom: 24 }} className="skeleton" />
+        <div style={{ height: 160, background: "#F1F5F9", borderRadius: 16, marginBottom: 24 }} className="skeleton" />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
+          <SkeletonCard lines={4} />
+          <SkeletonCard lines={4} />
+        </div>
       </div>
     );
   }
@@ -199,12 +205,9 @@ export default function DashboardPage({ profile, org }: Props) {
             </p>
           </div>
           {profile && (
-            <span style={{
-              fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 20,
-              background: "#F3F4F6", color: "#6B7280", alignSelf: "center",
-            }}>
-              {t(`roles.${profile.role}`, profile.role)}
-            </span>
+            <div style={{ alignSelf: "center" }}>
+              <RoleBadge role={profile.role} label={t(`roles.${profile.role}`, { defaultValue: profile.role })} />
+            </div>
           )}
         </div>
       </div>
@@ -227,20 +230,19 @@ export default function DashboardPage({ profile, org }: Props) {
                 {t("dashboard.nextMeeting")}
               </span>
               {meetingState === "now" && (
-                <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, background: "#10B981", color: "#fff", padding: "2px 10px", borderRadius: 12 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff", display: "inline-block", animation: "pulse 1.5s infinite" }} />
+                <StatusBadge variant="success" dot pulse style={{ background: "rgba(16,185,129,0.25)", color: "#6EE7B7" }}>
                   {t("dashboard.meetingGoingNow")}
-                </span>
+                </StatusBadge>
               )}
               {meetingState === "soon" && (
-                <span style={{ fontSize: 12, fontWeight: 700, background: "#F59E0B", color: "#fff", padding: "2px 10px", borderRadius: 12 }}>
+                <StatusBadge variant="warning" style={{ background: "rgba(245,158,11,0.25)", color: "#FCD34D" }}>
                   {t("dashboard.meetingSoon")} — {formatRelativeTime(nextMeeting!.start_at)}
-                </span>
+                </StatusBadge>
               )}
               {meetingState === "completed" && (
-                <span style={{ fontSize: 12, fontWeight: 600, background: "rgba(255,255,255,0.15)", padding: "2px 10px", borderRadius: 12 }}>
+                <StatusBadge variant="neutral" style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}>
                   {t("nsMeetings.statusCompleted")}
-                </span>
+                </StatusBadge>
               )}
             </div>
 
@@ -311,7 +313,7 @@ export default function DashboardPage({ profile, org }: Props) {
           </div>
 
           {myTasks.length === 0 ? (
-            <div style={emptyStyle}>{t("dashboard.noMyTasks")}</div>
+            <EmptyState icon="✅" title={t("dashboard.noMyTasks")} />
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {myTasks.map((task) => {

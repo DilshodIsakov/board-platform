@@ -135,8 +135,17 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
         <div style={mainStyle}>
         {/* Top Header Bar */}
         <header style={headerStyle}>
-          <div style={{ fontSize: 14, color: "#6B7280", fontWeight: 500 }}>
-            {org ? `${t("layout.platformTitle")} (${org.name})` : t("layout.platformTitle")}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", letterSpacing: "-0.01em" }}>
+                {org?.name || t("layout.platformTitle")}
+              </div>
+              {org && (
+                <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 1, letterSpacing: "0.01em" }}>
+                  {t("layout.platformTitle")}
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {/* Notification bell */}
@@ -294,14 +303,15 @@ const mainStyle: React.CSSProperties = {
 const headerStyle: React.CSSProperties = {
   height: "var(--header-height)",
   background: "#FFFFFF",
-  borderBottom: "1px solid #E5E7EB",
+  borderBottom: "1px solid #E9EDF2",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "0 32px",
+  padding: "0 36px",
   position: "sticky",
   top: 0,
   zIndex: 50,
+  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
 };
 
 const headerIconBtnStyle: React.CSSProperties = {
@@ -317,21 +327,25 @@ const headerIconBtnStyle: React.CSSProperties = {
 };
 
 const headerAvatarStyle: React.CSSProperties = {
-  width: 32,
-  height: 32,
+  width: 34,
+  height: 34,
   borderRadius: "50%",
-  background: "#3B82F6",
+  background: "#2563EB",
   color: "#FFFFFF",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 13,
-  fontWeight: 600,
+  fontSize: 12,
+  fontWeight: 700,
+  border: "2px solid #DBEAFE",
+  cursor: "pointer",
 };
 
 const contentStyle: React.CSSProperties = {
   flex: 1,
-  padding: "32px 40px",
+  padding: "36px 44px",
+  maxWidth: 1400,
+  width: "100%",
 };
 
 const badgeStyle: React.CSSProperties = {

@@ -333,10 +333,11 @@ export async function translateNotificationTexts(
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return {};
 
-  const DELIM = "\n===NOTIF===\n";
+  // Use short indexed markers ([T0], [B0]) instead of UUIDs —
+  // AI reliably preserves short alphanumeric tags during translation.
   const combined = items
-    .map((n) => `[${n.id}_title]: ${n.title}${DELIM}[${n.id}_body]: ${n.body}`)
-    .join(DELIM);
+    .map((n, i) => `[T${i}]: ${n.title}\n[B${i}]: ${n.body}`)
+    .join("\n");
 
   const url = `${import.meta.env.VITE_SUPABASE_URL as string}/functions/v1/translate-text`;
 
@@ -360,16 +361,17 @@ export async function translateNotificationTexts(
     const translatedText: string = result[targetLang]?.description || "";
 
     const out: Record<string, { title: string; body: string }> = {};
-    for (const item of items) {
+    for (let i = 0; i < items.length; i++) {
+      // Stop capture at next [Tx] or [Bx] marker, or end of string
       const titleMatch = translatedText.match(
-        new RegExp(`\\[${item.id}_title\\]:\\s*(.+?)(?=\\[|===NOTIF===|$)`, "s")
+        new RegExp(`\\[T${i}\\]:\\s*(.+?)(?=\\n\\[|$)`, "s")
       );
       const bodyMatch = translatedText.match(
-        new RegExp(`\\[${item.id}_body\\]:\\s*(.+?)(?=\\[|===NOTIF===|$)`, "s")
+        new RegExp(`\\[B${i}\\]:\\s*(.+?)(?=\\n\\[|$)`, "s")
       );
-      out[item.id] = {
-        title: titleMatch ? titleMatch[1].trim() : item.title,
-        body: bodyMatch ? bodyMatch[1].trim() : item.body,
+      out[items[i].id] = {
+        title: titleMatch?.[1]?.trim() || items[i].title,
+        body:  bodyMatch?.[1]?.trim()  || items[i].body,
       };
     }
     return out;

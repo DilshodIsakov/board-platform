@@ -31,6 +31,24 @@ const TYPE_ICONS: Record<string, string> = {
   voting_reminder: "🗳️",
 };
 
+// ── localStorage translation cache ───────────────────────────────────────────
+type LangKey = "en" | "uz";
+type TranslationMap = Record<string, { title: string; body: string }>;
+
+function readTranslationCache(targetLang: LangKey): TranslationMap {
+  try {
+    return JSON.parse(localStorage.getItem(`notif_translations_${targetLang}`) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeTranslationCache(targetLang: LangKey, data: TranslationMap) {
+  try {
+    localStorage.setItem(`notif_translations_${targetLang}`, JSON.stringify(data));
+  } catch { /* localStorage full or unavailable */ }
+}
+
 export default function NotificationsPage({ profile }: Props) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -41,8 +59,11 @@ export default function NotificationsPage({ profile }: Props) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
 
-  // Auto-translated texts for notifications missing a localized field
-  const [autoTranslations, setAutoTranslations] = useState<Record<string, { title: string; body: string }>>({});
+  // Initialize from localStorage so translations survive page navigation
+  const [autoTranslations, setAutoTranslations] = useState<Record<LangKey, TranslationMap>>(() => ({
+    en: readTranslationCache("en"),
+    uz: readTranslationCache("uz"),
+  }));
   const [translating, setTranslating] = useState(false);
 
   const loadNotifications = useCallback(async () => {
@@ -52,18 +73,22 @@ export default function NotificationsPage({ profile }: Props) {
     return data;
   }, []);
 
-  // Auto-translate missing notifications when language is not Russian
-  const autoTranslateMissing = useCallback(async (data: Notification[], currentLang: string) => {
+  // Translate only notifications not yet in DB fields or local cache
+  const autoTranslateMissing = useCallback(async (
+    data: Notification[],
+    currentLang: string
+  ) => {
     const isUz = currentLang === "uz-Cyrl" || currentLang === "uz";
     const isEn = currentLang === "en";
     if (!isUz && !isEn) return;
 
-    const targetLang = isUz ? "uz" : "en";
+    const targetLang: LangKey = isUz ? "uz" : "en";
+    // Read the latest cache from localStorage (not from closure which may be stale)
+    const cache = readTranslationCache(targetLang);
 
-    // Find notifications that have no stored translation for the current lang
     const missing = data.filter((n) => {
       const hasStored = isUz ? !!n.title_uz : !!n.title_en;
-      return !hasStored;
+      return !hasStored && !cache[n.id];
     });
 
     if (missing.length === 0) return;
@@ -74,25 +99,21 @@ export default function NotificationsPage({ profile }: Props) {
         missing.map((n) => ({ id: n.id, title: n.title, body: n.body })),
         targetLang
       );
-      setAutoTranslations((prev) => ({ ...prev, ...result }));
-    } catch {
-      // silently ignore translation errors
-    }
+      const updated = { ...cache, ...result };
+      writeTranslationCache(targetLang, updated);
+      setAutoTranslations((prev) => ({ ...prev, [targetLang]: updated }));
+    } catch { /* silently ignore */ }
     setTranslating(false);
   }, []);
 
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
-    loadNotifications().then((data) => {
-      autoTranslateMissing(data, lang);
-    });
+    loadNotifications().then((data) => autoTranslateMissing(data, lang));
   }, [profile?.id, loadNotifications]);
 
-  // Re-translate when language changes
+  // Re-check when language changes (may need new language's translations)
   useEffect(() => {
-    if (notifications.length > 0) {
-      autoTranslateMissing(notifications, lang);
-    }
+    if (notifications.length > 0) autoTranslateMissing(notifications, lang);
   }, [lang]);
 
   const handleClick = async (n: Notification) => {
@@ -184,7 +205,9 @@ export default function NotificationsPage({ profile }: Props) {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {filtered.map((n) => {
-            const { title, body } = getLocalizedNotifContent(n, lang, autoTranslations);
+            const isUz = lang === "uz-Cyrl" || lang === "uz";
+            const langKey = isUz ? "uz" : "en";
+            const { title, body } = getLocalizedNotifContent(n, lang, autoTranslations[langKey]);
             return (
               <div
                 key={n.id}

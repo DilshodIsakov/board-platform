@@ -1066,7 +1066,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                     )}
                   </div>
 
-                  {/* Materials */}
+                  {/* Materials — only render if admin (can upload) or if there are actual files */}
+                  {(isAdmin || mats.length > 0) && (
                   <div style={{ marginTop: 12 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: "#374151", display: "block", marginBottom: 8 }}>
                       {t("nsMeetings.materials")}
@@ -1074,6 +1075,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
 
                     {(["ru", "uz", "en"] as MaterialLang[]).map((lang) => {
                       const langMats = mats.filter((m) => m.language === lang);
+                      // Non-admins only see language sections that have at least one file
+                      if (langMats.length === 0 && !isAdmin) return null;
                       const refKey = `${item.id}_${lang}`;
                       const langLabel = lang === "ru" ? t("nsMeetings.matLangRu") : lang === "uz" ? t("nsMeetings.matLangUz") : t("nsMeetings.matLangEn");
 
@@ -1106,7 +1109,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             )}
                           </div>
 
-                          {langMats.length === 0 && (
+                          {langMats.length === 0 && isAdmin && (
                             <p style={{ color: "#D1D5DB", fontSize: 12, margin: 0 }}>
                               {t("nsMeetings.noMaterialsLang")}
                             </p>
@@ -1195,6 +1198,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                       </div>
                     )}
                   </div>
+                  )}
 
                   {/* AI-Brief Section */}
                   {item.ai_brief_enabled !== false && <div style={{ marginTop: 14 }}>

@@ -7,10 +7,33 @@ export interface Notification {
   type: string;
   title: string;
   body: string;
+  title_uz: string | null;
+  title_en: string | null;
+  body_uz: string | null;
+  body_en: string | null;
   is_read: boolean;
   related_entity_type: string | null;
   related_entity_id: string | null;
   created_at: string;
+}
+
+/** Returns the localized title/body for a notification based on current language. */
+export function getLocalizedNotifContent(
+  n: Notification,
+  lang: string,
+  autoTranslations?: Record<string, { title: string; body: string }>
+): { title: string; body: string } {
+  if (lang === "uz-Cyrl" || lang === "uz") {
+    const title = n.title_uz || autoTranslations?.[n.id]?.title || n.title;
+    const body  = n.body_uz  || autoTranslations?.[n.id]?.body  || n.body;
+    return { title, body };
+  }
+  if (lang === "en") {
+    const title = n.title_en || autoTranslations?.[n.id]?.title || n.title;
+    const body  = n.body_en  || autoTranslations?.[n.id]?.body  || n.body;
+    return { title, body };
+  }
+  return { title: n.title, body: n.body };
 }
 
 /** Загрузить уведомления текущего пользователя */

@@ -7,8 +7,10 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   getNotificationRoute,
+  getLocalizedNotifContent,
   type Notification,
 } from "../lib/notifications";
+import { translateNotificationTexts } from "../lib/translationService";
 import { useNotifications } from "../components/Layout";
 
 interface Props {
@@ -25,28 +27,73 @@ const TYPE_ICONS: Record<string, string> = {
   personal_message: "✉️",
   group_message: "👥",
   meeting_invitation: "📅",
+  meeting_video_conference_activated: "🎥",
   voting_reminder: "🗳️",
 };
 
 export default function NotificationsPage({ profile }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { refresh } = useNotifications();
+  const lang = i18n.language; // "ru", "en", "uz-Cyrl"
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
 
+  // Auto-translated texts for notifications missing a localized field
+  const [autoTranslations, setAutoTranslations] = useState<Record<string, { title: string; body: string }>>({});
+  const [translating, setTranslating] = useState(false);
+
   const loadNotifications = useCallback(async () => {
     const data = await fetchNotifications(100);
     setNotifications(data);
     setLoading(false);
+    return data;
+  }, []);
+
+  // Auto-translate missing notifications when language is not Russian
+  const autoTranslateMissing = useCallback(async (data: Notification[], currentLang: string) => {
+    const isUz = currentLang === "uz-Cyrl" || currentLang === "uz";
+    const isEn = currentLang === "en";
+    if (!isUz && !isEn) return;
+
+    const targetLang = isUz ? "uz" : "en";
+
+    // Find notifications that have no stored translation for the current lang
+    const missing = data.filter((n) => {
+      const hasStored = isUz ? !!n.title_uz : !!n.title_en;
+      return !hasStored;
+    });
+
+    if (missing.length === 0) return;
+
+    setTranslating(true);
+    try {
+      const result = await translateNotificationTexts(
+        missing.map((n) => ({ id: n.id, title: n.title, body: n.body })),
+        targetLang
+      );
+      setAutoTranslations((prev) => ({ ...prev, ...result }));
+    } catch {
+      // silently ignore translation errors
+    }
+    setTranslating(false);
   }, []);
 
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
-    loadNotifications();
+    loadNotifications().then((data) => {
+      autoTranslateMissing(data, lang);
+    });
   }, [profile?.id, loadNotifications]);
+
+  // Re-translate when language changes
+  useEffect(() => {
+    if (notifications.length > 0) {
+      autoTranslateMissing(notifications, lang);
+    }
+  }, [lang]);
 
   const handleClick = async (n: Notification) => {
     if (!n.is_read) {
@@ -65,7 +112,7 @@ export default function NotificationsPage({ profile }: Props) {
 
   const filtered = notifications.filter((n) => {
     if (filter === "unread") return !n.is_read;
-    if (filter === "meeting") return n.type === "meeting_invitation";
+    if (filter === "meeting") return n.type === "meeting_invitation" || n.type === "meeting_video_conference_activated";
     if (filter === "voting") return n.type === "voting_reminder";
     if (filter === "task") return n.type.startsWith("task_");
     if (filter === "message") return n.type === "personal_message" || n.type === "group_message";
@@ -119,6 +166,13 @@ export default function NotificationsPage({ profile }: Props) {
         ))}
       </div>
 
+      {/* Auto-translate indicator */}
+      {translating && (
+        <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 12 }}>
+          ✦ {t("notifications.translating", "Переводим уведомления...")}
+        </div>
+      )}
+
       {/* List */}
       {filtered.length === 0 ? (
         <div style={emptyStyle}>
@@ -129,40 +183,43 @@ export default function NotificationsPage({ profile }: Props) {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {filtered.map((n) => (
-            <div
-              key={n.id}
-              onClick={() => handleClick(n)}
-              style={{
-                ...itemStyle,
-                background: n.is_read ? "#FFFFFF" : "#EFF6FF",
-                borderLeft: n.is_read ? "3px solid transparent" : "3px solid #3B82F6",
-              }}
-            >
-              <div style={iconStyle}>
-                {TYPE_ICONS[n.type] || "🔔"}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                  <div style={{ fontWeight: n.is_read ? 400 : 600, fontSize: 15, color: "#111827" }}>
-                    {n.title}
+          {filtered.map((n) => {
+            const { title, body } = getLocalizedNotifContent(n, lang, autoTranslations);
+            return (
+              <div
+                key={n.id}
+                onClick={() => handleClick(n)}
+                style={{
+                  ...itemStyle,
+                  background: n.is_read ? "#FFFFFF" : "#EFF6FF",
+                  borderLeft: n.is_read ? "3px solid transparent" : "3px solid #3B82F6",
+                }}
+              >
+                <div style={iconStyle}>
+                  {TYPE_ICONS[n.type] || "🔔"}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <div style={{ fontWeight: n.is_read ? 400 : 600, fontSize: 15, color: "#111827" }}>
+                      {title}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap", flexShrink: 0 }}>
+                      {formatTime(n.created_at, t)}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap", flexShrink: 0 }}>
-                    {formatTime(n.created_at, t)}
+                  {body && (
+                    <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4, lineHeight: 1.4 }}>
+                      {body}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>
+                    {t(`notifications.type_${n.type}`, n.type)}
                   </div>
                 </div>
-                {n.body && (
-                  <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4, lineHeight: 1.4 }}>
-                    {n.body}
-                  </div>
-                )}
-                <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>
-                  {t(`notifications.type_${n.type}`, n.type)}
-                </div>
+                {!n.is_read && <div style={dotStyle} />}
               </div>
-              {!n.is_read && <div style={dotStyle} />}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -317,6 +317,67 @@ export async function generateProfileTranslations(
   return draft;
 }
 
+// ─── Notification translation ─────────────────────────────────────────────────
+
+/**
+ * Batch-translate notification titles and bodies to a target language.
+ * Groups them into one API call using a delimiter trick.
+ * Returns a map of notificationId → { title, body }.
+ */
+export async function translateNotificationTexts(
+  items: { id: string; title: string; body: string }[],
+  targetLang: "uz" | "en"
+): Promise<Record<string, { title: string; body: string }>> {
+  if (items.length === 0) return {};
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return {};
+
+  const DELIM = "\n===NOTIF===\n";
+  const combined = items
+    .map((n) => `[${n.id}_title]: ${n.title}${DELIM}[${n.id}_body]: ${n.body}`)
+    .join(DELIM);
+
+  const url = `${import.meta.env.VITE_SUPABASE_URL as string}/functions/v1/translate-text`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${session.access_token}`,
+        "apikey": supabaseAnonKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        source_language: "ru",
+        entity_type: "task",
+        fields: { description: combined },
+      }),
+    });
+
+    if (!res.ok) return {};
+    const result = await res.json();
+    const translatedText: string = result[targetLang]?.description || "";
+
+    const out: Record<string, { title: string; body: string }> = {};
+    for (const item of items) {
+      const titleMatch = translatedText.match(
+        new RegExp(`\\[${item.id}_title\\]:\\s*(.+?)(?=\\[|===NOTIF===|$)`, "s")
+      );
+      const bodyMatch = translatedText.match(
+        new RegExp(`\\[${item.id}_body\\]:\\s*(.+?)(?=\\[|===NOTIF===|$)`, "s")
+      );
+      out[item.id] = {
+        title: titleMatch ? titleMatch[1].trim() : item.title,
+        body: bodyMatch ? bodyMatch[1].trim() : item.body,
+      };
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 // ─── UI helpers ───────────────────────────────────────────────────────────────
 
 /** Human-readable dot/symbol for a translation status */

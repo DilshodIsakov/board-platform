@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
-import type { Profile, Organization } from "../lib/profile";
-import { fetchMeetings, createMeeting, type Meeting } from "../lib/meetings";
-import {
-  fetchShareholderMeetings,
-  fetchAgendaItems,
-  type ShareholderMeeting,
-} from "../lib/shareholderMeetings";
-import {
-  fetchVotesByMeeting,
-  tallyVotes,
-  type ShareholderVote,
-} from "../lib/shareholderVoting";
 import { useTranslation } from "react-i18next";
-import { formatDateTime } from "../lib/format";
-import { getIntlLocale } from "../i18n";
+import type { Profile, Organization } from "../lib/profile";
+import { fetchNSMeetings, fetchAgendaItems, type NSMeeting } from "../lib/nsMeetings";
+import { fetchAllVotingsWithMeeting, type VotingWithMeeting } from "../lib/voting";
 import { getLocalizedField } from "../lib/i18nHelpers";
+import { getIntlLocale } from "../i18n";
+import { supabase } from "../lib/supabaseClient";
 
-const CAN_CREATE_MEETING = ["admin", "corp_secretary"];
+interface DashTask {
+  id: string;
+  title: string;
+  title_ru?: string | null;
+  title_uz?: string | null;
+  title_en?: string | null;
+  status: string;
+  due_date: string | null;
+  priority: string;
+}
 
 interface Props {
   user: User;
@@ -26,528 +26,607 @@ interface Props {
   org: Organization | null;
 }
 
-export default function DashboardPage({ user, profile, org }: Props) {
-  const { t } = useTranslation();
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [loadingMeetings, setLoadingMeetings] = useState(true);
+export default function DashboardPage({ profile, org }: Props) {
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const lang = i18n.language;
+  const isAdmin = profile?.role === "admin" || profile?.role === "corp_secretary";
 
-  // Shareholder meetings
-  const [shMeetings, setShMeetings] = useState<ShareholderMeeting[]>([]);
-  const [shVoteSummary, setShVoteSummary] = useState<{
-    meetingTitle: string;
-    items: { title: string; forShares: number; againstShares: number; abstainShares: number; totalShares: number }[];
-  } | null>(null);
-
-  // Форма создания
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [meetUrl, setMeetUrl] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [formError, setFormError] = useState("");
-
-  const canCreate = profile && CAN_CREATE_MEETING.includes(profile.role);
-
-  const loadMeetings = async () => {
-    setLoadingMeetings(true);
-    try {
-      const data = await fetchMeetings();
-      setMeetings(data);
-    } catch (err) {
-      console.error("fetchMeetings failed:", err);
-      setMeetings([]);
-    } finally {
-      setLoadingMeetings(false);
-    }
-  };
+  const [nextMeeting, setNextMeeting] = useState<NSMeeting | null>(null);
+  const [allMeetings, setAllMeetings] = useState<NSMeeting[]>([]);
+  const [agendaCount, setAgendaCount] = useState<number>(0);
+  const [myTasks, setMyTasks] = useState<DashTask[]>([]);
+  const [openVotings, setOpenVotings] = useState<VotingWithMeeting[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!profile) {
-      setLoadingMeetings(false);
-      return;
-    }
-    loadMeetings();
-    loadShareholderData();
+    if (!profile || !org) { setLoading(false); return; }
+    loadAll();
   }, [profile?.id]);
 
-  const loadShareholderData = async () => {
-    const shData = await fetchShareholderMeetings();
-    setShMeetings(shData);
+  const loadAll = async () => {
+    setLoading(true);
+    await Promise.all([loadMeeting(), loadTasks(), loadVotings()]);
+    setLoading(false);
+  };
 
-    // Load vote summary for the latest scheduled meeting
-    const scheduled = shData.filter((m) => m.status === "scheduled");
-    if (scheduled.length > 0) {
-      const latest = scheduled[0];
-      const agenda = await fetchAgendaItems(latest.id);
-      if (agenda.length > 0) {
-        const votes = await fetchVotesByMeeting(agenda.map((a) => a.id));
-        const grouped: Record<string, ShareholderVote[]> = {};
-        for (const v of votes) {
-          if (!grouped[v.agenda_item_id]) grouped[v.agenda_item_id] = [];
-          grouped[v.agenda_item_id].push(v);
-        }
-        const items = agenda.map((a) => {
-          const tally = tallyVotes(grouped[a.id] || []);
-          return { title: a.title, ...tally };
-        });
-        setShVoteSummary({ meetingTitle: latest.title, items });
-      }
+  const loadMeeting = async () => {
+    const all = await fetchNSMeetings();
+    setAllMeetings(all);
+    const now = new Date();
+    // 1. Prefer a meeting happening right now (scheduled, started ≤ 3h ago)
+    const ongoing = all.find((m) => {
+      if (m.status !== "scheduled") return false;
+      const diff = now.getTime() - new Date(m.start_at).getTime();
+      return diff >= 0 && diff < 3 * 3600 * 1000;
+    });
+    // 2. Next upcoming scheduled
+    const upcoming = [...all]
+      .filter((m) => m.status === "scheduled" && new Date(m.start_at) > now)
+      .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())[0];
+    // 3. Most recent completed
+    const recent = all.find((m) => m.status === "completed");
+
+    const chosen = ongoing || upcoming || recent || null;
+    setNextMeeting(chosen);
+
+    if (chosen) {
+      const items = await fetchAgendaItems(chosen.id);
+      setAgendaCount(items.length);
     }
   };
 
-  const handleCreate = async (e: React.BaseSyntheticEvent) => {
-    e.preventDefault();
+  const loadTasks = async () => {
     if (!profile || !org) return;
+    // Fetch task IDs assigned to this profile
+    const { data: assignments } = await supabase
+      .from("board_task_assignees")
+      .select("task_id")
+      .eq("assignee_profile_id", profile.id);
 
-    setCreating(true);
-    setFormError("");
+    if (!assignments?.length) { setMyTasks([]); return; }
 
-    try {
-      await createMeeting(org.id, profile.id, title, new Date(date).toISOString(), meetUrl || undefined);
-      setTitle("");
-      setDate("");
-      setMeetUrl("");
-      await loadMeetings();
-    } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : t("meeting.createError"));
-    } finally {
-      setCreating(false);
-    }
+    const taskIds = assignments.map((a: { task_id: string }) => a.task_id);
+    const { data } = await supabase
+      .from("board_tasks")
+      .select("id, title, title_ru, title_uz, title_en, status, due_date, priority")
+      .in("id", taskIds)
+      .eq("organization_id", org!.id)
+      .not("status", "in", '("done","canceled")')
+      .order("due_date", { ascending: true, nullsFirst: false })
+      .limit(5);
+
+    setMyTasks((data || []) as DashTask[]);
   };
 
-  const scheduledMeetings = meetings
-    .filter((m) => m.status === "scheduled")
-    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
-  const recentMeetings = meetings.slice(0, 5);
+  const loadVotings = async () => {
+    const all = await fetchAllVotingsWithMeeting();
+    setOpenVotings(all.filter((v) => v.status === "open"));
+  };
+
+  // ── Meeting helpers ──────────────────────────────────────────────────────────
+
+  const getMeetingState = (m: NSMeeting): "now" | "soon" | "upcoming" | "completed" => {
+    if (m.status === "completed") return "completed";
+    const now = new Date();
+    const start = new Date(m.start_at);
+    const diffMs = start.getTime() - now.getTime();
+    const diffPastMs = now.getTime() - start.getTime();
+    if (diffPastMs >= 0 && diffPastMs < 3 * 3600 * 1000) return "now";
+    if (diffMs > 0 && diffMs < 3600 * 1000) return "soon"; // < 1 hour away
+    return "upcoming";
+  };
+
+  const formatMeetingDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(getIntlLocale(), {
+      weekday: "long", day: "numeric", month: "long", year: "numeric",
+    });
+
+  const formatMeetingTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString(getIntlLocale(), { hour: "2-digit", minute: "2-digit" });
+
+  const formatRelativeTime = (iso: string) => {
+    const diff = new Date(iso).getTime() - Date.now();
+    const mins = Math.round(diff / 60000);
+    if (mins < 60) return `${mins} мин`;
+    return `${Math.floor(mins / 60)} ч ${mins % 60} мин`;
+  };
+
+  // ── Task helpers ─────────────────────────────────────────────────────────────
+
+  const getTaskTitle = (task: DashTask) => {
+    if (lang === "uz-Cyrl" || lang === "uz") return task.title_uz || task.title_ru || task.title;
+    if (lang === "en") return task.title_en || task.title_ru || task.title;
+    return task.title_ru || task.title;
+  };
+
+  const getTaskStatusStyle = (status: string, dueDate: string | null): React.CSSProperties => {
+    const isOverdue = dueDate && new Date(dueDate) < new Date() && status !== "done" && status !== "canceled";
+    if (isOverdue || status === "overdue") return { background: "#FEE2E2", color: "#991B1B" };
+    if (status === "in_progress") return { background: "#DBEAFE", color: "#1E40AF" };
+    if (status === "done") return { background: "#DCFCE7", color: "#166534" };
+    return { background: "#F3F4F6", color: "#6B7280" };
+  };
+
+  const getTaskStatusLabel = (status: string, dueDate: string | null) => {
+    const isOverdue = dueDate && new Date(dueDate) < new Date() && status !== "done";
+    if (isOverdue || status === "overdue") return t("dashboard.taskOverdue");
+    if (status === "in_progress") return t("tasks.statusInProgress", "В работе");
+    if (status === "done") return t("tasks.statusDone", "Выполнено");
+    return t("tasks.statusOpen", "Открыто");
+  };
+
+  // ── Today string ─────────────────────────────────────────────────────────────
+
+  const todayStr = new Date().toLocaleDateString(getIntlLocale(), {
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
+  });
+
+  // Capitalize first letter
+  const todayCap = todayStr.charAt(0).toUpperCase() + todayStr.slice(1);
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#9CA3AF", fontSize: 15 }}>
+        {t("common.loading")}
+      </div>
+    );
+  }
+
+  const meetingState = nextMeeting ? getMeetingState(nextMeeting) : null;
+  const meetingTitle = nextMeeting
+    ? getLocalizedField(nextMeeting as unknown as Record<string, unknown>, "title")
+    : "";
+
+  const nextMeetingBg = meetingState === "now"
+    ? "linear-gradient(135deg, #064E3B 0%, #065F46 100%)"
+    : meetingState === "soon"
+    ? "linear-gradient(135deg, #78350F 0%, #92400E 100%)"
+    : "linear-gradient(135deg, #1E3A5F 0%, #1E40AF 100%)";
 
   return (
-    <div>
-      {/* Page Title */}
-      <h1 style={{ marginBottom: 8 }}>{t("dashboard.title")}</h1>
-      <p style={{ color: "#6B7280", fontSize: 16, marginBottom: 28 }}>
-        {t("dashboard.welcome")}
-      </p>
+    <div style={{ maxWidth: 1200, margin: "0 auto" }}>
 
-      {profile && (
-        <p style={{ color: "#6B7280", fontSize: 15, marginBottom: 28 }}>
-          {profile.full_name || user.email} — {t(`roles.${profile.role}`) || profile.role}
-        </p>
-      )}
+      {/* ── Header ── */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
+          <div>
+            <h1 style={{ fontSize: 26, fontWeight: 700, color: "#111827", margin: 0 }}>
+              {t("dashboard.greeting")} {profile?.full_name?.split(" ")[0] || ""}
+            </h1>
+            <p style={{ color: "#6B7280", fontSize: 14, margin: "4px 0 0" }}>
+              {todayCap}
+            </p>
+          </div>
+          {profile && (
+            <span style={{
+              fontSize: 12, fontWeight: 600, padding: "4px 12px", borderRadius: 20,
+              background: "#F3F4F6", color: "#6B7280", alignSelf: "center",
+            }}>
+              {t(`roles.${profile.role}`, profile.role)}
+            </span>
+          )}
+        </div>
+      </div>
 
-      {!profile && (
-        <div style={alertStyle}>
-          {t("dashboard.profileNotFound")}
-        </div>
-      )}
+      {/* ── Next Meeting — full width ── */}
+      <div style={{
+        background: nextMeeting ? nextMeetingBg : "#F9FAFB",
+        borderRadius: 16,
+        padding: nextMeeting ? "28px 32px" : "24px 28px",
+        marginBottom: 24,
+        border: nextMeeting ? "none" : "1px solid #E5E7EB",
+        boxShadow: nextMeeting ? "0 4px 24px rgba(0,0,0,0.12)" : "none",
+        color: nextMeeting ? "#FFFFFF" : "#374151",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Label row */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.7 }}>
+                {t("dashboard.nextMeeting")}
+              </span>
+              {meetingState === "now" && (
+                <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, background: "#10B981", color: "#fff", padding: "2px 10px", borderRadius: 12 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff", display: "inline-block", animation: "pulse 1.5s infinite" }} />
+                  {t("dashboard.meetingGoingNow")}
+                </span>
+              )}
+              {meetingState === "soon" && (
+                <span style={{ fontSize: 12, fontWeight: 700, background: "#F59E0B", color: "#fff", padding: "2px 10px", borderRadius: 12 }}>
+                  {t("dashboard.meetingSoon")} — {formatRelativeTime(nextMeeting!.start_at)}
+                </span>
+              )}
+              {meetingState === "completed" && (
+                <span style={{ fontSize: 12, fontWeight: 600, background: "rgba(255,255,255,0.15)", padding: "2px 10px", borderRadius: 12 }}>
+                  {t("nsMeetings.statusCompleted")}
+                </span>
+              )}
+            </div>
 
-      {/* KPI row */}
-      <div style={{ ...kpiRowStyle, gridTemplateColumns: "repeat(4, 1fr)" }}>
-        <div style={kpiCardStyle}>
-          <div style={{ ...kpiIconStyle, background: "#DBEAFE" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            {/* Title */}
+            {nextMeeting ? (
+              <>
+                <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.3, marginBottom: 10, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                  {meetingTitle}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", opacity: 0.85, fontSize: 14 }}>
+                  <span>📅 {formatMeetingDate(nextMeeting.start_at)}</span>
+                  <span>🕐 {formatMeetingTime(nextMeeting.start_at)}</span>
+                  {agendaCount > 0 && (
+                    <span>📋 {t("dashboard.agendaItems_other", { count: agendaCount })}</span>
+                  )}
+                  {nextMeeting.video_conference_provider && (
+                    <span style={{ opacity: 0.7, fontSize: 13 }}>
+                      📹 {nextMeeting.video_conference_provider.replace("_", " ")}
+                    </span>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 16, color: "#9CA3AF" }}>{t("dashboard.noNextMeeting")}</div>
+            )}
           </div>
-          <div>
-            <div style={{ fontSize: 28, fontWeight: 700 }}>{scheduledMeetings.length}</div>
-            <div style={{ fontSize: 14, color: "#6B7280" }}>{t("dashboard.scheduledMeetings")}</div>
-          </div>
-        </div>
-        <div style={kpiCardStyle}>
-          <div style={{ ...kpiIconStyle, background: "#D1FAE5" }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 28, fontWeight: 700 }}>{meetings.filter((m) => m.status === "completed").length}</div>
-            <div style={{ fontSize: 14, color: "#6B7280" }}>{t("dashboard.completedMeetings")}</div>
-          </div>
-        </div>
-        <div style={kpiCardStyle}>
-          <div style={{ ...kpiIconStyle, background: "#FEF3C7" }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 28, fontWeight: 700 }}>{shMeetings.filter((m) => m.status === "scheduled").length}</div>
-            <div style={{ fontSize: 14, color: "#6B7280" }}>{t("dashboard.shareholderMeetings")}</div>
-          </div>
-        </div>
-        <div style={kpiCardStyle}>
-          <div style={{ ...kpiIconStyle, background: "#F3E8FF" }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 28, fontWeight: 700 }}>{meetings.length + shMeetings.length}</div>
-            <div style={{ fontSize: 14, color: "#6B7280" }}>{t("dashboard.totalEvents")}</div>
+
+          {/* Action button */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
+            {nextMeeting ? (
+              <>
+                {nextMeeting.video_conference_enabled && nextMeeting.video_conference_url ? (
+                  <a
+                    href={nextMeeting.video_conference_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={meetingJoinBtnStyle}
+                  >
+                    {t("dashboard.joinVideoConf")}
+                  </a>
+                ) : meetingState === "completed" ? (
+                  <button onClick={() => navigate(`/ns-meetings/${nextMeeting.id}`)} style={meetingBtnStyle}>
+                    {t("dashboard.openMaterials")}
+                  </button>
+                ) : (
+                  <button onClick={() => navigate(`/ns-meetings/${nextMeeting.id}`)} style={meetingBtnStyle}>
+                    {t("dashboard.viewDetails")}
+                  </button>
+                )}
+              </>
+            ) : isAdmin ? (
+              <button onClick={() => navigate("/ns-meetings")} style={meetingBtnOutlineStyle}>
+                {t("dashboard.createFirstMeeting")}
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
 
-      {/* Two columns: Meetings + Create form */}
-      <div style={{ display: "grid", gridTemplateColumns: canCreate ? "1fr 1fr" : "1fr", gap: 20, marginBottom: 28 }}>
-        {/* Scheduled meetings */}
+      {/* ── 3-column grid ── */}
+      <div style={gridStyle}>
+
+        {/* ── My Tasks ── */}
         <div style={cardStyle}>
-          <h3 style={{ marginBottom: 18 }}>{t("dashboard.upcomingMeetings")}</h3>
-          {loadingMeetings ? (
-            <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("common.loading")}</p>
-          ) : scheduledMeetings.length === 0 ? (
-            <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("dashboard.noScheduledMeetings")}</p>
+          <div style={cardHeaderStyle}>
+            <span style={cardTitleStyle}>📋 {t("dashboard.myTasks")}</span>
+            <Link to="/tasks" style={linkStyle}>{t("dashboard.allTasks")}</Link>
+          </div>
+
+          {myTasks.length === 0 ? (
+            <div style={emptyStyle}>{t("dashboard.noMyTasks")}</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {scheduledMeetings.slice(0, 5).map((m) => (
-                <Link key={m.id} to={`/ns-meetings?meetingId=${m.id}`} style={meetingItemStyle}>
-                  <div>
-                    <div style={{ fontWeight: 500, fontSize: 15, color: "#111827" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title")}</div>
-                    <div style={{ fontSize: 13, color: "#9CA3AF" }}>
-                      {formatDateTime(m.start_at)}
-                    </div>
-                  </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><path d="M9 5l7 7-7 7" /></svg>
-                </Link>
-              ))}
-            </div>
-          )}
-          <Link to="/calendar" style={{ display: "block", marginTop: 18, fontSize: 14, color: "#3B82F6", fontWeight: 500 }}>
-            {t("dashboard.goToCalendar")}
-          </Link>
-        </div>
-
-        {/* Create meeting form */}
-        {canCreate && (
-          <div style={cardStyle}>
-            <h3 style={{ marginBottom: 18 }}>{t("dashboard.newMeeting")}</h3>
-            <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div>
-                <label style={labelStyle}>{t("dashboard.meetingTitle")}</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                  placeholder={t("dashboard.meetingTitlePlaceholder")}
-                  style={inputStyle}
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>{t("dashboard.dateTime")}</label>
-                <input
-                  type="datetime-local"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                  lang={getIntlLocale()}
-                  style={inputStyle}
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>{t("dashboard.googleMeet")}</label>
-                <input
-                  type="url"
-                  value={meetUrl}
-                  onChange={(e) => setMeetUrl(e.target.value)}
-                  placeholder="https://meet.google.com/xxx-xxxx-xxx"
-                  style={inputStyle}
-                />
-              </div>
-              <button type="submit" disabled={creating} style={btnPrimaryStyle}>
-                {creating ? t("common.creating") : t("dashboard.createMeeting")}
-              </button>
-            </form>
-            {formError && <p style={{ color: "#DC2626", fontSize: 13, marginTop: 8 }}>{formError}</p>}
-          </div>
-        )}
-      </div>
-
-      {/* Recent meetings table */}
-      <div style={cardStyle}>
-        <h3 style={{ marginBottom: 18 }}>{t("dashboard.recentMeetings")}</h3>
-        {loadingMeetings ? (
-          <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("common.loading")}</p>
-        ) : recentMeetings.length === 0 ? (
-          <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("dashboard.noMeetingsYet")}</p>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <th style={thStyle}>{t("dashboard.meetingTitle")}</th>
-                <th style={thStyle}>{t("dashboard.date")}</th>
-                <th style={thStyle}>{t("dashboard.status")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentMeetings.map((m) => (
-                <tr key={m.id} style={{ borderBottom: "1px solid #F3F4F6" }}>
-                  <td style={tdStyle}>
-                    <Link to={`/ns-meetings?meetingId=${m.id}`} style={{ color: "#3B82F6" }}>
-                      {m.title}
-                    </Link>
-                  </td>
-                  <td style={{ ...tdStyle, color: "#6B7280" }}>
-                    {new Date(m.start_at).toLocaleString(getIntlLocale(), {
-                      day: "2-digit", month: "2-digit", year: "numeric",
-                      hour: "2-digit", minute: "2-digit",
-                    })}
-                  </td>
-                  <td style={tdStyle}>
-                    <span style={{
-                      ...badgeStyle,
-                      background: m.status === "completed" ? "#DCFCE7" : m.status === "scheduled" ? "#DBEAFE" : "#F3F4F6",
-                      color: m.status === "completed" ? "#166534" : m.status === "scheduled" ? "#1E40AF" : "#374151",
-                    }}>
-                      {t(`meetingStatus.${m.status}`, m.status)}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* Shareholder meetings widgets */}
-      {shMeetings.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: shVoteSummary ? "1fr 1fr" : "1fr", gap: 20, marginTop: 24 }}>
-          {/* Upcoming shareholder meetings */}
-          <div style={cardStyle}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-              <div style={{ ...kpiIconStyle, width: 36, height: 36, borderRadius: 10, background: "#FEF3C7" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h3 style={{ margin: 0 }}>{t("dashboard.shareholderMeetingsTitle")}</h3>
-            </div>
-            {shMeetings.filter((m) => m.status === "scheduled").length === 0 ? (
-              <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("dashboard.noUpcomingShareholder")}</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {shMeetings.filter((m) => m.status === "scheduled").slice(0, 3).map((m) => (
-                  <Link key={m.id} to="/shareholder-meeting" style={meetingItemStyle}>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: 15, color: "#111827" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title")}</div>
-                      <div style={{ fontSize: 13, color: "#9CA3AF" }}>
-                        {new Date(m.meeting_date).toLocaleDateString(getIntlLocale(), {
-                          day: "numeric", month: "long", year: "numeric",
-                        })}
+              {myTasks.map((task) => {
+                const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "done";
+                const statusStyle = getTaskStatusStyle(task.status, task.due_date);
+                return (
+                  <Link
+                    key={task.id}
+                    to={`/tasks/${task.id}`}
+                    style={taskItemStyle}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: 13, fontWeight: 500, color: "#111827",
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        marginBottom: 4,
+                      }}>
+                        {getTaskTitle(task)}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{
+                          fontSize: 11, fontWeight: 600, padding: "1px 8px",
+                          borderRadius: 8, ...statusStyle,
+                        }}>
+                          {getTaskStatusLabel(task.status, task.due_date)}
+                        </span>
+                        {task.due_date && (
+                          <span style={{ fontSize: 11, color: isOverdue ? "#DC2626" : "#9CA3AF" }}>
+                            {t("dashboard.taskDue")} {new Date(task.due_date).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "short" })}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <span style={{
-                      ...badgeStyle,
-                      background: "#D1FAE5",
-                      color: "#065F46",
-                    }}>
-                      {m.total_shares.toLocaleString(getIntlLocale())} {t("dashboard.shares")}
-                    </span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" style={{ flexShrink: 0 }}><path d="M9 5l7 7-7 7" /></svg>
                   </Link>
-                ))}
-              </div>
-            )}
-            <Link to="/shareholder-meeting" style={{ display: "block", marginTop: 18, fontSize: 14, color: "#3B82F6", fontWeight: 500 }}>
-              {t("dashboard.goToShareholder")}
-            </Link>
-          </div>
-
-          {/* Latest vote summary */}
-          {shVoteSummary && (
-            <div style={cardStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-                <div style={{ ...kpiIconStyle, width: 36, height: 36, borderRadius: 10, background: "#EDE9FE" }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                  </svg>
-                </div>
-                <h3 style={{ margin: 0 }}>{t("dashboard.votingFor", { title: shVoteSummary.meetingTitle })}</h3>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {shVoteSummary.items.map((item, i) => (
-                  <div key={i} style={{ padding: "10px 14px", background: "#F9FAFB", borderRadius: 8, border: "1px solid #F3F4F6" }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
-                      {i + 1}. {item.title}
-                    </div>
-                    {item.totalShares > 0 ? (
-                      <>
-                        <div style={{ display: "flex", gap: 3, height: 5, borderRadius: 3, overflow: "hidden", marginBottom: 4 }}>
-                          {item.forShares > 0 && <div style={{ flex: item.forShares, background: "#059669", borderRadius: 3 }} />}
-                          {item.againstShares > 0 && <div style={{ flex: item.againstShares, background: "#DC2626", borderRadius: 3 }} />}
-                          {item.abstainShares > 0 && <div style={{ flex: item.abstainShares, background: "#9CA3AF", borderRadius: 3 }} />}
-                        </div>
-                        <div style={{ display: "flex", gap: 12, fontSize: 12, color: "#6B7280" }}>
-                          <span style={{ color: "#059669" }}>{t("dashboard.for")} {item.forShares.toLocaleString(getIntlLocale())}</span>
-                          <span style={{ color: "#DC2626" }}>{t("dashboard.against")} {item.againstShares.toLocaleString(getIntlLocale())}</span>
-                          <span style={{ color: "#9CA3AF" }}>{t("dashboard.abstain")} {item.abstainShares.toLocaleString(getIntlLocale())}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{t("dashboard.noVotesYet")}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           )}
+        </div>
+
+        {/* ── Votings ── */}
+        {(() => {
+          const pendingVotings = openVotings.filter(
+            (v) => !(v.votes || []).some((vote) => vote.voter_id === profile?.id)
+          );
+          const displayList = isAdmin ? openVotings : pendingVotings;
+          const shown = displayList.slice(0, 3);
+          const extraCount = displayList.length - 3;
+          const hasPending = pendingVotings.length > 0;
+          const isUrgent = (v: VotingWithMeeting) =>
+            !!v.deadline && new Date(v.deadline).getTime() - Date.now() < 24 * 3600 * 1000;
+          const cardBorder = !isAdmin && hasPending
+            ? "1px solid #FDE68A"
+            : "1px solid #E5E7EB";
+          const cardBg = !isAdmin && hasPending ? "#FFFBEB" : "#FFFFFF";
+
+          return (
+            <div style={{ ...cardStyle, border: cardBorder, background: cardBg }}>
+              <div style={cardHeaderStyle}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <span style={cardTitleStyle}>
+                    🗳{" "}
+                    {!isAdmin && hasPending
+                      ? t("dashboard.votingPendingTitle", { count: pendingVotings.length })
+                      : t("dashboard.activeVotings")}
+                  </span>
+                  {isAdmin && openVotings.length > 0 && (
+                    <span style={{ fontSize: 11, color: "#6B7280" }}>
+                      {t("dashboard.votingAdminCount", { count: openVotings.length })}
+                    </span>
+                  )}
+                </div>
+                <Link to="/voting" style={linkStyle}>{t("dashboard.goToVoting")}</Link>
+              </div>
+
+              {displayList.length === 0 ? (
+                <div style={{ ...emptyStyle, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 28 }}>✅</span>
+                  <span>{t("dashboard.noActiveVotings")}</span>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {shown.map((v) => {
+                    const voted = (v.votes || []).some((vote) => vote.voter_id === profile?.id);
+                    const urgent = isUrgent(v);
+                    const meeting = allMeetings.find((m) => m.id === v.meeting_id);
+                    return (
+                      <div
+                        key={v.id}
+                        onClick={() => navigate(`/ns-meetings/${v.meeting_id}`)}
+                        style={{
+                          ...votingItemStyle,
+                          border: urgent ? "1px solid #FCA5A5" : "1px solid #EDE9FE",
+                          background: urgent ? "#FFF5F5" : "#FAFAFE",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
+                            {urgent && (
+                              <span style={{ fontSize: 10, fontWeight: 700, background: "#DC2626", color: "#fff", borderRadius: 6, padding: "1px 6px" }}>
+                                {t("dashboard.votingUrgent")}
+                              </span>
+                            )}
+                            {voted ? (
+                              <span style={{ fontSize: 10, fontWeight: 600, background: "#DCFCE7", color: "#166534", borderRadius: 6, padding: "1px 6px" }}>
+                                ✓ {t("dashboard.votingVoted")}
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: 10, fontWeight: 600, background: "#FEF3C7", color: "#92400E", borderRadius: 6, padding: "1px 6px" }}>
+                                ⚠ {t("dashboard.votingAwaitingVote")}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{
+                            fontSize: 13, fontWeight: 500, color: "#111827",
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 3,
+                          }}>
+                            {v.title}
+                          </div>
+                          {meeting && (
+                            <div style={{ fontSize: 11, color: "#9CA3AF" }}>
+                              📅 {new Date(meeting.start_at).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "short", year: "numeric" })}
+                            </div>
+                          )}
+                        </div>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" style={{ flexShrink: 0, marginLeft: 8 }}><path d="M9 5l7 7-7 7" /></svg>
+                      </div>
+                    );
+                  })}
+                  {extraCount > 0 && (
+                    <Link to="/voting" style={{ fontSize: 12, color: "#3B82F6", fontWeight: 500, textDecoration: "none", paddingLeft: 4 }}>
+                      {t("dashboard.votingMoreItems", { count: extraCount })}
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => navigate("/voting")}
+                    style={votingGoBtn}
+                  >
+                    {t("dashboard.goToVoting")}
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* ── Admin quick actions ── */}
+      {isAdmin && (
+        <div style={{ ...cardStyle, marginTop: 24 }}>
+          <div style={cardHeaderStyle}>
+            <span style={cardTitleStyle}>⚡ {t("dashboard.quickActions")}</span>
+          </div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button
+              onClick={() => navigate("/ns-meetings")}
+              style={quickActionBtnStyle}
+            >
+              <span style={{ fontSize: 18 }}>📅</span>
+              {t("dashboard.createNSMeeting")}
+            </button>
+            <Link to="/ns-meetings" style={{ ...quickActionBtnStyle, textDecoration: "none", color: "#374151" }}>
+              <span style={{ fontSize: 18 }}>📋</span>
+              {t("dashboard.goToNSMeetings")}
+            </Link>
+            <Link to="/tasks" style={{ ...quickActionBtnStyle, textDecoration: "none", color: "#374151" }}>
+              <span style={{ fontSize: 18 }}>✅</span>
+              {t("tasks.create", "+ Создать поручение")}
+            </Link>
+            <Link to="/notifications" style={{ ...quickActionBtnStyle, textDecoration: "none", color: "#374151" }}>
+              <span style={{ fontSize: 18 }}>🔔</span>
+              {t("dashboard.allNotifications")}
+            </Link>
+          </div>
         </div>
       )}
 
-      {/* Quick action cards (like Figma bottom row) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginTop: 24 }}>
-        <QuickActionCard to="/videoconference" icon="video" color="#3B82F6" bgColor="#DBEAFE" label={t("dashboard.startVideoconference")} />
-        <QuickActionCard to="/protocols" icon="protocol" color="#F59E0B" bgColor="#FEF3C7" label={t("dashboard.createProtocol")} />
-        <QuickActionCard to="/chat" icon="chat" color="#059669" bgColor="#D1FAE5" label={t("dashboard.writeToManager")} />
-        <QuickActionCard to="/stats" icon="stats" color="#7C3AED" bgColor="#F3E8FF" label={t("dashboard.viewStats")} />
-      </div>
     </div>
   );
 }
 
-// --- Quick Action Card ---
+// ── Styles ───────────────────────────────────────────────────────────────────
 
-const ACTION_ICONS: Record<string, string> = {
-  video: "M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z",
-  protocol: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
-  chat: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
-  stats: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
-};
-
-function QuickActionCard({ to, icon, color, bgColor, label }: {
-  to: string; icon: string; color: string; bgColor: string; label: string;
-}) {
-  return (
-    <Link to={to} style={quickCardStyle}>
-      <div style={{ ...quickIconStyle, background: bgColor }}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d={ACTION_ICONS[icon] || ""} />
-        </svg>
-      </div>
-      <div style={{ fontSize: 14, color: "#374151", fontWeight: 500, textAlign: "center", lineHeight: 1.4 }}>
-        {label}
-      </div>
-    </Link>
-  );
-}
-
-// --- Styles ---
-
-const kpiRowStyle: React.CSSProperties = {
+const gridStyle: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(3, 1fr)",
+  gridTemplateColumns: "repeat(2, 1fr)",
   gap: 20,
-  marginBottom: 28,
-};
-
-const kpiCardStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 18,
-  padding: "22px 24px",
-  background: "#FFFFFF",
-  border: "1px solid #E5E7EB",
-  borderRadius: 14,
-};
-
-const kpiIconStyle: React.CSSProperties = {
-  width: 48,
-  height: 48,
-  borderRadius: 12,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexShrink: 0,
 };
 
 const cardStyle: React.CSSProperties = {
   background: "#FFFFFF",
   border: "1px solid #E5E7EB",
   borderRadius: 14,
-  padding: 24,
+  padding: "20px 20px 16px",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
 };
 
-const meetingItemStyle: React.CSSProperties = {
+const cardHeaderStyle: React.CSSProperties = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
+  marginBottom: 16,
+};
+
+const cardTitleStyle: React.CSSProperties = {
+  fontSize: 14,
+  fontWeight: 700,
+  color: "#111827",
+};
+
+const linkStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: "#3B82F6",
+  fontWeight: 500,
+  textDecoration: "none",
+};
+
+const emptyStyle: React.CSSProperties = {
+  fontSize: 13,
+  color: "#9CA3AF",
+  textAlign: "center",
+  padding: "24px 0",
+};
+
+const taskItemStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
   padding: "10px 12px",
-  borderRadius: 8,
+  borderRadius: 10,
   border: "1px solid #F3F4F6",
+  background: "#FAFAFA",
   textDecoration: "none",
   color: "inherit",
-  transition: "background 0.1s",
+  transition: "border-color 0.15s",
 };
 
-const labelStyle: React.CSSProperties = {
-  display: "block",
-  fontSize: 14,
-  color: "#6B7280",
-  marginBottom: 6,
-  fontWeight: 500,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "10px 14px",
-  fontSize: 15,
-  border: "1px solid #D1D5DB",
+const votingItemStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  padding: "12px 14px",
   borderRadius: 10,
-  outline: "none",
-  boxSizing: "border-box",
+  border: "1px solid #EDE9FE",
+  background: "#FAFAFE",
+  textDecoration: "none",
+  color: "inherit",
+  transition: "border-color 0.15s",
 };
 
-const btnPrimaryStyle: React.CSSProperties = {
-  padding: "11px 24px",
-  fontSize: 15,
+const votingGoBtn: React.CSSProperties = {
+  marginTop: 4,
+  padding: "8px 0",
+  fontSize: 13,
   fontWeight: 600,
   borderRadius: 10,
-  border: "none",
-  background: "#3B82F6",
+  border: "1px solid #C4B5FD",
+  background: "#EDE9FE",
+  color: "#5B21B6",
+  cursor: "pointer",
+  width: "100%",
+};
+
+const meetingBtnStyle: React.CSSProperties = {
+  padding: "10px 22px",
+  fontSize: 14,
+  fontWeight: 600,
+  borderRadius: 10,
+  border: "2px solid rgba(255,255,255,0.4)",
+  background: "rgba(255,255,255,0.15)",
   color: "#FFFFFF",
   cursor: "pointer",
+  backdropFilter: "blur(4px)",
+  whiteSpace: "nowrap",
 };
 
-const thStyle: React.CSSProperties = {
-  padding: "12px 14px",
-  fontWeight: 600,
-  textAlign: "left",
-  color: "#6B7280",
-  fontSize: 13,
-  textTransform: "uppercase",
-  letterSpacing: 0.5,
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: "12px 14px",
-};
-
-const badgeStyle: React.CSSProperties = {
+const meetingJoinBtnStyle: React.CSSProperties = {
   display: "inline-block",
-  padding: "3px 12px",
-  borderRadius: 12,
-  fontSize: 13,
-  fontWeight: 500,
-};
-
-const alertStyle: React.CSSProperties = {
-  padding: "14px 18px",
-  background: "#FEE2E2",
-  color: "#991B1B",
-  borderRadius: 10,
+  padding: "10px 22px",
   fontSize: 14,
-  marginBottom: 24,
+  fontWeight: 700,
+  borderRadius: 10,
+  border: "none",
+  background: "#10B981",
+  color: "#FFFFFF",
+  cursor: "pointer",
+  textDecoration: "none",
+  whiteSpace: "nowrap",
+  boxShadow: "0 4px 12px rgba(16,185,129,0.35)",
 };
 
-const quickCardStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: 12,
-  padding: "24px 16px",
+const meetingBtnOutlineStyle: React.CSSProperties = {
+  padding: "10px 22px",
+  fontSize: 14,
+  fontWeight: 600,
+  borderRadius: 10,
+  border: "2px solid #D1D5DB",
   background: "#FFFFFF",
-  border: "1px solid #E5E7EB",
-  borderRadius: 14,
-  textDecoration: "none",
-  transition: "box-shadow 0.15s",
+  color: "#374151",
   cursor: "pointer",
 };
 
-const quickIconStyle: React.CSSProperties = {
-  width: 56,
-  height: 56,
-  borderRadius: 14,
-  display: "flex",
+const quickActionBtnStyle: React.CSSProperties = {
+  display: "inline-flex",
   alignItems: "center",
-  justifyContent: "center",
+  gap: 8,
+  padding: "10px 18px",
+  fontSize: 13,
+  fontWeight: 600,
+  borderRadius: 10,
+  border: "1px solid #E5E7EB",
+  background: "#F9FAFB",
+  color: "#374151",
+  cursor: "pointer",
+  textDecoration: "none",
+  transition: "border-color 0.15s, background 0.15s",
 };

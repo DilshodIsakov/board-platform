@@ -58,7 +58,15 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 export interface Organization {
   id: string;
   name: string;
+  name_uz: string | null;
+  name_en: string | null;
   created_at: string;
+}
+
+export function getLocalizedOrgName(org: Organization, lang: string): string {
+  if ((lang === "uz-Cyrl" || lang === "uz") && org.name_uz) return org.name_uz;
+  if (lang === "en" && org.name_en) return org.name_en;
+  return org.name;
 }
 
 export async function getMyProfile(): Promise<Profile | null> {
@@ -241,7 +249,7 @@ export async function resendConfirmationEmail(email: string): Promise<boolean> {
 export async function getMyOrg(): Promise<Organization | null> {
   const { data, error } = await supabase
     .from("organizations")
-    .select("id, name, created_at")
+    .select("id, name, name_uz, name_en, created_at")
     .limit(1)
     .maybeSingle();
 

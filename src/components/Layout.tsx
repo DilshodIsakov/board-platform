@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Sidebar from "./Sidebar";
 import type { Profile, Organization } from "../lib/profile";
+import { getLocalizedOrgName } from "../lib/profile";
 import {
   fetchNotifications,
   fetchUnreadCount,
@@ -30,7 +31,7 @@ export function useNotifications() {
 }
 
 export default function Layout({ children, profile, org, onSignOut }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -138,7 +139,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", letterSpacing: "-0.01em" }}>
-                {org?.name || t("layout.platformTitle")}
+                {org ? getLocalizedOrgName(org, i18n.language) : t("layout.platformTitle")}
               </div>
               {org && (
                 <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 1, letterSpacing: "0.01em" }}>

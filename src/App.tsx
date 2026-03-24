@@ -30,6 +30,8 @@ import BoardWorkPlanPage from "./pages/BoardWorkPlanPage";
 import ProfilePage from "./pages/ProfilePage";
 import UserProfilePage from "./pages/UserProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
+import AuditLogPage from "./pages/AuditLogPage";
+import { logAuditEvent } from "./lib/auditLog";
 import i18n from "./i18n";
 
 export default function App() {
@@ -124,6 +126,7 @@ export default function App() {
   }, []);
 
   const handleSignOut = async () => {
+    await logAuditEvent({ actionType: "logout", actionLabel: "Logout" });
     await supabase.auth.signOut();
   };
 
@@ -197,6 +200,7 @@ export default function App() {
         <Route path="/profile" element={auth(<ProfilePage profile={profile} org={org} onProfileUpdate={() => loadProfileAndOrg()} />)} />
         <Route path="/profile/:id" element={auth(<UserProfilePage />)} />
         <Route path="/notifications" element={auth(<NotificationsPage profile={profile} org={org} />)} />
+        <Route path="/audit-log" element={auth(<AuditLogPage profile={profile} org={org} />)} />
         <Route path="/admin/users" element={adminAuth(<AdminUsersPage />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

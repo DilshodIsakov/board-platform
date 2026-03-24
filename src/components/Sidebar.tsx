@@ -79,6 +79,9 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
     { to: "/stats",          label: t("sidebar.stats"),          icon: "stats"        },
     { to: "/company",        label: t("sidebar.company"),        icon: "info"         },
     { to: "/shareholder-meeting", label: t("sidebar.shareholders"), icon: "shareholders" },
+    ...(profile?.role === "admin" || profile?.role === "corp_secretary"
+      ? [{ to: "/audit-log", label: t("sidebar.auditLog"), icon: "shield" }]
+      : []),
     ...(profile?.role === "admin"
       ? [{ to: "/admin/users", label: t("admin.title"), icon: "shield" }]
       : []),

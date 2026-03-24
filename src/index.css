@@ -277,3 +277,22 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .fade-in {
   animation: fade-in 0.2s ease forwards;
 }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 1280px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+}

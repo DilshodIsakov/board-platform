@@ -345,8 +345,8 @@ const headerAvatarStyle: React.CSSProperties = {
 const contentStyle: React.CSSProperties = {
   flex: 1,
   padding: "36px 44px",
-  maxWidth: 1400,
   width: "100%",
+  boxSizing: "border-box" as const,
 };
 
 const badgeStyle: React.CSSProperties = {

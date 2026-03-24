@@ -132,10 +132,10 @@ DECLARE
 BEGIN
   _user_id := auth.uid();
 
-  SELECT p.full_name, p.email, p.role::text, p.org_id
+  SELECT p.full_name, p.email, p.role::text, p.organization_id
   INTO _user_name, _user_email, _user_role, _org_id
   FROM public.profiles p
-  WHERE p.user_id = _user_id
+  WHERE p.id = _user_id
   LIMIT 1;
 
   INSERT INTO public.audit_logs (

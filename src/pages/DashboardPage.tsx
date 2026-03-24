@@ -168,7 +168,7 @@ export default function DashboardPage({ profile, org }: Props) {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ width: "100%", boxSizing: "border-box" as const }}>
         <div style={{ height: 72, background: "#F1F5F9", borderRadius: 12, marginBottom: 24 }} className="skeleton" />
         <div style={{ height: 160, background: "#F1F5F9", borderRadius: 16, marginBottom: 24 }} className="skeleton" />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
@@ -191,7 +191,7 @@ export default function DashboardPage({ profile, org }: Props) {
     : "linear-gradient(135deg, #1E3A5F 0%, #1E40AF 100%)";
 
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ width: "100%", boxSizing: "border-box" as const }}>
 
       {/* ── Header ── */}
       <div style={{ marginBottom: 28 }}>

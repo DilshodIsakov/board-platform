@@ -124,7 +124,7 @@ export default function AuditLogPage({ profile }: Props) {
   }
 
   return (
-    <div style={{ padding: "32px 40px", maxWidth: 1400, margin: "0 auto" }}>
+    <div style={{ padding: "32px 40px", width: "100%", boxSizing: "border-box" as const }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
         <div>
@@ -151,9 +151,8 @@ export default function AuditLogPage({ profile }: Props) {
             <select value={userId} onChange={(e) => setUserId(e.target.value)} style={selectStyle}>
               <option value="">{t("auditLog.all")}</option>
               {allUsers.map((u) => {
-                const uid = (u as unknown as Record<string, unknown>).user_id as string | undefined;
                 return (
-                  <option key={u.id} value={uid || u.id}>
+                  <option key={u.id} value={u.id}>
                     {u.full_name || u.email}
                   </option>
                 );

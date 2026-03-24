@@ -2,7 +2,7 @@ import { type ReactNode, useState, useEffect, useRef, useCallback, createContext
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Sidebar from "./Sidebar";
-import type { Profile, Organization } from "../lib/profile";
+import { getLocalizedName, type Profile, type Organization } from "../lib/profile";
 import { getLocalizedOrgName } from "../lib/profile";
 import {
   fetchNotifications,
@@ -236,7 +236,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
                 <img src={profile.avatar_url} alt="" style={{ ...headerAvatarStyle, objectFit: "cover" }} />
               ) : (
                 <div style={headerAvatarStyle}>
-                  {getInitials(profile.full_name || profile.email)}
+                  {getInitials(getLocalizedName(profile, i18n.language) || profile.email)}
                 </div>
               )
             )}

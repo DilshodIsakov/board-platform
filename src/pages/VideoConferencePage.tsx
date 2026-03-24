@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
 import type { Profile, Organization } from "../lib/profile";
+import { getLocalizedField } from "../lib/i18nHelpers";
 import { fetchMeetings, type Meeting } from "../lib/meetings";
 import {
   fetchVideoConferences,
@@ -232,9 +233,9 @@ export default function VideoConferencePage({ profile, org }: Props) {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {scheduledMeetings.map((m) => (
-            <Link key={m.id} to={`/meetings/${m.id}`} style={meetingRowStyle}>
+            <Link key={m.id} to={`/ns-meetings/${m.id}`} style={meetingRowStyle}>
               <div>
-                <div style={{ fontWeight: 500, fontSize: 14, color: "#111827" }}>{m.title}</div>
+                <div style={{ fontWeight: 500, fontSize: 14, color: "#111827" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title") || m.title}</div>
                 <div style={{ fontSize: 12, color: "#9CA3AF" }}>{formatDt(m.start_at)}</div>
               </div>
               {m.meet_url ? (

@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import type { Profile } from "../lib/profile";
-import { updateProfileLocale } from "../lib/profile";
+import { updateProfileLocale, getLocalizedName } from "../lib/profile";
 
 interface Props {
   profile: Profile | null;
@@ -165,7 +165,7 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
           </NavLink>
           <NavLink to="/profile" style={{ flex: 1, minWidth: 0, textDecoration: "none" }}>
             <div style={{ fontWeight: 600, fontSize: 13, color: "#F1F5F9", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {profile.full_name || t("sidebar.user")}
+              {getLocalizedName(profile, i18n.language) || t("sidebar.user")}
             </div>
             <span style={{
               display: "inline-block",

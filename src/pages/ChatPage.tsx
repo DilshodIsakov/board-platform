@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
 import { downloadFileByUrl } from "../lib/format";
-import type { Profile, Organization } from "../lib/profile";
+import { getLocalizedName, type Profile, type Organization } from "../lib/profile";
 import {
   fetchConversationThreads,
   fetchContacts,
@@ -136,7 +136,9 @@ function sortGroupsByLatest(groups: ChatGroup[]): ChatGroup[] {
 // ─── component ────────────────────────────────────────────────────────────────
 
 export default function ChatPage({ profile, org }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
+  const dn = (p: { full_name: string; full_name_en?: string | null; full_name_uz?: string | null }) => getLocalizedName(p, lang);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { refresh } = useNotifications();
@@ -824,7 +826,7 @@ export default function ChatPage({ profile, org }: Props) {
   const filteredThreads = threads.filter(
     (c) =>
       !searchQuery.trim() ||
-      c.full_name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      dn(c).toLowerCase().includes(searchQuery.trim().toLowerCase())
   );
 
   const filteredGroups = groups.filter(
@@ -842,7 +844,7 @@ export default function ChatPage({ profile, org }: Props) {
   const filteredNewChatUsers = allUsers.filter(
     (u) =>
       !newChatSearch.trim() ||
-      u.full_name.toLowerCase().includes(newChatSearch.trim().toLowerCase())
+      dn(u).toLowerCase().includes(newChatSearch.trim().toLowerCase())
   );
 
   // ─── render ────────────────────────────────────────────────────────────────
@@ -912,7 +914,7 @@ export default function ChatPage({ profile, org }: Props) {
               }}
               style={actionBtnStyle}
             >
-              + {t("chat.newChat", "Новый чат")}
+              {t("chat.newChat", "+ Новый чат")}
             </button>
           ) : (
             <button
@@ -969,10 +971,10 @@ export default function ChatPage({ profile, org }: Props) {
                       background: isActive ? "#DBEAFE" : "transparent",
                     }}
                   >
-                    <UserAvatar name={c.full_name} avatarUrl={c.avatar_url} size={44} />
+                    <UserAvatar name={dn(c)} avatarUrl={c.avatar_url} size={44} />
                     <div style={threadContentStyle}>
                       <div style={threadTopRowStyle}>
-                        <span style={threadNameStyle}>{c.full_name || t("chat.noName")}</span>
+                        <span style={threadNameStyle}>{dn(c) || t("chat.noName")}</span>
                         {c.last_message_at && (
                           <span style={threadTimeStyle}>
                             {formatMsgTime(c.last_message_at)}
@@ -1092,7 +1094,7 @@ export default function ChatPage({ profile, org }: Props) {
             <div style={chatHeaderStyle}>
               <div onClick={() => navigate(`/profile/${selectedContact.id}`)}>
                 <UserAvatar
-                  name={selectedContact.full_name}
+                  name={dn(selectedContact)}
                   avatarUrl={selectedContact.avatar_url}
                   size={36}
                   style={{ cursor: "pointer" }}
@@ -1103,7 +1105,7 @@ export default function ChatPage({ profile, org }: Props) {
                 style={{ cursor: "pointer" }}
               >
                 <div style={{ fontWeight: 600, fontSize: 15 }}>
-                  {selectedContact.full_name || t("chat.noName")}
+                  {dn(selectedContact) || t("chat.noName")}
                 </div>
                 <div style={{ color: "#6b7280", fontSize: 12 }}>
                   {t(`chat.roles.${selectedContact.role}`, selectedContact.role)}
@@ -1394,9 +1396,8 @@ export default function ChatPage({ profile, org }: Props) {
                 groupMessages.map((m) => {
                   const isMine = m.sender_id === profile.id;
                   const isHovered = hoveredMsgId === m.id;
-                  const senderName =
-                    (m.sender as { full_name: string } | undefined)
-                      ?.full_name || "—";
+                  const senderObj = m.sender as { full_name: string; full_name_en?: string | null; full_name_uz?: string | null } | undefined;
+                  const senderName = senderObj ? dn(senderObj) : "—";
                   return (
                     <div
                       key={m.id}
@@ -1668,10 +1669,10 @@ export default function ChatPage({ profile, org }: Props) {
                     onClick={() => handleStartNewChat(u)}
                     style={newChatUserRowStyle}
                   >
-                    <UserAvatar name={u.full_name} avatarUrl={u.avatar_url} size={36} />
+                    <UserAvatar name={dn(u)} avatarUrl={u.avatar_url} size={36} />
                     <div>
                       <div style={{ fontWeight: 500, fontSize: 14 }}>
-                        {u.full_name}
+                        {dn(u)}
                       </div>
                       <div style={{ fontSize: 12, color: "#6b7280" }}>
                         {t(`chat.roles.${u.role}`, u.role)}
@@ -1724,7 +1725,7 @@ export default function ChatPage({ profile, org }: Props) {
                       onChange={() => toggleMember(c.id)}
                       style={{ marginRight: 8 }}
                     />
-                    <span>{c.full_name}</span>
+                    <span>{dn(c)}</span>
                     <span
                       style={{
                         color: "#9CA3AF",
@@ -1791,7 +1792,7 @@ export default function ChatPage({ profile, org }: Props) {
             <div style={{ marginBottom: 16 }}>
               {groupMembers.map((m) => {
                 const p = m.profile as
-                  | { full_name: string; role: string }
+                  | { full_name: string; full_name_en?: string | null; full_name_uz?: string | null; role: string }
                   | undefined;
                 return (
                   <div
@@ -1806,7 +1807,7 @@ export default function ChatPage({ profile, org }: Props) {
                   >
                     <div>
                       <span style={{ fontSize: 14, fontWeight: 500 }}>
-                        {p?.full_name || "—"}
+                        {p ? dn(p) : "—"}
                       </span>
                       <span
                         style={{
@@ -1849,7 +1850,7 @@ export default function ChatPage({ profile, org }: Props) {
                       }}
                     >
                       <span style={{ fontSize: 14 }}>
-                        {c.full_name}
+                        {dn(c)}
                         <span
                           style={{
                             color: "#9CA3AF",

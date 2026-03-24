@@ -13,6 +13,7 @@ import {
   ROLE_LABELS,
   type Profile,
   type UserRole,
+  getLocalizedName,
 } from "../lib/profile";
 import { getIntlLocale } from "../i18n";
 
@@ -34,7 +35,7 @@ export default function AdminUsersPage() {
   const [approveRole, setApproveRole] = useState<UserRole>("board_member");
   const [approveRoleDetails, setApproveRoleDetails] = useState("");
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Form fields
   const [formNameRu, setFormNameRu] = useState("");
@@ -202,7 +203,7 @@ export default function AdminUsersPage() {
   // ===== Reject =====
   const handleReject = async (p: Profile) => {
     clearMessages();
-    const msg = t("admin.rejectConfirm", { name: p.full_name || p.email });
+    const msg = t("admin.rejectConfirm", { name: getLocalizedName(p, i18n.language) || p.email });
     if (!confirm(msg)) return;
     try {
       await adminRejectUser(p.id);
@@ -229,7 +230,7 @@ export default function AdminUsersPage() {
   // ===== Delete =====
   const handleDelete = async (p: Profile) => {
     clearMessages();
-    const msg = t("admin.confirmDelete", { name: p.full_name || p.email });
+    const msg = t("admin.confirmDelete", { name: getLocalizedName(p, i18n.language) || p.email });
     if (!confirm(msg)) return;
 
     try {
@@ -285,7 +286,7 @@ export default function AdminUsersPage() {
               <div key={p.id} style={pendingCardStyle}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>
-                    {p.full_name || p.email}
+                    {getLocalizedName(p, i18n.language) || p.email}
                   </div>
                   <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>
                     {p.email}

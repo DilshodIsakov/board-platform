@@ -20,6 +20,8 @@ export interface Message {
 export interface ContactProfile {
   id: string;
   full_name: string;
+  full_name_en?: string | null;
+  full_name_uz?: string | null;
   role: string;
   avatar_url?: string | null;
   unread_count?: number; // количество непрочитанных сообщений от этого контакта
@@ -29,6 +31,8 @@ export interface ContactProfile {
 export interface ConversationThread {
   id: string;           // profile id собеседника
   full_name: string;
+  full_name_en?: string | null;
+  full_name_uz?: string | null;
   role: string;
   avatar_url?: string | null;
   last_message?: string;    // превью последнего сообщения
@@ -40,7 +44,7 @@ export interface ConversationThread {
 export async function fetchContacts(excludeProfileId: string): Promise<ContactProfile[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, role, avatar_url")
+    .select("id, full_name, full_name_en, full_name_uz, role, avatar_url")
     .neq("id", excludeProfileId)
     .order("full_name");
 
@@ -330,7 +334,7 @@ export async function deleteGroup(groupId: string): Promise<void> {
 export async function fetchGroupMembers(groupId: string): Promise<ChatGroupMember[]> {
   const { data, error } = await supabase
     .from("chat_group_members")
-    .select("*, profile:profiles!chat_group_members_profile_id_fkey(full_name, role)")
+    .select("*, profile:profiles!chat_group_members_profile_id_fkey(full_name, full_name_en, full_name_uz, role)")
     .eq("group_id", groupId)
     .order("joined_at");
 
@@ -365,7 +369,7 @@ export async function removeGroupMember(groupId: string, profileId: string): Pro
 export async function fetchGroupMessages(groupId: string, limit = 100): Promise<GroupMessage[]> {
   const { data, error } = await supabase
     .from("chat_group_messages")
-    .select("*, sender:profiles!chat_group_messages_sender_id_fkey(full_name)")
+    .select("*, sender:profiles!chat_group_messages_sender_id_fkey(full_name, full_name_en, full_name_uz)")
     .eq("group_id", groupId)
     .order("created_at", { ascending: true })
     .limit(limit);
@@ -399,7 +403,7 @@ export async function sendGroupMessage(
   const { data, error } = await supabase
     .from("chat_group_messages")
     .insert(row)
-    .select("*, sender:profiles!chat_group_messages_sender_id_fkey(full_name)")
+    .select("*, sender:profiles!chat_group_messages_sender_id_fkey(full_name, full_name_en, full_name_uz)")
     .single();
 
   if (error) throw new Error(error.message);
@@ -448,12 +452,14 @@ export async function fetchConversationThreads(
 
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, full_name, role, avatar_url")
+    .select("id, full_name, full_name_en, full_name_uz, role, avatar_url")
     .in("id", [...threadMap.keys()]);
 
   const threads: ConversationThread[] = (profiles || []).map((p: any) => ({
     id: p.id,
     full_name: p.full_name || "",
+    full_name_en: p.full_name_en || null,
+    full_name_uz: p.full_name_uz || null,
     role: p.role || "",
     avatar_url: p.avatar_url || null,
     ...threadMap.get(p.id)!,
@@ -588,7 +594,7 @@ export async function fetchProfileById(
 ): Promise<ContactProfile | null> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, role, avatar_url")
+    .select("id, full_name, full_name_en, full_name_uz, role, avatar_url")
     .eq("id", profileId)
     .single();
 

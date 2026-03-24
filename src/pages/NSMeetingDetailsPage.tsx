@@ -31,6 +31,13 @@ import {
   type BriefLang,
 } from "../lib/nsMeetings";
 import { getLocalizedField, isTranslationStale, getStatusBadgeStyle } from "../lib/i18nHelpers";
+import {
+  fetchCommentsByAgendaItems,
+  addComment,
+  editComment,
+  softDeleteComment,
+  type AgendaItemComment,
+} from "../lib/agendaComments";
 import { downloadFileByUrl } from "../lib/format";
 import {
   generateMeetingTranslations,
@@ -129,6 +136,16 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   const [briefCopied, setBriefCopied] = useState<Record<string, boolean>>({});
   const [briefLang, setBriefLang] = useState<Record<string, BriefLang>>({});
 
+  // Discussion / Comments
+  const [commentsMap, setCommentsMap] = useState<Record<string, AgendaItemComment[]>>({});
+  const [commentText, setCommentText] = useState<Record<string, string>>({});
+  const [replyTo, setReplyTo] = useState<Record<string, string | null>>({});
+  const [replyText, setReplyText] = useState<Record<string, string>>({});
+  const [commentSending, setCommentSending] = useState<Record<string, boolean>>({});
+  const [discussionAgendaId, setDiscussionAgendaId] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+
   const LANG_OPTIONS: { value: BriefLang; label: string }[] = [
     { value: "ru", label: "Русский" },
     { value: "uz_cyrl", label: "Ўзбекча (кириллица)" },
@@ -208,7 +225,80 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
       setBriefsMap(newMap);
     }
     await loadVotingData(items, meetingId);
+    // Load comments
+    if (items.length > 0) {
+      const cMap = await fetchCommentsByAgendaItems(items.map((i) => i.id));
+      setCommentsMap(cMap);
+    }
   };
+
+  // ---------- Discussion / Comments ----------
+
+  const canWriteComment = profile && ["admin", "corp_secretary", "board_member", "chairman"].includes(profile.role);
+  const isMeetingCompleted = meeting?.status === "completed";
+
+  const handleAddComment = async (agendaItemId: string, parentId?: string | null) => {
+    if (!profile || !meeting) return;
+    const text = parentId ? (replyText[agendaItemId] || "").trim() : (commentText[agendaItemId] || "").trim();
+    if (!text) return;
+
+    setCommentSending((p) => ({ ...p, [agendaItemId]: true }));
+    const result = await addComment({
+      meeting_id: meeting.id,
+      agenda_item_id: agendaItemId,
+      user_id: profile.id,
+      user_name: profile.full_name || profile.email,
+      user_role: profile.role,
+      parent_comment_id: parentId || null,
+      content: text,
+    });
+    setCommentSending((p) => ({ ...p, [agendaItemId]: false }));
+
+    if (result) {
+      setCommentsMap((prev) => ({
+        ...prev,
+        [agendaItemId]: [...(prev[agendaItemId] || []), result],
+      }));
+      if (parentId) {
+        setReplyText((p) => ({ ...p, [agendaItemId]: "" }));
+        setReplyTo((p) => ({ ...p, [agendaItemId]: null }));
+      } else {
+        setCommentText((p) => ({ ...p, [agendaItemId]: "" }));
+      }
+    }
+  };
+
+  const handleDeleteComment = async (agendaItemId: string, commentId: string) => {
+    const ok = await softDeleteComment(commentId);
+    if (ok) {
+      setCommentsMap((prev) => ({
+        ...prev,
+        [agendaItemId]: (prev[agendaItemId] || []).map((c) =>
+          c.id === commentId ? { ...c, is_deleted: true, content: "" } : c
+        ),
+      }));
+    }
+  };
+
+  const handleEditComment = async (agendaItemId: string, commentId: string) => {
+    const text = editingCommentText.trim();
+    if (!text) return;
+    const result = await editComment(commentId, text);
+    if (result) {
+      setCommentsMap((prev) => ({
+        ...prev,
+        [agendaItemId]: (prev[agendaItemId] || []).map((c) =>
+          c.id === commentId ? { ...c, content: result.content, updated_at: result.updated_at } : c
+        ),
+      }));
+      setEditingCommentId(null);
+      setEditingCommentText("");
+    }
+  };
+
+  const isEdited = (c: AgendaItemComment) =>
+    !c.is_deleted && c.updated_at && c.created_at && c.updated_at !== c.created_at &&
+    new Date(c.updated_at).getTime() - new Date(c.created_at).getTime() > 2000;
 
   // ---------- Meeting Edit ----------
 
@@ -741,6 +831,376 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         <button onClick={() => navigate("/ns-meetings")} style={smallBtnStyle}>
           ← {t("nsMeetings.backToList")}
         </button>
+      </div>
+    );
+  }
+
+  // ── Full-page Discussion View ──
+  if (discussionAgendaId && meeting) {
+    const dItem = agendaItems.find((a) => a.id === discussionAgendaId);
+    const dTitle = dItem
+      ? getLocalizedField(dItem as unknown as Record<string, unknown>, "title") || dItem.title || ""
+      : "";
+    const meetingTitle = getLocalizedField(meeting as unknown as Record<string, unknown>, "title") || meeting.title || "";
+    const allComments = commentsMap[discussionAgendaId] || [];
+    const rootComments = allComments.filter((c) => !c.parent_comment_id);
+    const repliesOf = (parentId: string) => allComments.filter((c) => c.parent_comment_id === parentId);
+    const commentCount = allComments.filter((c) => !c.is_deleted).length;
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - var(--header-height))" }}>
+        {/* Header */}
+        <div style={{
+          background: "#FFFFFF", borderBottom: "1px solid #E5E7EB",
+          padding: "16px 32px", flexShrink: 0,
+        }}>
+          <button
+            onClick={() => setDiscussionAgendaId(null)}
+            style={{ ...smallBtnStyle, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 6 }}
+          >
+            {"\u2190"} {t("nsMeetings.backToMeeting") || meetingTitle}
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "#111827" }}>
+              {t("nsMeetings.discussion")}
+            </div>
+            {commentCount > 0 && (
+              <span style={{
+                background: "#EFF6FF", color: "#2563EB", fontSize: 13, fontWeight: 600,
+                borderRadius: 12, padding: "2px 10px",
+              }}>{commentCount}</span>
+            )}
+          </div>
+          <div style={{ fontSize: 14, color: "#6B7280", marginTop: 4 }}>{dTitle}</div>
+          {isMeetingCompleted && (
+            <div style={{
+              marginTop: 8, padding: "6px 14px", background: "#FEF3C7", borderRadius: 8,
+              fontSize: 13, color: "#92400E", display: "inline-block",
+            }}>
+              {t("nsMeetings.discussionClosed")}
+            </div>
+          )}
+        </div>
+
+        {/* Comments list — scrollable */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>
+          {rootComments.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "60px 0", color: "#9CA3AF" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>{"\uD83D\uDCAC"}</div>
+              <div style={{ fontSize: 15, fontWeight: 500, color: "#6B7280" }}>{t("nsMeetings.noComments")}</div>
+              {canWriteComment && !isMeetingCompleted && (
+                <div style={{ fontSize: 13, color: "#9CA3AF", marginTop: 4 }}>{t("nsMeetings.addComment")}</div>
+              )}
+            </div>
+          ) : (
+            <div style={{ maxWidth: 800 }}>
+              {rootComments.map((comment) => (
+                <div key={comment.id} style={{ marginBottom: 20 }}>
+                  {comment.is_deleted ? (
+                    <div style={{ fontSize: 13, color: "#9CA3AF", fontStyle: "italic", padding: "8px 0" }}>
+                      {t("nsMeetings.commentDeleted")}
+                    </div>
+                  ) : (
+                    <div style={{
+                      background: "#FFFFFF", border: "1px solid #E5E7EB", borderRadius: 14,
+                      padding: "16px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                    }}>
+                      {/* Comment header */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                          <div style={{
+                            width: 36, height: 36, borderRadius: "50%",
+                            background: comment.user_role === "admin" ? "#2563EB" : comment.user_role === "chairman" ? "#D97706" : comment.user_role === "corp_secretary" ? "#7C3AED" : "#3B82F6",
+                            color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 14, fontWeight: 700, flexShrink: 0,
+                          }}>
+                            {(comment.user_name || "?").charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{comment.user_name}</span>
+                              <span style={{
+                                fontSize: 11, padding: "1px 8px", borderRadius: 10,
+                                background: comment.user_role === "admin" ? "#DBEAFE" : comment.user_role === "chairman" ? "#FEF3C7" : comment.user_role === "corp_secretary" ? "#EDE9FE" : "#E0E7FF",
+                                color: comment.user_role === "admin" ? "#1E40AF" : comment.user_role === "chairman" ? "#92400E" : comment.user_role === "corp_secretary" ? "#6D28D9" : "#3730A3",
+                                fontWeight: 500,
+                              }}>
+                                {t(`roles.${comment.user_role}`, comment.user_role)}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 1 }}>
+                              {new Date(comment.created_at).toLocaleString(getIntlLocale(), {
+                                day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          {!isMeetingCompleted && canWriteComment && (
+                            <button
+                              onClick={() => setReplyTo((p) => ({ ...p, [discussionAgendaId]: comment.id }))}
+                              style={{ fontSize: 13, color: "#3B82F6", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
+                            >
+                              {t("nsMeetings.reply")}
+                            </button>
+                          )}
+                          {comment.user_id === profile?.id && !isMeetingCompleted && (
+                            <button
+                              onClick={() => { setEditingCommentId(comment.id); setEditingCommentText(comment.content); }}
+                              style={{ fontSize: 13, color: "#D97706", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
+                            >
+                              {t("nsMeetings.editComment")}
+                            </button>
+                          )}
+                          {(comment.user_id === profile?.id || profile?.role === "admin") && !isMeetingCompleted && (
+                            <button
+                              onClick={() => handleDeleteComment(discussionAgendaId, comment.id)}
+                              style={{ fontSize: 13, color: "#EF4444", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
+                            >
+                              {t("nsMeetings.deleteComment")}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {/* Comment body */}
+                      {editingCommentId === comment.id ? (
+                        <div style={{ paddingLeft: 46, marginTop: 4 }}>
+                          <textarea
+                            value={editingCommentText}
+                            onChange={(e) => setEditingCommentText(e.target.value)}
+                            rows={4}
+                            autoFocus
+                            style={{
+                              width: "100%", padding: "10px 14px", fontSize: 15, border: "1px solid #D1D5DB",
+                              borderRadius: 10, resize: "vertical", fontFamily: "inherit", outline: "none",
+                              boxSizing: "border-box",
+                            }}
+                            onFocus={(e) => { e.currentTarget.style.borderColor = "#2563EB"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+                            onBlur={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; e.currentTarget.style.boxShadow = "none"; }}
+                          />
+                          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                            <button
+                              onClick={() => handleEditComment(discussionAgendaId, comment.id)}
+                              disabled={!editingCommentText.trim()}
+                              style={{
+                                padding: "7px 18px", fontSize: 13, fontWeight: 500, borderRadius: 8, border: "none",
+                                background: editingCommentText.trim() ? "#2563EB" : "#D1D5DB", color: "#FFF",
+                                cursor: editingCommentText.trim() ? "pointer" : "default",
+                              }}
+                            >
+                              {t("nsMeetings.saveEdit")}
+                            </button>
+                            <button
+                              onClick={() => { setEditingCommentId(null); setEditingCommentText(""); }}
+                              style={{ padding: "7px 18px", fontSize: 13, color: "#6B7280", background: "none", border: "1px solid #E5E7EB", borderRadius: 8, cursor: "pointer" }}
+                            >
+                              {t("common.cancel") || "Отмена"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ paddingLeft: 46 }}>
+                          <div style={{ fontSize: 15, color: "#374151", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                            {comment.content}
+                          </div>
+                          {isEdited(comment) && (
+                            <span style={{ fontSize: 11, color: "#9CA3AF", fontStyle: "italic" }}>
+                              {t("nsMeetings.edited")}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Replies */}
+                  {repliesOf(comment.id).map((reply) => (
+                    <div key={reply.id} style={{ marginLeft: 46, marginTop: 10 }}>
+                      {reply.is_deleted ? (
+                        <div style={{ fontSize: 13, color: "#9CA3AF", fontStyle: "italic", padding: "6px 0" }}>
+                          {t("nsMeetings.commentDeleted")}
+                        </div>
+                      ) : (
+                        <div style={{
+                          background: "#F9FAFB", border: "1px solid #F3F4F6", borderRadius: 12,
+                          padding: "12px 16px",
+                        }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <div style={{
+                                width: 28, height: 28, borderRadius: "50%",
+                                background: reply.user_role === "admin" ? "#2563EB" : "#6B7280",
+                                color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 11, fontWeight: 700, flexShrink: 0,
+                              }}>
+                                {(reply.user_name || "?").charAt(0).toUpperCase()}
+                              </div>
+                              <span style={{ fontWeight: 600, fontSize: 13, color: "#111827" }}>{reply.user_name}</span>
+                              <span style={{ fontSize: 12, color: "#9CA3AF" }}>
+                                {new Date(reply.created_at).toLocaleString(getIntlLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", gap: 8 }}>
+                              {reply.user_id === profile?.id && !isMeetingCompleted && (
+                                <button
+                                  onClick={() => { setEditingCommentId(reply.id); setEditingCommentText(reply.content); }}
+                                  style={{ fontSize: 11, color: "#D97706", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
+                                >
+                                  {t("nsMeetings.editComment")}
+                                </button>
+                              )}
+                              {(reply.user_id === profile?.id || profile?.role === "admin") && !isMeetingCompleted && (
+                                <button
+                                  onClick={() => handleDeleteComment(discussionAgendaId, reply.id)}
+                                  style={{ fontSize: 11, color: "#EF4444", cursor: "pointer", background: "none", border: "none" }}
+                                >
+                                  {t("nsMeetings.deleteComment")}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          {editingCommentId === reply.id ? (
+                            <div style={{ paddingLeft: 36, marginTop: 4 }}>
+                              <textarea
+                                value={editingCommentText}
+                                onChange={(e) => setEditingCommentText(e.target.value)}
+                                rows={3}
+                                autoFocus
+                                style={{
+                                  width: "100%", padding: "8px 12px", fontSize: 14, border: "1px solid #D1D5DB",
+                                  borderRadius: 8, resize: "vertical", fontFamily: "inherit", outline: "none",
+                                  boxSizing: "border-box",
+                                }}
+                              />
+                              <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                                <button
+                                  onClick={() => handleEditComment(discussionAgendaId, reply.id)}
+                                  disabled={!editingCommentText.trim()}
+                                  style={{
+                                    padding: "5px 14px", fontSize: 12, fontWeight: 500, borderRadius: 8, border: "none",
+                                    background: editingCommentText.trim() ? "#2563EB" : "#D1D5DB", color: "#FFF",
+                                    cursor: editingCommentText.trim() ? "pointer" : "default",
+                                  }}
+                                >
+                                  {t("nsMeetings.saveEdit")}
+                                </button>
+                                <button
+                                  onClick={() => { setEditingCommentId(null); setEditingCommentText(""); }}
+                                  style={{ padding: "5px 14px", fontSize: 12, color: "#6B7280", background: "none", border: "1px solid #E5E7EB", borderRadius: 8, cursor: "pointer" }}
+                                >
+                                  {t("common.cancel") || "Отмена"}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ paddingLeft: 36 }}>
+                              <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                                {reply.content}
+                              </div>
+                              {isEdited(reply) && (
+                                <span style={{ fontSize: 11, color: "#9CA3AF", fontStyle: "italic" }}>
+                                  {t("nsMeetings.edited")}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Reply input */}
+                  {replyTo[discussionAgendaId] === comment.id && canWriteComment && !isMeetingCompleted && (
+                    <div style={{ marginLeft: 46, marginTop: 10, display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <textarea
+                        value={replyText[discussionAgendaId] || ""}
+                        onChange={(e) => setReplyText((p) => ({ ...p, [discussionAgendaId]: e.target.value }))}
+                        placeholder={t("nsMeetings.replyPlaceholder")}
+                        rows={3}
+                        autoFocus
+                        style={{
+                          flex: 1, padding: "10px 14px", fontSize: 14, border: "1px solid #D1D5DB",
+                          borderRadius: 10, resize: "vertical", fontFamily: "inherit", outline: "none",
+                        }}
+                        onFocus={(e) => { e.currentTarget.style.borderColor = "#2563EB"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+                        onBlur={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; e.currentTarget.style.boxShadow = "none"; }}
+                      />
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        <button
+                          onClick={() => handleAddComment(discussionAgendaId, comment.id)}
+                          disabled={commentSending[discussionAgendaId] || !(replyText[discussionAgendaId] || "").trim()}
+                          style={{
+                            padding: "8px 16px", fontSize: 13, fontWeight: 500, borderRadius: 8, border: "none",
+                            background: (replyText[discussionAgendaId] || "").trim() ? "#2563EB" : "#D1D5DB",
+                            color: "#FFF", cursor: (replyText[discussionAgendaId] || "").trim() ? "pointer" : "default",
+                          }}
+                        >
+                          {t("nsMeetings.send")}
+                        </button>
+                        <button
+                          onClick={() => setReplyTo((p) => ({ ...p, [discussionAgendaId]: null }))}
+                          style={{ padding: "6px 12px", fontSize: 12, color: "#6B7280", background: "none", border: "1px solid #E5E7EB", borderRadius: 8, cursor: "pointer" }}
+                        >
+                          {t("common.cancel") || "Отмена"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Input area — fixed at bottom */}
+        {!isMeetingCompleted && canWriteComment && (
+          <div style={{
+            padding: "16px 32px", borderTop: "1px solid #E5E7EB", background: "#FFFFFF", flexShrink: 0,
+          }}>
+            <div style={{ display: "flex", gap: 12, maxWidth: 800, alignItems: "flex-end" }}>
+              <textarea
+                value={commentText[discussionAgendaId] || ""}
+                onChange={(e) => setCommentText((p) => ({ ...p, [discussionAgendaId]: e.target.value }))}
+                placeholder={t("nsMeetings.commentPlaceholder")}
+                rows={3}
+                style={{
+                  flex: 1, padding: "12px 16px", fontSize: 15, border: "1px solid #D1D5DB",
+                  borderRadius: 12, resize: "vertical", fontFamily: "inherit", outline: "none",
+                  minHeight: 60,
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "#2563EB"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; e.currentTarget.style.boxShadow = "none"; }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    handleAddComment(discussionAgendaId);
+                  }
+                }}
+              />
+              <button
+                onClick={() => handleAddComment(discussionAgendaId)}
+                disabled={commentSending[discussionAgendaId] || !(commentText[discussionAgendaId] || "").trim()}
+                style={{
+                  padding: "12px 28px", fontSize: 15, fontWeight: 600, borderRadius: 12, border: "none",
+                  background: (commentText[discussionAgendaId] || "").trim() ? "#2563EB" : "#D1D5DB",
+                  color: "#FFF", cursor: (commentText[discussionAgendaId] || "").trim() ? "pointer" : "default",
+                  whiteSpace: "nowrap", height: 48,
+                }}
+              >
+                {commentSending[discussionAgendaId] ? "..." : t("nsMeetings.send")}
+              </button>
+            </div>
+            <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 6 }}>Ctrl+Enter</div>
+          </div>
+        )}
+
+        {!canWriteComment && !isMeetingCompleted && (
+          <div style={{ padding: "14px 32px", borderTop: "1px solid #E5E7EB", background: "#FAFAFA", flexShrink: 0 }}>
+            <div style={{ fontSize: 13, color: "#9CA3AF", fontStyle: "italic" }}>
+              {t("nsMeetings.noWriteAccess")}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1376,6 +1836,35 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                       </div>
                     );
                   })()}
+
+                  {/* ── Discussion Button ── */}
+                  <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #F3F4F6" }}>
+                    <button
+                      onClick={() => setDiscussionAgendaId(item.id)}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 8,
+                        padding: "7px 16px", fontSize: 13, fontWeight: 500,
+                        background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 8,
+                        color: "#374151", cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "#F3F4F6"; e.currentTarget.style.borderColor = "#D1D5DB"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "#F9FAFB"; e.currentTarget.style.borderColor = "#E5E7EB"; }}
+                    >
+                      <span style={{ fontSize: 15 }}>{"\uD83D\uDCAC"}</span>
+                      {t("nsMeetings.discussion")}
+                      {(() => {
+                        const count = (commentsMap[item.id] || []).filter((c) => !c.is_deleted).length;
+                        return count > 0 ? (
+                          <span style={{
+                            background: "#2563EB", color: "#FFF", fontSize: 11, fontWeight: 600,
+                            borderRadius: 10, padding: "1px 7px", minWidth: 18, textAlign: "center" as const,
+                          }}>{count}</span>
+                        ) : null;
+                      })()}
+                    </button>
+                  </div>
+
                 </div>
               );
             })}

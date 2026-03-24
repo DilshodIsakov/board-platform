@@ -31,7 +31,9 @@
     "management": "Бошқарув",
     "executive": "Бошқарув аъзоси",
     "employee": "Ходим",
-    "auditor": "Ички аудитор"
+    "auditor": "Ички аудитор",
+    "chairman": "Раис",
+    "department_head": "Бўлим бошлиғи"
   },
   "sidebar": {
     "title": "Кузатув кенгаши",
@@ -647,7 +649,25 @@
     "keepTranslations": "Сақлаш",
     "translationProviderNote": "OpenAI орқали автотаржима ✦",
     "translationError": "Таржималарни яратиб бўлмади. Қайта уриниб кўринг.",
-    "translationPlaceholder": "Таржима бу ерда пайдо бўлади"
+    "translationPlaceholder": "Таржима бу ерда пайдо бўлади",
+    "discussion": "Муҳокама",
+    "discussionCount": "{{count}} та изоҳ",
+    "noComments": "Ҳали изоҳлар йўқ",
+    "addComment": "Изоҳ қўшиш",
+    "commentPlaceholder": "Изоҳ ёзинг...",
+    "replyPlaceholder": "Жавоб ёзинг...",
+    "send": "Юбориш",
+    "reply": "Жавоб бериш",
+    "deleteComment": "Ўчириш",
+    "commentDeleted": "Изоҳ ўчирилди",
+    "commentAdded": "Изоҳ қўшилди",
+    "commentError": "Изоҳ қўшишда хатолик",
+    "discussionClosed": "Муҳокама ёпилди — мажлис тугади",
+    "noWriteAccess": "Фақат кузатув кенгаши аъзолари, котиб ва администратор изоҳ қолдириши мумкин",
+    "backToMeeting": "Мажлисга қайтиш",
+    "editComment": "Ўзгартириш",
+    "saveEdit": "Сақлаш",
+    "edited": "ўзгартирилган"
   },
   "admin": {
     "title": "Фойдаланувчиларни бошқариш",

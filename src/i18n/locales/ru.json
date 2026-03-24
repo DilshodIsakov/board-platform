@@ -31,7 +31,9 @@
     "management": "Менеджмент",
     "executive": "Член Правления",
     "employee": "Сотрудник",
-    "auditor": "Внутренний аудитор"
+    "auditor": "Внутренний аудитор",
+    "chairman": "Председатель",
+    "department_head": "Руководитель отдела"
   },
   "sidebar": {
     "title": "Наблюдательный совет",
@@ -652,7 +654,25 @@
     "keepTranslations": "Оставить",
     "translationProviderNote": "Автоперевод через OpenAI ✦",
     "translationError": "Не удалось сгенерировать переводы. Попробуйте ещё раз.",
-    "translationPlaceholder": "Перевод появится здесь"
+    "translationPlaceholder": "Перевод появится здесь",
+    "discussion": "Обсуждение",
+    "discussionCount": "{{count}} комментариев",
+    "noComments": "Комментариев пока нет",
+    "addComment": "Добавить комментарий",
+    "commentPlaceholder": "Напишите комментарий...",
+    "replyPlaceholder": "Напишите ответ...",
+    "send": "Отправить",
+    "reply": "Ответить",
+    "deleteComment": "Удалить",
+    "commentDeleted": "Комментарий удалён",
+    "commentAdded": "Комментарий добавлен",
+    "commentError": "Ошибка при добавлении комментария",
+    "discussionClosed": "Обсуждение закрыто — заседание завершено",
+    "noWriteAccess": "Только члены НС, секретарь и администратор могут оставлять комментарии",
+    "backToMeeting": "Назад к заседанию",
+    "editComment": "Изменить",
+    "saveEdit": "Сохранить",
+    "edited": "изменено"
   },
   "admin": {
     "title": "Управление пользователями",

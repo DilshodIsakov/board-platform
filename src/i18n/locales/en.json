@@ -31,7 +31,9 @@
     "management": "Management",
     "executive": "Executive",
     "employee": "Employee",
-    "auditor": "Internal Auditor"
+    "auditor": "Internal Auditor",
+    "chairman": "Chairman",
+    "department_head": "Department Head"
   },
   "sidebar": {
     "title": "Supervisory Board",
@@ -647,7 +649,25 @@
     "keepTranslations": "Keep",
     "translationProviderNote": "Auto-translation via OpenAI ✦",
     "translationError": "Failed to generate translations. Please try again.",
-    "translationPlaceholder": "Translation will appear here"
+    "translationPlaceholder": "Translation will appear here",
+    "discussion": "Discussion",
+    "discussionCount": "{{count}} comments",
+    "noComments": "No comments yet",
+    "addComment": "Add comment",
+    "commentPlaceholder": "Write a comment...",
+    "replyPlaceholder": "Write a reply...",
+    "send": "Send",
+    "reply": "Reply",
+    "deleteComment": "Delete",
+    "commentDeleted": "Comment deleted",
+    "commentAdded": "Comment added",
+    "commentError": "Error adding comment",
+    "discussionClosed": "Discussion closed — meeting completed",
+    "noWriteAccess": "Only board members, secretary, and admin can post comments",
+    "backToMeeting": "Back to meeting",
+    "editComment": "Edit",
+    "saveEdit": "Save",
+    "edited": "edited"
   },
   "admin": {
     "title": "User Management",

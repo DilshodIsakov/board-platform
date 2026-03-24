@@ -151,7 +151,7 @@ export default function AuditLogPage({ profile }: Props) {
             <select value={userId} onChange={(e) => setUserId(e.target.value)} style={selectStyle}>
               <option value="">{t("auditLog.all")}</option>
               {allUsers.map((u) => {
-                const uid = (u as Record<string, unknown>).user_id as string | undefined;
+                const uid = (u as unknown as Record<string, unknown>).user_id as string | undefined;
                 return (
                   <option key={u.id} value={uid || u.id}>
                     {u.full_name || u.email}

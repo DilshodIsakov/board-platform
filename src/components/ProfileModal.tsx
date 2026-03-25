@@ -136,7 +136,7 @@ export default function ProfileModal({ member, currentProfileId, isAdmin, onClos
             </button>
           )}
           {(isSelf || isAdmin) && (
-            <button onClick={() => { onClose(); navigate(isSelf ? "/profile" : `/profile?userId=${member.id}`); }} style={profileBtnStyle}>
+            <button onClick={() => { onClose(); navigate(isSelf ? "/profile" : `/profile/${member.id}`); }} style={profileBtnStyle}>
               {t("profile.goToProfile")}
             </button>
           )}

@@ -101,12 +101,15 @@ export async function fetchVotingsByMeeting(meetingId: string): Promise<Voting[]
 /** Загрузить все голосования с meeting_id из agenda_items (для дашборда) */
 export interface VotingWithMeeting extends Voting {
   meeting_id: string;
+  agenda_title_ru?: string | null;
+  agenda_title_en?: string | null;
+  agenda_title_uz?: string | null;
 }
 
 export async function fetchAllVotingsWithMeeting(): Promise<VotingWithMeeting[]> {
   const { data, error } = await supabase
     .from("votings")
-    .select("*, votes(*), agenda_items!inner(meeting_id)")
+    .select("*, votes(*), agenda_items!inner(meeting_id, title_ru, title_en, title_uz)")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -114,11 +117,17 @@ export async function fetchAllVotingsWithMeeting(): Promise<VotingWithMeeting[]>
     return [];
   }
 
-  return (data || []).map((row: Record<string, unknown>) => ({
-    ...(row as unknown as Voting),
-    meeting_id: (row.agenda_items as { meeting_id: string } | null)?.meeting_id ?? "",
-    agenda_items: undefined,
-  })) as VotingWithMeeting[];
+  return (data || []).map((row: Record<string, unknown>) => {
+    const ai = row.agenda_items as { meeting_id: string; title_ru?: string; title_en?: string; title_uz?: string } | null;
+    return {
+      ...(row as unknown as Voting),
+      meeting_id: ai?.meeting_id ?? "",
+      agenda_title_ru: ai?.title_ru ?? null,
+      agenda_title_en: ai?.title_en ?? null,
+      agenda_title_uz: ai?.title_uz ?? null,
+      agenda_items: undefined,
+    };
+  }) as VotingWithMeeting[];
 }
 
 // ─── Voting lifecycle ─────────────────────────────────────────────────────────

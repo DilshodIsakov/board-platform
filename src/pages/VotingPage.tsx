@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import type { Profile, Organization } from "../lib/profile";
+import { getLocalizedName } from "../lib/profile";
+import { supabase } from "../lib/supabaseClient";
 import { getIntlLocale } from "../i18n";
 import { getLocalizedField } from "../lib/i18nHelpers";
 import { fetchNSMeetings, type NSMeeting } from "../lib/nsMeetings";
@@ -36,6 +38,7 @@ export default function VotingPage({ profile, org }: Props) {
   const [loading, setLoading] = useState(true);
   const [votingInProgress, setVotingInProgress] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState("");
+  const [voterProfiles, setVoterProfiles] = useState<Record<string, { full_name: string; full_name_en?: string | null; full_name_uz?: string | null }>>({});
 
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
@@ -96,6 +99,23 @@ export default function VotingPage({ profile, org }: Props) {
       statuses.push({ meeting, votings, openVotings, closedVotings, myVotedCount, signature: sig });
     }
 
+    // Load voter profiles
+    const allVoterIds = new Set<string>();
+    for (const v of allVotings) {
+      for (const vote of v.votes || []) allVoterIds.add(vote.voter_id);
+    }
+    if (allVoterIds.size > 0) {
+      const { data: vpData } = await supabase
+        .from("profiles")
+        .select("id, full_name, full_name_en, full_name_uz")
+        .in("id", Array.from(allVoterIds));
+      if (vpData) {
+        const vpMap: Record<string, { full_name: string; full_name_en?: string | null; full_name_uz?: string | null }> = {};
+        for (const p of vpData) vpMap[p.id] = p;
+        setVoterProfiles(vpMap);
+      }
+    }
+
     setMeetingStatuses(statuses);
     setLoading(false);
   };
@@ -130,6 +150,7 @@ export default function VotingPage({ profile, org }: Props) {
               onVote={handleVote}
               votingInProgress={votingInProgress}
               canVote={canVote}
+              voterProfiles={voterProfiles}
             />
           ))}
         </div>
@@ -181,6 +202,7 @@ function MeetingVotingCard({
   onVote,
   votingInProgress,
   canVote,
+  voterProfiles,
 }: {
   status: MeetingVotingStatus;
   profileId: string;
@@ -188,8 +210,9 @@ function MeetingVotingCard({
   onVote: (votingId: string, choice: "for" | "against" | "abstain") => void;
   votingInProgress: string | null;
   canVote: boolean;
+  voterProfiles: Record<string, { full_name: string; full_name_en?: string | null; full_name_uz?: string | null }>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { meeting, votings, openVotings, myVotedCount, signature } = status;
 
   const meetingTitle = getLocalizedField(meeting as unknown as Record<string, unknown>, "title");
@@ -226,6 +249,7 @@ function MeetingVotingCard({
           const myVote = (v.votes || []).find((vote) => vote.voter_id === profileId);
           const isOpen = v.status === "open";
           const isLoading = votingInProgress === v.id;
+          const localizedTitle = getLocalizedField(v as unknown as Record<string, unknown>, "agenda_title") || v.title;
           return (
             <div key={v.id} style={votingRowStyle}>
               {/* Title row */}
@@ -233,7 +257,7 @@ function MeetingVotingCard({
                 <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
                   <span style={getVotingDotStyle(v.status)} />
                   <span style={{ fontSize: 13, fontWeight: 500, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {v.title}
+                    {localizedTitle}
                   </span>
                 </div>
                 <div style={{ flexShrink: 0, marginLeft: 12 }}>
@@ -278,6 +302,26 @@ function MeetingVotingCard({
                     : <span style={decisionRejectedStyle}>⚠ {t("nsVoting.decisionNotAccepted")}</span>
                 )}
               </div>
+              {/* Individual votes */}
+              {(v.votes || []).length > 0 && (
+                <div style={{ marginTop: 6, padding: "6px 10px", background: "#F9FAFB", borderRadius: 8, border: "1px solid #F3F4F6" }}>
+                  {(v.votes || []).map((vote) => {
+                    const vp = voterProfiles[vote.voter_id];
+                    const name = vp ? getLocalizedName(vp, i18n.language) : vote.voter_id.slice(0, 8);
+                    const choiceIcon = vote.choice === "for" ? "✔" : vote.choice === "against" ? "✖" : "◯";
+                    const choiceColor = vote.choice === "for" ? "#059669" : vote.choice === "against" ? "#DC2626" : "#9CA3AF";
+                    const choiceLabel = vote.choice === "for" ? t("nsVoting.voteFor")
+                      : vote.choice === "against" ? t("nsVoting.voteAgainst")
+                      : t("nsVoting.voteAbstain");
+                    return (
+                      <div key={vote.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "3px 0", fontSize: 12 }}>
+                        <span style={{ color: "#374151" }}>{name}</span>
+                        <span style={{ color: choiceColor, fontWeight: 600 }}>{choiceIcon} {choiceLabel}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}

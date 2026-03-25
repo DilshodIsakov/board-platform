@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
 import type { Profile, Organization } from "../lib/profile";
+import { getLocalizedName } from "../lib/profile";
 import {
   fetchNSMeetingById,
   updateNSMeeting,
@@ -66,7 +67,7 @@ interface Props {
 }
 
 export default function NSMeetingDetailsPage({ profile, org }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isAdmin = profile?.role === "admin" || profile?.role === "corp_secretary";
@@ -126,6 +127,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   const [votingsMap, setVotingsMap] = useState<Record<string, Voting>>({});
   const [myVotesMap, setMyVotesMap] = useState<Record<string, Vote>>({});
   const [meetingSignature, setMeetingSignature] = useState<MeetingVoteSignature | null>(null);
+  const [voterProfiles, setVoterProfiles] = useState<Record<string, { full_name: string; full_name_en?: string | null; full_name_uz?: string | null }>>({});
   const [signingInProgress, setSigningInProgress] = useState(false);
   const [signError, setSignError] = useState("");
   const [toastMsg, setToastMsg] = useState("");
@@ -199,6 +201,24 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     }
     setVotingsMap(vMap);
     setMyVotesMap(mvMap);
+
+    // Load voter profiles for displaying who voted
+    const allVoterIds = new Set<string>();
+    for (const v of votings) {
+      for (const vote of v.votes || []) allVoterIds.add(vote.voter_id);
+    }
+    if (allVoterIds.size > 0) {
+      const { data: vpData } = await supabase
+        .from("profiles")
+        .select("id, full_name, full_name_en, full_name_uz")
+        .in("id", Array.from(allVoterIds));
+      if (vpData) {
+        const vpMap: Record<string, { full_name: string; full_name_en?: string | null; full_name_uz?: string | null }> = {};
+        for (const p of vpData) vpMap[p.id] = p;
+        setVoterProfiles(vpMap);
+      }
+    }
+
     const sig = await fetchMeetingSignature(meetingId, profile.id);
     setMeetingSignature(sig);
   };
@@ -1808,6 +1828,27 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             <span style={{ color: "#059669", fontWeight: 500 }}>✓ {t("nsVoting.voteFor")}: {tally.forCount}</span>
                             <span style={{ color: "#DC2626", fontWeight: 500 }}>✗ {t("nsVoting.voteAgainst")}: {tally.againstCount}</span>
                             <span style={{ color: "#9CA3AF", fontWeight: 500 }}>– {t("nsVoting.voteAbstain")}: {tally.abstainCount}</span>
+                          </div>
+                        )}
+
+                        {/* Individual votes list */}
+                        {voting && (voting.votes || []).length > 0 && (
+                          <div style={{ marginTop: 4, marginBottom: 8, padding: "8px 12px", background: "#F9FAFB", borderRadius: 8, border: "1px solid #F3F4F6" }}>
+                            {(voting.votes || []).map((vote) => {
+                              const vp = voterProfiles[vote.voter_id];
+                              const name = vp ? getLocalizedName(vp, i18n.language) : vote.voter_id.slice(0, 8);
+                              const choiceIcon = vote.choice === "for" ? "✓" : vote.choice === "against" ? "✗" : "–";
+                              const choiceColor = vote.choice === "for" ? "#059669" : vote.choice === "against" ? "#DC2626" : "#9CA3AF";
+                              const choiceLabel = vote.choice === "for" ? t("nsVoting.voteFor")
+                                : vote.choice === "against" ? t("nsVoting.voteAgainst")
+                                : t("nsVoting.voteAbstain");
+                              return (
+                                <div key={vote.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0", fontSize: 13 }}>
+                                  <span style={{ color: "#374151" }}>{name}</span>
+                                  <span style={{ color: choiceColor, fontWeight: 600 }}>{choiceIcon} {choiceLabel}</span>
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
 

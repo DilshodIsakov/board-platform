@@ -434,7 +434,7 @@ export default function DashboardPage({ profile, org }: Props) {
                             fontSize: 13, fontWeight: 500, color: "#111827",
                             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 3,
                           }}>
-                            {v.title}
+                            {getLocalizedField(v as unknown as Record<string, unknown>, "agenda_title") || v.title}
                           </div>
                           {meeting && (
                             <div style={{ fontSize: 11, color: "#9CA3AF" }}>

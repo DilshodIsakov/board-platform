@@ -170,6 +170,7 @@ export default function VotingPage({ profile, org }: Props) {
                 onVote={handleVote}
                 votingInProgress={votingInProgress}
                 canVote={canVote}
+                voterProfiles={voterProfiles}
               />
             ))}
           </div>

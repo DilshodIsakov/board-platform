@@ -702,7 +702,7 @@ export default function CalendarPage({ profile, org }: Props) {
                         {/* Action buttons */}
                         <div style={{ display: "flex", gap: 8 }}>
                           <Link
-                            to={isWorkPlan ? "/calendar?tab=workplan" : `/ns-meetings?meetingId=${selectedEvent.id}`}
+                            to={isWorkPlan ? "/calendar?tab=workplan" : `/ns-meetings/${selectedEvent.id}`}
                             style={{
                               flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
                               padding: "9px 16px", borderRadius: 8,

@@ -361,7 +361,7 @@ export default function DashboardPage({ profile, org }: Props) {
           const pendingVotings = openVotings.filter(
             (v) => !(v.votes || []).some((vote) => vote.voter_id === profile?.id)
           );
-          const displayList = isAdmin ? openVotings : pendingVotings;
+          const displayList = openVotings;
           const shown = displayList.slice(0, 3);
           const extraCount = displayList.length - 3;
           const hasPending = pendingVotings.length > 0;

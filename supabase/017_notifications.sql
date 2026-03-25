@@ -291,12 +291,12 @@ BEGIN
   END IF;
 
   FOR _rec IN
-    SELECT user_id FROM public.profiles WHERE org_id = NEW.org_id
+    SELECT id FROM public.profiles WHERE organization_id = NEW.organization_id
   LOOP
-    IF _rec.user_id <> auth.uid() THEN
+    IF _rec.id <> auth.uid() THEN
       INSERT INTO public.notifications (recipient_id, type, title, body, related_entity_type, related_entity_id)
       VALUES (
-        _rec.user_id,
+        _rec.id,
         'meeting_invitation',
         'Новое заседание',
         coalesce(NEW.title, 'Заседание'),

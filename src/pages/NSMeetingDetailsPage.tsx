@@ -253,6 +253,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   // ---------- Discussion / Comments ----------
 
   const canWriteComment = profile && ["admin", "corp_secretary", "board_member", "chairman"].includes(profile.role);
+  const canVote = profile && ["board_member", "chairman"].includes(profile.role);
   const isMeetingCompleted = meeting?.status === "completed";
 
   const handleAddComment = async (agendaItemId: string, parentId?: string | null) => {
@@ -738,8 +739,9 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
       await castVote(votingId, org.id, profile.id, choice);
       await loadVotingData(agendaItems, meeting.id);
       showToast(t("nsVoting.voteSaved"));
-    } catch (e) {
+    } catch (e: unknown) {
       console.error("handleCastVote error:", e);
+      showToast((e instanceof Error ? e.message : String(e)) || t("common.error"));
     }
   };
 
@@ -1809,7 +1811,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           </div>
                         )}
 
-                        {isVotingOpen && !meetingSignature && (
+                        {isVotingOpen && !meetingSignature && canVote && (
                           <div style={{ marginTop: 6 }}>
                             {myVote ? (
                               <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>

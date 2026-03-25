@@ -16,7 +16,7 @@ BEGIN
   FOR member IN
     SELECT p.id AS user_id
     FROM public.profiles p
-    WHERE p.org_id = NEW.org_id
+    WHERE p.organization_id = NEW.org_id
       AND p.role IN ('board_member', 'chairman')
       AND p.id != auth.uid()
   LOOP

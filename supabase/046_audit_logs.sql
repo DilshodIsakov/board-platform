@@ -213,18 +213,18 @@ CREATE TRIGGER trg_audit_agenda_items
 
 CREATE OR REPLACE FUNCTION public.audit_vote_changes()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE _voting_title text; _meeting_id uuid; _agenda_id uuid; _meta jsonb;
+DECLARE _voting_title text; _agenda_id uuid; _meta jsonb;
 BEGIN
-  SELECT v.title, v.meeting_id, v.agenda_item_id
-  INTO _voting_title, _meeting_id, _agenda_id
+  SELECT v.title, v.agenda_item_id
+  INTO _voting_title, _agenda_id
   FROM public.votings v WHERE v.id = NEW.voting_id;
 
   IF TG_OP = 'INSERT' THEN
-    _meta := jsonb_build_object('vote_value', NEW.value);
-    PERFORM public.log_audit_event('vote_cast','Голосование','vote',NEW.id::text,_voting_title,_meeting_id,_agenda_id,NULL,NULL,_meta);
-  ELSIF TG_OP = 'UPDATE' AND OLD.value IS DISTINCT FROM NEW.value THEN
-    _meta := jsonb_build_object('old_vote',OLD.value,'new_vote',NEW.value);
-    PERFORM public.log_audit_event('vote_change','Изменение голоса','vote',NEW.id::text,_voting_title,_meeting_id,_agenda_id,NULL,NULL,_meta);
+    _meta := jsonb_build_object('vote_value', NEW.choice);
+    PERFORM public.log_audit_event('vote_cast','Голосование','vote',NEW.id::text,_voting_title,NULL,_agenda_id,NULL,NULL,_meta);
+  ELSIF TG_OP = 'UPDATE' AND OLD.choice IS DISTINCT FROM NEW.choice THEN
+    _meta := jsonb_build_object('old_vote',OLD.choice,'new_vote',NEW.choice);
+    PERFORM public.log_audit_event('vote_change','Изменение голоса','vote',NEW.id::text,_voting_title,NULL,_agenda_id,NULL,NULL,_meta);
   END IF;
   RETURN NEW;
 END;
@@ -284,11 +284,11 @@ RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE _meta jsonb;
 BEGIN
   IF TG_OP = 'INSERT' THEN
-    PERFORM public.log_audit_event('voting_create','Создание голосования','voting',NEW.id::text,NEW.title,NEW.meeting_id,NEW.agenda_item_id);
+    PERFORM public.log_audit_event('voting_create','Создание голосования','voting',NEW.id::text,NEW.title,NULL,NEW.agenda_item_id);
     RETURN NEW;
   ELSIF TG_OP = 'UPDATE' AND OLD.status IS DISTINCT FROM NEW.status THEN
     _meta := jsonb_build_object('old_status',OLD.status,'new_status',NEW.status);
-    PERFORM public.log_audit_event('voting_status_change','Изменение статуса голосования','voting',NEW.id::text,NEW.title,NEW.meeting_id,NEW.agenda_item_id,NULL,NULL,_meta);
+    PERFORM public.log_audit_event('voting_status_change','Изменение статуса голосования','voting',NEW.id::text,NEW.title,NULL,NEW.agenda_item_id,NULL,NULL,_meta);
     RETURN NEW;
   END IF;
   RETURN NEW;

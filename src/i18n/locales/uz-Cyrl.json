@@ -42,7 +42,7 @@
     "calendar": "Тақвим",
     "voting": "Овоз бериш",
     "protocols": "Баённомалар",
-    "nsMeetings": "НС мажлислари",
+    "nsMeetings": "КК мажлислари",
     "chat": "Чат",
     "documents": "Ҳужжат айланиши",
     "tasks": "КК топшириқлари",
@@ -145,7 +145,7 @@
     "writeToManager": "Раҳбарга ёзиш",
     "viewStats": "Статистикани кўриш",
     "greeting": "Хуш келибсиз,",
-    "nextMeeting": "Яқинлашаётган НС мажлиси",
+    "nextMeeting": "Яқинлашаётган КК мажлиси",
     "noNextMeeting": "Режалаштирилган мажлис йўқ",
     "createFirstMeeting": "+ Мажлис яратиш",
     "meetingGoingNow": "Жараёнда",
@@ -176,8 +176,8 @@
     "votingAdminCount": "Фаол: {{count}}",
     "goToVoting": "Овоз беришга ўтиш →",
     "quickActions": "Тез ҳаракатлар",
-    "createNSMeeting": "+ НС мажлиси яратиш",
-    "goToNSMeetings": "НС мажлислари →"
+    "createNSMeeting": "+ КК мажлиси яратиш",
+    "goToNSMeetings": "КК мажлислари →"
   },
   "meetingStatus": {
     "draft": "Қоралама",

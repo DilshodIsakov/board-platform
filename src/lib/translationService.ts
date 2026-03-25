@@ -225,7 +225,7 @@ export async function generateAgendaTranslations(
 
   const result = await callTranslateTextFunction({
     source_language: sourceLang,
-    entity_type: "agenda_item",
+    entity_type: "board_meeting",
     fields,
   });
 

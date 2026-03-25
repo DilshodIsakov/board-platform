@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
 import type { Profile, Organization } from "../lib/profile";
+import { getLocalizedName } from "../lib/profile";
 import { fetchNSMeetings, fetchAgendaItems, type NSMeeting } from "../lib/nsMeetings";
 import { fetchAllVotingsWithMeeting, type VotingWithMeeting } from "../lib/voting";
 import { getLocalizedField } from "../lib/i18nHelpers";
@@ -198,7 +199,7 @@ export default function DashboardPage({ profile, org }: Props) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
           <div>
             <h1 style={{ fontSize: 26, fontWeight: 700, color: "#111827", margin: 0 }}>
-              {t("dashboard.greeting")} {profile?.full_name?.split(" ")[0] || ""}
+              {t("dashboard.greeting")} {profile ? getLocalizedName(profile, i18n.language) : ""}!
             </h1>
             <p style={{ color: "#6B7280", fontSize: 14, margin: "4px 0 0" }}>
               {todayCap}

@@ -124,7 +124,7 @@ export async function updateUserRole(userId: string, role: Profile["role"]): Pro
   return result.ok;
 }
 
-export async function updateMyProfile(updates: { full_name?: string }): Promise<boolean> {
+export async function updateMyProfile(updates: { full_name?: string; full_name_en?: string; full_name_uz?: string }): Promise<boolean> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return false;
 

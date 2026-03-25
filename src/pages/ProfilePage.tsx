@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { Profile, Organization } from "../lib/profile";
-import { getLocalizedName, getLocalizedRoleDetails } from "../lib/profile";
+import { getLocalizedName, getLocalizedRoleDetails, updateMyProfile } from "../lib/profile";
 import {
   fetchMyProfileDetails,
   upsertProfileDetails,
@@ -31,11 +31,19 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
   const [success, setSuccess] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
+  // Name fields (from profiles table)
+  const [nameRu, setNameRu] = useState("");
+  const [nameEn, setNameEn] = useState("");
+  const [nameUz, setNameUz] = useState("");
+
   // Form state
   const [form, setForm] = useState<Record<string, string | boolean | null>>({});
 
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
+    setNameRu(profile.full_name || "");
+    setNameEn(profile.full_name_en || "");
+    setNameUz(profile.full_name_uz || "");
     loadDetails();
   }, [profile?.id]);
 
@@ -83,6 +91,19 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
     setSaving(true);
     setError("");
 
+    // Save name fields to profiles table
+    const nameOk = await updateMyProfile({
+      full_name: nameRu.trim() || undefined,
+      full_name_en: nameEn.trim() || undefined,
+      full_name_uz: nameUz.trim() || undefined,
+    });
+    if (!nameOk) {
+      setError(t("common.error"));
+      setSaving(false);
+      return;
+    }
+
+    // Save other details to profile_details table
     const updates: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(form)) {
       updates[k] = typeof v === "string" && !v.trim() ? null : v;
@@ -103,6 +124,9 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
   const handleCancel = () => {
     if (details) setForm(detailsToForm(details));
     else setForm({});
+    setNameRu(profile?.full_name || "");
+    setNameEn(profile?.full_name_en || "");
+    setNameUz(profile?.full_name_uz || "");
     setEditing(false);
     setError("");
   };
@@ -204,6 +228,36 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
           {t("profile.manualTranslationNote")}
         </div>
       )}
+
+      {/* Personal Info (Name) */}
+      <Section title={t("profile.personalInfo")}>
+        {editing ? (
+          <div style={{ marginBottom: 12 }}>
+            <div style={fieldLabelStyle}>{t("profile.fullName")}</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <div style={langLabelStyle}>RU</div>
+                <input style={inputStyle} value={nameRu} onChange={(e) => setNameRu(e.target.value)} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={langLabelStyle}>EN</div>
+                <input style={inputStyle} value={nameEn} onChange={(e) => setNameEn(e.target.value)} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={langLabelStyle}>UZ</div>
+                <input style={inputStyle} value={nameUz} onChange={(e) => setNameUz(e.target.value)} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {profile.full_name && <FieldRow label="RU" value={profile.full_name} />}
+            {profile.full_name_en && <FieldRow label="EN" value={profile.full_name_en} />}
+            {profile.full_name_uz && <FieldRow label="UZ" value={profile.full_name_uz} />}
+            {!profile.full_name && !profile.full_name_en && !profile.full_name_uz && <EmptyState />}
+          </>
+        )}
+      </Section>
 
       {/* Sections */}
       <Section title={t("profile.position")}>

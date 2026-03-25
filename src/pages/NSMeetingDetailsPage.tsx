@@ -39,6 +39,7 @@ import {
   type AgendaItemComment,
 } from "../lib/agendaComments";
 import { downloadFileByUrl } from "../lib/format";
+import { supabase } from "../lib/supabaseClient";
 import {
   generateMeetingTranslations,
   generateAgendaTranslations,
@@ -145,6 +146,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   const [discussionAgendaId, setDiscussionAgendaId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState("");
+  const [userAvatars, setUserAvatars] = useState<Record<string, string | null>>({});
 
   const LANG_OPTIONS: { value: BriefLang; label: string }[] = [
     { value: "ru", label: "Русский" },
@@ -229,6 +231,22 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     if (items.length > 0) {
       const cMap = await fetchCommentsByAgendaItems(items.map((i) => i.id));
       setCommentsMap(cMap);
+      // Load avatars for comment authors
+      const allUserIds = new Set<string>();
+      for (const comments of Object.values(cMap)) {
+        for (const c of comments) allUserIds.add(c.user_id);
+      }
+      if (allUserIds.size > 0) {
+        const { data: avatarData } = await supabase
+          .from("profiles")
+          .select("id, avatar_url")
+          .in("id", Array.from(allUserIds));
+        if (avatarData) {
+          const aMap: Record<string, string | null> = {};
+          for (const p of avatarData) aMap[p.id] = p.avatar_url;
+          setUserAvatars(aMap);
+        }
+      }
     }
   };
 
@@ -908,14 +926,20 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                       {/* Comment header */}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                          <div style={{
-                            width: 36, height: 36, borderRadius: "50%",
-                            background: comment.user_role === "admin" ? "#2563EB" : comment.user_role === "chairman" ? "#D97706" : comment.user_role === "corp_secretary" ? "#7C3AED" : "#3B82F6",
-                            color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 14, fontWeight: 700, flexShrink: 0,
-                          }}>
-                            {(comment.user_name || "?").charAt(0).toUpperCase()}
-                          </div>
+                          {userAvatars[comment.user_id] ? (
+                            <img src={userAvatars[comment.user_id]!} alt="" style={{
+                              width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0,
+                            }} />
+                          ) : (
+                            <div style={{
+                              width: 36, height: 36, borderRadius: "50%",
+                              background: comment.user_role === "admin" ? "#2563EB" : comment.user_role === "chairman" ? "#D97706" : comment.user_role === "corp_secretary" ? "#7C3AED" : "#3B82F6",
+                              color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center",
+                              fontSize: 14, fontWeight: 700, flexShrink: 0,
+                            }}>
+                              {(comment.user_name || "?").charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{comment.user_name}</span>
@@ -1027,14 +1051,20 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div style={{
-                                width: 28, height: 28, borderRadius: "50%",
-                                background: reply.user_role === "admin" ? "#2563EB" : "#6B7280",
-                                color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 11, fontWeight: 700, flexShrink: 0,
-                              }}>
-                                {(reply.user_name || "?").charAt(0).toUpperCase()}
-                              </div>
+                              {userAvatars[reply.user_id] ? (
+                                <img src={userAvatars[reply.user_id]!} alt="" style={{
+                                  width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0,
+                                }} />
+                              ) : (
+                                <div style={{
+                                  width: 28, height: 28, borderRadius: "50%",
+                                  background: reply.user_role === "admin" ? "#2563EB" : "#6B7280",
+                                  color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center",
+                                  fontSize: 11, fontWeight: 700, flexShrink: 0,
+                                }}>
+                                  {(reply.user_name || "?").charAt(0).toUpperCase()}
+                                </div>
+                              )}
                               <span style={{ fontWeight: 600, fontSize: 13, color: "#111827" }}>{reply.user_name}</span>
                               <span style={{ fontSize: 12, color: "#9CA3AF" }}>
                                 {new Date(reply.created_at).toLocaleString(getIntlLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}

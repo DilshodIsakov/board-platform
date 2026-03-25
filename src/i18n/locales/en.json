@@ -899,6 +899,8 @@
     "removePhoto": "Remove Photo",
     "photoUploaded": "Photo uploaded",
     "photoRemoved": "Photo removed",
+    "personalInfo": "Personal Information",
+    "fullName": "Full Name",
     "position": "Position & Employment",
     "boardStatus": "Board Status",
     "boardStatus_independent": "Independent Member",

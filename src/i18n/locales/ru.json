@@ -892,6 +892,8 @@
     "removePhoto": "Удалить фото",
     "photoUploaded": "Фото загружено",
     "photoRemoved": "Фото удалено",
+    "personalInfo": "Личные данные",
+    "fullName": "ФИО",
     "position": "Должность и место работы",
     "boardStatus": "Статус в совете",
     "boardStatus_independent": "Независимый член",

@@ -243,12 +243,12 @@ RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE _meta jsonb;
 BEGIN
   IF TG_OP = 'INSERT' THEN
-    _meta := jsonb_build_object('file_name',NEW.name,'language',NEW.language);
-    PERFORM public.log_audit_event('file_upload','Загрузка файла','file',NEW.id::text,NEW.name,NEW.meeting_id,NEW.agenda_item_id,NEW.id::text,NEW.language,_meta);
+    _meta := jsonb_build_object('file_name',NEW.file_name,'language',NEW.language);
+    PERFORM public.log_audit_event('file_upload','Загрузка файла','file',NEW.id::text,NEW.file_name,NEW.meeting_id,NEW.agenda_item_id,NEW.id::text,NEW.language,_meta);
     RETURN NEW;
   ELSIF TG_OP = 'DELETE' THEN
-    _meta := jsonb_build_object('file_name',OLD.name,'language',OLD.language);
-    PERFORM public.log_audit_event('file_delete','Удаление файла','file',OLD.id::text,OLD.name,OLD.meeting_id,OLD.agenda_item_id,OLD.id::text,OLD.language,_meta);
+    _meta := jsonb_build_object('file_name',OLD.file_name,'language',OLD.language);
+    PERFORM public.log_audit_event('file_delete','Удаление файла','file',OLD.id::text,OLD.file_name,OLD.meeting_id,OLD.agenda_item_id,OLD.id::text,OLD.language,_meta);
     RETURN OLD;
   END IF;
   RETURN NULL;

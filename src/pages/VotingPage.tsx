@@ -148,6 +148,7 @@ export default function VotingPage({ profile, org }: Props) {
                 onGoToMeeting={() => navigate(`/ns-meetings/${s.meeting.id}`)}
                 onVote={handleVote}
                 votingInProgress={votingInProgress}
+                canVote={canVote}
               />
             ))}
           </div>

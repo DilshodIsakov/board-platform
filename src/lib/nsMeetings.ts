@@ -293,34 +293,51 @@ export async function uploadMaterial(
   const langSegment = language ? `${language}/` : "";
   const storagePath = `${orgId}/${meetingId}/${agendaSegment}${langSegment}${Date.now()}_${sanitizeFileName(file.name)}`;
 
+  let uploadOk = false;
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, file);
   if (uploadError) {
     console.error("uploadMaterial storage error:", uploadError);
-    throw new Error(uploadError.message);
+    // File may have uploaded despite the error (e.g. HTTP2 protocol error).
+    // Wait briefly then verify by listing the folder.
+    await new Promise((r) => setTimeout(r, 1500));
+    const fileName = storagePath.split("/").pop() || "";
+    const folder = storagePath.substring(0, storagePath.lastIndexOf("/"));
+    const { data: listData } = await supabase.storage.from(BUCKET).list(folder, { search: fileName });
+    if (listData && listData.length > 0) {
+      console.log("uploadMaterial: file found in storage despite error, proceeding");
+      uploadOk = true;
+    } else {
+      throw new Error(uploadError.message);
+    }
+  } else {
+    uploadOk = true;
   }
 
-  const { data, error } = await supabase
-    .from("documents")
-    .insert({
-      org_id: orgId,
-      meeting_id: meetingId,
-      agenda_item_id: agendaItemId || null,
-      title,
-      file_name: file.name,
-      file_size: file.size,
-      mime_type: file.type || "application/octet-stream",
-      storage_path: storagePath,
-      uploaded_by: uploadedBy,
-      language: language || null,
-    })
-    .select()
-    .single();
+  if (uploadOk) {
+    const { data, error } = await supabase
+      .from("documents")
+      .insert({
+        org_id: orgId,
+        meeting_id: meetingId,
+        agenda_item_id: agendaItemId || null,
+        title,
+        file_name: file.name,
+        file_size: file.size,
+        mime_type: file.type || "application/octet-stream",
+        storage_path: storagePath,
+        uploaded_by: uploadedBy,
+        language: language || null,
+      })
+      .select()
+      .single();
 
-  if (error) {
-    console.error("uploadMaterial insert error:", error);
-    throw new Error(error.message);
+    if (error) {
+      console.error("uploadMaterial insert error:", error);
+      throw new Error(error.message);
+    }
+    return data as Material;
   }
-  return data as Material;
+  return null;
 }
 
 export async function deleteMaterial(mat: Material): Promise<void> {

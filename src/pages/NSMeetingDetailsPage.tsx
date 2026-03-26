@@ -41,6 +41,7 @@ import {
 } from "../lib/agendaComments";
 import { downloadFileByUrl } from "../lib/format";
 import { supabase } from "../lib/supabaseClient";
+import { logAuditEvent } from "../lib/auditLog";
 import {
   generateMeetingTranslations,
   generateAgendaTranslations,
@@ -179,6 +180,9 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     setLoading(true);
     const data = await fetchNSMeetingById(id);
     setMeeting(data);
+    if (data) {
+      logAuditEvent({ actionType: "meeting_view", actionLabel: "Просмотр заседания", entityType: "meeting", entityId: data.id, entityTitle: data.title, meetingId: data.id });
+    }
     setLoading(false);
   };
 
@@ -298,6 +302,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         ...prev,
         [agendaItemId]: [...(prev[agendaItemId] || []), result],
       }));
+      logAuditEvent({ actionType: "comment_add", actionLabel: "Добавление комментария", entityType: "comment", entityId: result.id, meetingId: meeting?.id, agendaItemId });
       if (parentId) {
         setReplyText((p) => ({ ...p, [agendaItemId]: "" }));
         setReplyTo((p) => ({ ...p, [agendaItemId]: null }));
@@ -316,6 +321,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           c.id === commentId ? { ...c, is_deleted: true, content: "" } : c
         ),
       }));
+      logAuditEvent({ actionType: "comment_delete", actionLabel: "Удаление комментария", entityType: "comment", entityId: commentId, meetingId: meeting?.id, agendaItemId });
     }
   };
 
@@ -330,6 +336,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           c.id === commentId ? { ...c, content: result.content, updated_at: result.updated_at } : c
         ),
       }));
+      logAuditEvent({ actionType: "comment_edit", actionLabel: "Редактирование комментария", entityType: "comment", entityId: commentId, meetingId: meeting?.id, agendaItemId });
       setEditingCommentId(null);
       setEditingCommentText("");
     }
@@ -628,7 +635,10 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   const handleDownload = async (mat: Material) => {
     try {
       const url = await getMaterialUrl(mat.storage_path);
-      if (url) await downloadFileByUrl(url, mat.file_name);
+      if (url) {
+        await downloadFileByUrl(url, mat.file_name);
+        logAuditEvent({ actionType: "file_download", actionLabel: "Скачивание файла", entityType: "material", entityId: mat.id, entityTitle: mat.file_name, meetingId: meeting?.id });
+      }
     } catch (e) {
       console.error("Download error:", e);
     }
@@ -736,6 +746,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         }
       }
       await loadVotingData(agendaItems, meeting.id);
+      logAuditEvent({ actionType: "voting_activate", actionLabel: "Активация голосования", entityType: "voting", meetingId: meeting.id, entityTitle: meeting.title });
       showToast(t("nsVoting.activateSuccess"));
     } catch (e) {
       console.error("handleActivateAllVoting error:", e);
@@ -747,6 +758,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     try {
       await closeVotingItem(votingId);
       if (meeting) await loadVotingData(agendaItems, meeting.id);
+      logAuditEvent({ actionType: "voting_close", actionLabel: "Завершение голосования", entityType: "voting", entityId: votingId, meetingId: meeting?.id });
       showToast(t("nsVoting.closeSuccess"));
     } catch (e) {
       console.error("handleCloseVoting error:", e);
@@ -758,6 +770,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     try {
       await castVote(votingId, org.id, profile.id, choice);
       await loadVotingData(agendaItems, meeting.id);
+      logAuditEvent({ actionType: "vote_cast", actionLabel: "Голосование", entityType: "vote", entityId: votingId, meetingId: meeting.id, metadata: { choice } });
       showToast(t("nsVoting.voteSaved"));
     } catch (e: unknown) {
       console.error("handleCastVote error:", e);
@@ -773,6 +786,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     try {
       await signMeetingVotes(meeting.id, profile.id, org.id);
       await loadVotingData(agendaItems, meeting.id);
+      logAuditEvent({ actionType: "vote_sign", actionLabel: "Подписание результатов голосования", entityType: "voting", meetingId: meeting.id, entityTitle: meeting.title });
       showToast(t("nsVoting.signSuccess"));
     } catch (e) {
       setSignError(e instanceof Error ? e.message : t("nsVoting.signError"));
@@ -819,6 +833,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     try {
       await activateMeetingVideoConference(meeting.id, profile.id);
       await loadMeeting();
+      logAuditEvent({ actionType: "video_conf_create", actionLabel: "Активация видеоконференции", entityType: "video_conference", meetingId: meeting.id, entityTitle: meeting.title });
       showToast(t("nsVideoConf.activatedSuccess"));
     } catch (e) {
       console.error("handleActivateVc error:", e);

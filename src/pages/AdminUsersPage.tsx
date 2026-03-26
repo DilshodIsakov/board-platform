@@ -16,6 +16,7 @@ import {
   getLocalizedName,
 } from "../lib/profile";
 import { getIntlLocale } from "../i18n";
+import { logAuditEvent } from "../lib/auditLog";
 
 export default function AdminUsersPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -190,6 +191,7 @@ export default function AdminUsersPage() {
             : p
         )
       );
+      logAuditEvent({ actionType: "user_role_change", actionLabel: "Одобрение пользователя", entityType: "profile", entityId: approvingProfile.id, entityTitle: approvingProfile.full_name || approvingProfile.email, metadata: { role: approveRole } });
       setSuccess(t("admin.userApproved"));
       setShowApproveModal(false);
       setApprovingProfile(null);
@@ -208,6 +210,7 @@ export default function AdminUsersPage() {
     try {
       await adminRejectUser(p.id);
       setProfiles((prev) => prev.filter((x) => x.id !== p.id));
+      logAuditEvent({ actionType: "user_role_change", actionLabel: "Отклонение пользователя", entityType: "profile", entityId: p.id, entityTitle: p.full_name || p.email });
       setSuccess(t("admin.userRejected"));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
@@ -236,6 +239,7 @@ export default function AdminUsersPage() {
     try {
       await adminDeleteUser(p.id);
       setProfiles((prev) => prev.filter((x) => x.id !== p.id));
+      logAuditEvent({ actionType: "user_create", actionLabel: "Удаление пользователя", entityType: "profile", entityId: p.id, entityTitle: p.full_name || p.email });
       setSuccess(t("admin.userDeleted"));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("admin.deleteError"));

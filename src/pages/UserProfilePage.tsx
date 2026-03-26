@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { supabase } from "../lib/supabaseClient";
 import { getLocalizedName, getLocalizedRoleDetails, type Profile } from "../lib/profile";
-import { fetchProfileDetails, type ProfileDetails } from "../lib/profileDetails";
+import { fetchProfileDetails, getDetailField, type ProfileDetails, type EducationEntry } from "../lib/profileDetails";
 
 function getInitials(name: string): string {
   if (!name) return "?";
@@ -35,18 +35,17 @@ function EmptyState() {
   return <div style={{ color: "#9CA3AF", fontSize: 14, fontStyle: "italic" }}>{t("profile.noData")}</div>;
 }
 
-function getLocalizedField(details: ProfileDetails, base: string, lang: string): string {
-  const suffix = lang === "uz-Cyrl" ? "uz" : lang === "en" ? "en" : "ru";
-  const key = `${base}_${suffix}` as keyof ProfileDetails;
-  const ruKey = `${base}_ru` as keyof ProfileDetails;
-  return (details[key] as string) || (details[ruKey] as string) || "";
+
+interface Props {
+  currentProfile?: Profile | null;
 }
 
-export default function UserProfilePage() {
+export default function UserProfilePage({ currentProfile }: Props) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  const isAdmin = currentProfile?.role === "admin" || currentProfile?.role === "corp_secretary";
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [details, setDetails] = useState<ProfileDetails | null>(null);
@@ -76,14 +75,15 @@ export default function UserProfilePage() {
   const displayName = getLocalizedName(profile, lang);
   const displayRole = getLocalizedRoleDetails(profile, lang);
   const avatarUrl = profile.avatar_url;
-  const showContacts = details?.show_contacts !== false;
+  const showContacts = isAdmin || details?.show_contacts;
 
-  const position = details ? getLocalizedField(details, "current_position", lang) : "";
-  const company = details ? getLocalizedField(details, "current_company", lang) : "";
-  const department = details ? getLocalizedField(details, "department", lang) : "";
-  const shortBio = details ? getLocalizedField(details, "short_bio", lang) : "";
-  const education = details ? getLocalizedField(details, "education", lang) : "";
-  const workExp = details ? getLocalizedField(details, "work_experience", lang) : "";
+  const position = getDetailField(details, "current_position", lang);
+  const company = getDetailField(details, "current_company", lang);
+  const department = getDetailField(details, "department", lang);
+  const shortBio = getDetailField(details, "short_bio", lang);
+  const education = getDetailField(details, "education", lang);
+  const eduEntries: EducationEntry[] = details?.education_entries?.length ? details.education_entries : [];
+  const workExp = getDetailField(details, "work_experience", lang);
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto" }}>
@@ -133,9 +133,13 @@ export default function UserProfilePage() {
       )}
 
       {/* Education */}
-      {education && (
+      {(eduEntries.length > 0 || education) && (
         <Section title={t("profile.education")}>
-          <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{education}</div>
+          {eduEntries.length > 0 ? (
+            <EducationCards entries={eduEntries} lang={lang} />
+          ) : (
+            <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{education}</div>
+          )}
         </Section>
       )}
 
@@ -155,6 +159,34 @@ export default function UserProfilePage() {
           {details.telegram && <FieldRow label="Telegram" value={details.telegram} />}
         </Section>
       )}
+    </div>
+  );
+}
+
+function EducationCards({ entries, lang }: { entries: EducationEntry[]; lang: string }) {
+  const suffix = lang === "uz-Cyrl" ? "uz" : lang === "en" ? "en" : "ru";
+  const getLoc = (entry: EducationEntry, base: string): string => {
+    const key = `${base}_${suffix}` as keyof EducationEntry;
+    const ruKey = `${base}_ru` as keyof EducationEntry;
+    const enKey = `${base}_en` as keyof EducationEntry;
+    return (entry[key] as string) || (entry[ruKey] as string) || (entry[enKey] as string) || "";
+  };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {entries.map((entry, idx) => {
+        const degree = getLoc(entry, "degree");
+        const specialty = getLoc(entry, "specialty");
+        const institution = getLoc(entry, "institution");
+        const years = [entry.year_start, entry.year_end].filter(Boolean).join(" – ");
+        return (
+          <div key={idx} style={{ padding: "12px 16px", border: "1px solid #F3F4F6", borderRadius: 10, background: "#FAFAFA" }}>
+            {degree && <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{degree}</div>}
+            {specialty && <div style={{ fontSize: 13, color: "#374151", marginTop: 2 }}>{specialty}</div>}
+            {institution && <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>{institution}</div>}
+            {years && <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{years}</div>}
+          </div>
+        );
+      })}
     </div>
   );
 }

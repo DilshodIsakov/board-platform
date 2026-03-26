@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { logAuditEvent } from "../lib/auditLog";
 import type { Profile, Organization } from "../lib/profile";
 import {
   fetchDocLinks,
@@ -156,6 +157,7 @@ export default function DocumentsPage({ profile, org }: Props) {
           sort_order: formSort,
           is_active: formActive,
         });
+        logAuditEvent({ actionType: "document_update", actionLabel: "Обновление документа", entityType: "document", entityId: editingLink.id, entityTitle: formTitle.trim() });
         setSuccess(t("documents.linkUpdated"));
       } else {
         if (!org || !profile) return;
@@ -172,6 +174,7 @@ export default function DocumentsPage({ profile, org }: Props) {
           is_active: formActive,
           created_by: profile.id,
         });
+        logAuditEvent({ actionType: "document_create", actionLabel: "Создание документа", entityType: "document", entityTitle: formTitle.trim() });
         setSuccess(t("documents.linkAdded"));
       }
       handleCloseModal();
@@ -187,6 +190,7 @@ export default function DocumentsPage({ profile, org }: Props) {
     if (!confirm(t("documents.confirmDelete", { title: link.title }))) return;
     try {
       await deleteDocLink(link.id);
+      logAuditEvent({ actionType: "document_delete", actionLabel: "Удаление документа", entityType: "document", entityId: link.id, entityTitle: link.title });
       setSuccess(t("documents.linkDeleted"));
       await loadData();
     } catch (err: unknown) {

@@ -6,6 +6,7 @@ import { getLocalizedName } from "../lib/profile";
 import { supabase } from "../lib/supabaseClient";
 import { getIntlLocale } from "../i18n";
 import { getLocalizedField } from "../lib/i18nHelpers";
+import { logAuditEvent } from "../lib/auditLog";
 import { fetchNSMeetings, type NSMeeting } from "../lib/nsMeetings";
 import {
   fetchAllVotingsWithMeeting,
@@ -55,6 +56,7 @@ export default function VotingPage({ profile, org }: Props) {
     setVotingInProgress(votingId);
     try {
       await castVote(votingId, org.id, profile.id, choice);
+      logAuditEvent({ actionType: "vote_cast", actionLabel: "Голосование", entityType: "vote", entityId: votingId, metadata: { choice } });
       await loadData();
       showToast(t("nsVoting.voteSaved"));
     } catch (e: unknown) {

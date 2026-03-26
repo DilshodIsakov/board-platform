@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, type FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getIntlLocale } from "../i18n";
+import { logAuditEvent } from "../lib/auditLog";
 import type { Profile, Organization } from "../lib/profile";
 import {
   getTask,
@@ -160,6 +161,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
         await setTaskStatus(task.id, newStatus);
       }
       setTask({ ...task, status: newStatus as BoardTask["status"] });
+      logAuditEvent({ actionType: "task_update", actionLabel: "Изменение статуса поручения", entityType: "task", entityId: task.id, entityTitle: task.title, metadata: { status: newStatus } });
     } catch (err) {
       setError(err instanceof Error ? err.message : t("tasks.statusChangeError"));
     }
@@ -219,6 +221,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
         translation_status_uz: resolvedUz,
         translation_status_en: resolvedEn,
       });
+      logAuditEvent({ actionType: "task_update", actionLabel: "Редактирование поручения", entityType: "task", entityId: task.id, entityTitle: srcTitle || editTitle.trim() });
       setEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
@@ -234,6 +237,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
     try {
       const c = await addComment(task.id, profile.id, commentText.trim());
       setComments((prev) => [...prev, c]);
+      logAuditEvent({ actionType: "comment_add", actionLabel: "Комментарий к поручению", entityType: "task_comment", entityId: task.id, entityTitle: task.title });
       setCommentText("");
     } catch (err) {
       setError(err instanceof Error ? err.message : t("chat.sendError"));
@@ -249,6 +253,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
     try {
       const a = await uploadAttachment(task.id, file, profile.id, org.id);
       setAttachments((prev) => [a, ...prev]);
+      logAuditEvent({ actionType: "file_upload", actionLabel: "Загрузка файла к поручению", entityType: "task_attachment", entityId: task.id, entityTitle: file.name });
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
@@ -260,7 +265,10 @@ export default function TaskDetailsPage({ profile, org }: Props) {
   const handleDownload = async (att: BoardTaskAttachment) => {
     try {
       const url = await getAttachmentUrl(att.file_path);
-      if (url) await downloadFileByUrl(url, att.file_name);
+      if (url) {
+        await downloadFileByUrl(url, att.file_name);
+        logAuditEvent({ actionType: "file_download", actionLabel: "Скачивание файла поручения", entityType: "task_attachment", entityId: att.id, entityTitle: att.file_name });
+      }
     } catch (e) {
       console.error("Download error:", e);
     }
@@ -271,6 +279,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
     try {
       await deleteAttachment(att);
       setAttachments((prev) => prev.filter((a) => a.id !== att.id));
+      logAuditEvent({ actionType: "file_delete", actionLabel: "Удаление файла поручения", entityType: "task_attachment", entityId: att.id, entityTitle: att.file_name });
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.error"));
     }

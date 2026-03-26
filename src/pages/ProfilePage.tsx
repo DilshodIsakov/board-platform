@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { logAuditEvent } from "../lib/auditLog";
 import type { Profile, Organization } from "../lib/profile";
 import { getLocalizedName, getLocalizedRoleDetails, updateMyProfile } from "../lib/profile";
 import {
@@ -7,8 +8,10 @@ import {
   upsertProfileDetails,
   uploadAvatar,
   removeAvatar,
+  getDetailField,
   type ProfileDetails,
   type BoardStatus,
+  type EducationEntry,
 } from "../lib/profileDetails";
 
 interface Props {
@@ -38,6 +41,7 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
 
   // Form state
   const [form, setForm] = useState<Record<string, string | boolean | null>>({});
+  const [eduEntries, setEduEntries] = useState<EducationEntry[]>([]);
 
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
@@ -50,7 +54,10 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
   const loadDetails = async () => {
     const data = await fetchMyProfileDetails();
     setDetails(data);
-    if (data) setForm(detailsToForm(data));
+    if (data) {
+      setForm(detailsToForm(data));
+      setEduEntries(data.education_entries?.length ? data.education_entries : []);
+    }
     setLoading(false);
   };
 
@@ -108,12 +115,19 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
     for (const [k, v] of Object.entries(form)) {
       updates[k] = typeof v === "string" && !v.trim() ? null : v;
     }
+    // Save structured education entries
+    const cleanedEntries = eduEntries.filter((e) =>
+      e.institution_ru || e.institution_en || e.institution_uz ||
+      e.degree_ru || e.degree_en || e.degree_uz
+    );
+    updates.education_entries = cleanedEntries.length ? cleanedEntries : [];
 
     const result = await upsertProfileDetails(profile.id, updates);
     if (!result.ok) {
       setError(result.error || t("common.error"));
     } else {
       setSuccess(t("profile.saved"));
+      logAuditEvent({ actionType: "user_profile_update", actionLabel: "Обновление профиля", entityType: "profile", entityId: profile.id });
       setEditing(false);
       await loadDetails();
       onProfileUpdate?.();
@@ -122,8 +136,13 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
   };
 
   const handleCancel = () => {
-    if (details) setForm(detailsToForm(details));
-    else setForm({});
+    if (details) {
+      setForm(detailsToForm(details));
+      setEduEntries(details.education_entries?.length ? details.education_entries : []);
+    } else {
+      setForm({});
+      setEduEntries([]);
+    }
     setNameRu(profile?.full_name || "");
     setNameEn(profile?.full_name_en || "");
     setNameUz(profile?.full_name_uz || "");
@@ -142,6 +161,7 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
       setError(result.error || t("common.error"));
     } else {
       setSuccess(t("profile.photoUploaded"));
+      logAuditEvent({ actionType: "user_profile_update", actionLabel: "Загрузка фото профиля", entityType: "profile", entityId: profile.id });
       onProfileUpdate?.();
     }
     setUploadingPhoto(false);
@@ -156,6 +176,7 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
       setError(result.error || t("common.error"));
     } else {
       setSuccess(t("profile.photoRemoved"));
+      logAuditEvent({ actionType: "user_profile_update", actionLabel: "Удаление фото профиля", entityType: "profile", entityId: profile.id });
       onProfileUpdate?.();
     }
     setUploadingPhoto(false);
@@ -289,9 +310,9 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
 
       <Section title={t("profile.education")}>
         {editing ? (
-          <LangTextareas label={t("profile.education")} base="education" form={form} setField={setField} />
+          <EducationEditor entries={eduEntries} onChange={setEduEntries} />
         ) : (
-          <ViewFields details={details} fields={[{ label: t("profile.education"), base: "education" }]} />
+          <EducationView entries={details?.education_entries || []} fallbackText={getDetailField(details, "education", i18n.language)} />
         )}
       </Section>
 
@@ -487,7 +508,141 @@ function EmptyState({ text }: { text?: string }) {
   return <div style={{ color: "#9CA3AF", fontSize: 14, fontStyle: "italic" }}>{text || t("profile.noData")}</div>;
 }
 
+// ── Education structured components ───────────────────────────────────
+
+function EducationEditor({ entries, onChange }: { entries: EducationEntry[]; onChange: (e: EducationEntry[]) => void }) {
+  const { t } = useTranslation();
+
+  const addEntry = () => onChange([...entries, {}]);
+  const removeEntry = (idx: number) => onChange(entries.filter((_, i) => i !== idx));
+  const updateEntry = (idx: number, field: keyof EducationEntry, value: string) => {
+    const updated = entries.map((e, i) => i === idx ? { ...e, [field]: value } : e);
+    onChange(updated);
+  };
+
+  return (
+    <div>
+      {entries.map((entry, idx) => (
+        <div key={idx} style={eduCardStyle}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+              {t("profile.eduEntry", { n: idx + 1, defaultValue: `Образование #${idx + 1}` })}
+            </span>
+            <button onClick={() => removeEntry(idx)} style={eduRemoveBtnStyle} title={t("common.delete")}>✕</button>
+          </div>
+
+          {/* Degree */}
+          <div style={{ marginBottom: 10 }}>
+            <div style={fieldLabelStyle}>{t("profile.eduDegree")}</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {(["ru", "en", "uz"] as const).map((lang) => (
+                <div key={lang} style={{ flex: 1 }}>
+                  <div style={langLabelStyle}>{lang.toUpperCase()}</div>
+                  <input style={inputStyle} value={entry[`degree_${lang}`] || ""} onChange={(e) => updateEntry(idx, `degree_${lang}`, e.target.value)} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Specialty */}
+          <div style={{ marginBottom: 10 }}>
+            <div style={fieldLabelStyle}>{t("profile.eduSpecialty")}</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {(["ru", "en", "uz"] as const).map((lang) => (
+                <div key={lang} style={{ flex: 1 }}>
+                  <div style={langLabelStyle}>{lang.toUpperCase()}</div>
+                  <input style={inputStyle} value={entry[`specialty_${lang}`] || ""} onChange={(e) => updateEntry(idx, `specialty_${lang}`, e.target.value)} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Institution */}
+          <div style={{ marginBottom: 10 }}>
+            <div style={fieldLabelStyle}>{t("profile.eduInstitution")}</div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {(["ru", "en", "uz"] as const).map((lang) => (
+                <div key={lang} style={{ flex: 1 }}>
+                  <div style={langLabelStyle}>{lang.toUpperCase()}</div>
+                  <input style={inputStyle} value={entry[`institution_${lang}`] || ""} onChange={(e) => updateEntry(idx, `institution_${lang}`, e.target.value)} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Years */}
+          <div style={{ display: "flex", gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <div style={fieldLabelStyle}>{t("profile.eduYearStart")}</div>
+              <input style={inputStyle} placeholder="2010" value={entry.year_start || ""} onChange={(e) => updateEntry(idx, "year_start", e.target.value)} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={fieldLabelStyle}>{t("profile.eduYearEnd")}</div>
+              <input style={inputStyle} placeholder="2014" value={entry.year_end || ""} onChange={(e) => updateEntry(idx, "year_end", e.target.value)} />
+            </div>
+          </div>
+        </div>
+      ))}
+      <button onClick={addEntry} style={eduAddBtnStyle}>+ {t("profile.eduAdd")}</button>
+    </div>
+  );
+}
+
+function EducationView({ entries, fallbackText }: { entries: EducationEntry[]; fallbackText: string }) {
+  const { i18n } = useTranslation();
+  const lang = i18n.language;
+  const suffix = lang === "uz-Cyrl" ? "uz" : lang === "en" ? "en" : "ru";
+
+  const getLoc = (entry: EducationEntry, base: string): string => {
+    const key = `${base}_${suffix}` as keyof EducationEntry;
+    const ruKey = `${base}_ru` as keyof EducationEntry;
+    const enKey = `${base}_en` as keyof EducationEntry;
+    return (entry[key] as string) || (entry[ruKey] as string) || (entry[enKey] as string) || "";
+  };
+
+  if (!entries.length) {
+    if (fallbackText) {
+      return <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{fallbackText}</div>;
+    }
+    return <EmptyState />;
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {entries.map((entry, idx) => {
+        const degree = getLoc(entry, "degree");
+        const specialty = getLoc(entry, "specialty");
+        const institution = getLoc(entry, "institution");
+        const years = [entry.year_start, entry.year_end].filter(Boolean).join(" – ");
+
+        return (
+          <div key={idx} style={eduViewCardStyle}>
+            {degree && <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{degree}</div>}
+            {specialty && <div style={{ fontSize: 13, color: "#374151", marginTop: 2 }}>{specialty}</div>}
+            {institution && <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>{institution}</div>}
+            {years && <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{years}</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Styles ────────────────────────────────────────────────────────────
+
+const eduCardStyle: React.CSSProperties = {
+  padding: 16, border: "1px solid #E5E7EB", borderRadius: 10, marginBottom: 12, background: "#FAFAFA",
+};
+const eduRemoveBtnStyle: React.CSSProperties = {
+  background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#9CA3AF", padding: "2px 6px",
+};
+const eduAddBtnStyle: React.CSSProperties = {
+  padding: "8px 16px", fontSize: 13, fontWeight: 600, borderRadius: 8,
+  border: "1px dashed #D1D5DB", background: "#fff", color: "#3B82F6", cursor: "pointer", width: "100%",
+};
+const eduViewCardStyle: React.CSSProperties = {
+  padding: "12px 16px", border: "1px solid #F3F4F6", borderRadius: 10, background: "#FAFAFA",
+};
 
 const headerCardStyle: React.CSSProperties = {
   display: "flex", gap: 24, alignItems: "flex-start", padding: 24,

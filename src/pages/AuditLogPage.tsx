@@ -20,15 +20,17 @@ const ACTION_TYPES = [
   "login","logout","login_failed",
   "meeting_create","meeting_update","meeting_delete","meeting_view",
   "agenda_item_create","agenda_item_update","agenda_item_delete",
-  "voting_create","voting_status_change","vote_cast","vote_change","vote_sign",
+  "voting_create","voting_status_change","voting_activate","voting_close","vote_cast","vote_change","vote_sign",
   "file_upload","file_download","file_delete","file_view",
+  "comment_add","comment_edit","comment_delete",
+  "document_create","document_update","document_delete",
   "user_create","user_role_change","user_profile_update",
   "work_plan_create","work_plan_update","work_plan_delete",
   "task_create","task_update","task_delete",
   "video_conf_create","video_conf_join",
 ];
 
-const ENTITY_TYPES = ["meeting","agenda_item","voting","vote","file","user","work_plan","task","video_conference"];
+const ENTITY_TYPES = ["meeting","agenda_item","voting","vote","file","comment","document","profile","user","work_plan","task","task_comment","task_attachment","video_conference"];
 const ROLES = ["admin","corp_secretary","chairman","board_member","management","executive","employee","auditor","department_head"];
 
 function getActionColor(action: string): { bg: string; text: string } {

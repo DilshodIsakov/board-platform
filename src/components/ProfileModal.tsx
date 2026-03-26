@@ -96,9 +96,31 @@ export default function ProfileModal({ member, currentProfileId, isAdmin, onClos
             )}
 
             {/* Education */}
-            {education && (isBoard || isExec) && (
+            {(isBoard || isExec) && (details?.education_entries?.length ? (
+              <div style={{ marginTop: 16 }}>
+                <div style={blockTitleStyle}>{t("profile.education")}</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {details.education_entries.map((entry, idx) => {
+                    const suffix = i18n.language === "uz-Cyrl" ? "uz" : i18n.language === "en" ? "en" : "ru";
+                    const getLoc = (base: string) => (entry as Record<string, string>)[`${base}_${suffix}`] || (entry as Record<string, string>)[`${base}_ru`] || (entry as Record<string, string>)[`${base}_en`] || "";
+                    const degree = getLoc("degree");
+                    const specialty = getLoc("specialty");
+                    const institution = getLoc("institution");
+                    const years = [entry.year_start, entry.year_end].filter(Boolean).join(" – ");
+                    return (
+                      <div key={idx} style={{ padding: "8px 12px", border: "1px solid #F3F4F6", borderRadius: 8, background: "#FAFAFA" }}>
+                        {degree && <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>{degree}</div>}
+                        {specialty && <div style={{ fontSize: 12, color: "#374151", marginTop: 1 }}>{specialty}</div>}
+                        {institution && <div style={{ fontSize: 12, color: "#6B7280", marginTop: 2 }}>{institution}</div>}
+                        {years && <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{years}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : education && (isBoard || isExec) ? (
               <InfoBlock title={t("profile.education")} text={education} />
-            )}
+            ) : null)}
 
             {/* Experience */}
             {experience && (isBoard || isExec) && (

@@ -3,6 +3,20 @@ import i18n from "../i18n";
 
 export type BoardStatus = "independent" | "executive" | "non_executive" | "employee";
 
+export interface EducationEntry {
+  degree_ru?: string;
+  degree_en?: string;
+  degree_uz?: string;
+  specialty_ru?: string;
+  specialty_en?: string;
+  specialty_uz?: string;
+  institution_ru?: string;
+  institution_en?: string;
+  institution_uz?: string;
+  year_start?: string;
+  year_end?: string;
+}
+
 export interface ProfileDetails {
   id: string;
   profile_id: string;
@@ -22,6 +36,7 @@ export interface ProfileDetails {
   education_ru: string | null;
   education_en: string | null;
   education_uz: string | null;
+  education_entries: EducationEntry[] | null;
   work_experience_ru: string | null;
   work_experience_en: string | null;
   work_experience_uz: string | null;

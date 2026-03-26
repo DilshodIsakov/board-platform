@@ -113,6 +113,10 @@ export default function App() {
 
       if (u && (event === "SIGNED_IN" || event === "INITIAL_SESSION") && !profileLoadedRef.current) {
         loadProfileAndOrg();
+        // Log login event to audit log
+        if (event === "SIGNED_IN") {
+          logAuditEvent({ actionType: "login", actionLabel: "Login" });
+        }
       } else if (!u) {
         setProfile(null);
         setOrg(null);
@@ -198,7 +202,7 @@ export default function App() {
         <Route path="/tasks/:id" element={auth(<TaskDetailsPage profile={profile} org={org} />)} />
         <Route path="/board-work-plan" element={auth(<BoardWorkPlanPage profile={profile} org={org} />)} />
         <Route path="/profile" element={auth(<ProfilePage profile={profile} org={org} onProfileUpdate={() => loadProfileAndOrg()} />)} />
-        <Route path="/profile/:id" element={auth(<UserProfilePage />)} />
+        <Route path="/profile/:id" element={auth(<UserProfilePage currentProfile={profile} />)} />
         <Route path="/notifications" element={auth(<NotificationsPage profile={profile} org={org} />)} />
         <Route path="/audit-log" element={auth(<AuditLogPage profile={profile} org={org} />)} />
         <Route path="/admin/users" element={adminAuth(<AdminUsersPage />)} />

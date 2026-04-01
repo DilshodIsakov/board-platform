@@ -244,8 +244,9 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     );
     setMaterialsMap(mMap);
     const meetingDocs = await fetchMaterialsByMeeting(meetingId);
-    setProtocolDoc(meetingDocs.find((d) => !d.doc_type || d.doc_type === "protocol") || null);
-    setAgendaDoc(meetingDocs.find((d) => d.doc_type === "agenda") || null);
+    const meetingLevel = meetingDocs.filter((d) => !d.agenda_item_id);
+    setAgendaDoc(meetingLevel.find((d) => d.doc_type === "agenda" || d.title === "__agenda__") || null);
+    setProtocolDoc(meetingLevel.find((d) => d.title !== "__agenda__" && d.doc_type !== "agenda") || null);
     if (items.length > 0) {
       const briefsByAgenda = await fetchBriefsForMeeting(items.map((i) => i.id));
       const newMap: Record<string, AgendaBrief> = {};
@@ -721,7 +722,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   const handleUploadProtocol = async (file: File) => {
     if (!org || !profile || !meeting) return;
     try {
-      await uploadMaterial(file, org.id, profile.id, meeting.id, null, file.name, undefined, "protocol");
+      await uploadMaterial(file, org.id, profile.id, meeting.id, null, file.name);
       await loadAgenda(meeting.id);
     } catch (e) {
       console.error("Protocol upload error:", e);
@@ -742,7 +743,9 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     if (!org || !profile || !meeting) return;
     try {
       if (agendaDoc) await deleteMaterial(agendaDoc); // replace existing
-      await uploadMaterial(file, org.id, profile.id, meeting.id, null, file.name, undefined, "agenda");
+      // title "__agenda__" is used as a marker to identify this as the agenda doc
+      // (avoids requiring a DB migration for a new column)
+      await uploadMaterial(file, org.id, profile.id, meeting.id, null, "__agenda__", undefined);
       await loadAgenda(meeting.id);
     } catch (e) {
       console.error("Agenda doc upload error:", e);
@@ -1489,6 +1492,92 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           })()}
         </div>
 
+        {/* Agenda Document */}
+        <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: 16, marginBottom: 4 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#374151" }}>
+              {t("nsMeetings.agendaDocSection")}
+            </span>
+            {isAdmin && !agendaDoc && (
+              <>
+                <button onClick={() => agendaDocInputRef.current?.click()} style={uploadBtnStyle}>
+                  + {t("nsMeetings.uploadFile")}
+                </button>
+                <input
+                  ref={agendaDocInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleUploadAgendaDoc(f);
+                    e.target.value = "";
+                  }}
+                />
+              </>
+            )}
+          </div>
+
+          {!agendaDoc && (
+            <p style={{ color: "#D1D5DB", fontSize: 13, margin: 0 }}>
+              {t("nsMeetings.noAgendaDoc")}
+            </p>
+          )}
+
+          {agendaDoc && (() => {
+            const ft = fileTypeIcon(agendaDoc.mime_type);
+            return (
+              <div style={materialCardStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 8, display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    background: ft.color + "18", color: ft.color,
+                    fontSize: 11, fontWeight: 700, flexShrink: 0,
+                  }}>
+                    {ft.label}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {agendaDoc.file_name}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+                      {formatFileSize(agendaDoc.file_size)} · {new Date(agendaDoc.created_at).toLocaleDateString(getIntlLocale())}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  <button onClick={handleDownloadAgendaDoc} style={downloadBtnStyle}>
+                    ↓ {t("nsMeetings.download")}
+                  </button>
+                  {isAdmin && (
+                    <>
+                      <button onClick={() => agendaDocInputRef.current?.click()} style={{ ...downloadBtnStyle, color: "#6B7280" }}
+                        title={t("nsMeetings.uploadAgendaDoc")}>
+                        ↑
+                      </button>
+                      <input
+                        ref={agendaDocInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleUploadAgendaDoc(f);
+                          e.target.value = "";
+                        }}
+                      />
+                      <button onClick={handleDeleteAgendaDoc} style={{ ...deleteBtnStyle, fontSize: 12 }}>
+                        ✕
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
         {/* ===== Video Conference Block ===== */}
         <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: 16, marginBottom: 4 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
@@ -1662,59 +1751,6 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 {t("nsMeetings.downloadArchive")}
               </button>
 
-              {/* Agenda document button */}
-              {agendaDoc ? (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                  <button
-                    onClick={handleDownloadAgendaDoc}
-                    style={{ ...smallBtnStyle, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13 }}
-                    title={agendaDoc.file_name}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="12" y1="18" x2="12" y2="12"/>
-                      <polyline points="9 15 12 18 15 15"/>
-                    </svg>
-                    {t("nsMeetings.downloadAgendaDoc")}
-                  </button>
-                  {isAdmin && (
-                    <button
-                      onClick={handleDeleteAgendaDoc}
-                      style={{ ...smallBtnStyle, padding: "5px 8px", color: "#DC2626", borderColor: "#FECACA", fontSize: 13 }}
-                      title={t("nsMeetings.deleteAgendaDoc")}
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ) : isAdmin ? (
-                <>
-                  <button
-                    onClick={() => agendaDocInputRef.current?.click()}
-                    style={{ ...smallBtnStyle, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13 }}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="12" y1="12" x2="12" y2="18"/>
-                      <polyline points="9 15 12 12 15 15"/>
-                    </svg>
-                    {t("nsMeetings.uploadAgendaDoc")}
-                  </button>
-                  <input
-                    ref={agendaDocInputRef}
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) handleUploadAgendaDoc(f);
-                      e.target.value = "";
-                    }}
-                  />
-                </>
-              ) : null}
               {isAdmin && agendaItems.length > 0 && agendaItems.some(item => {
                 const v = votingsMap[item.id];
                 return !v || v.status === "draft";

@@ -595,6 +595,8 @@
     "confirmDelete": "Ушбу мажлисни ўчиришни хоҳлайсизми?",
     "backToList": "Мажлислар рўйхатига қайтиш",
     "downloadArchive": "Архивни юклаш",
+    "agendaDocSection": "Кун тартиби (файл)",
+    "noAgendaDoc": "Файл юкланмаган",
     "uploadAgendaDoc": "Кун тартибини юклаш",
     "downloadAgendaDoc": "Кун тартиби",
     "deleteAgendaDoc": "Кун тартиби файлини ўчириш",

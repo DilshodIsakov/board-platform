@@ -595,6 +595,8 @@
     "confirmDelete": "Are you sure you want to delete this meeting?",
     "backToList": "Back to meetings list",
     "downloadArchive": "Download Archive",
+    "agendaDocSection": "Agenda (file)",
+    "noAgendaDoc": "No file uploaded",
     "uploadAgendaDoc": "Upload Agenda",
     "downloadAgendaDoc": "Agenda",
     "deleteAgendaDoc": "Delete agenda file",

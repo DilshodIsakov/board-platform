@@ -600,6 +600,8 @@
     "confirmDelete": "Вы уверены, что хотите удалить это заседание?",
     "backToList": "Назад к списку заседаний",
     "downloadArchive": "Скачать архив",
+    "agendaDocSection": "Повестка дня (файл)",
+    "noAgendaDoc": "Файл не загружен",
     "uploadAgendaDoc": "Загрузить повестку",
     "downloadAgendaDoc": "Повестка дня",
     "deleteAgendaDoc": "Удалить файл повестки",

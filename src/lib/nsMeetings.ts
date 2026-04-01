@@ -83,6 +83,7 @@ export interface Material {
   uploaded_by: string;
   created_at: string;
   language: MaterialLang | null;
+  doc_type: string | null;
 }
 
 // ---------- Meetings ----------
@@ -287,9 +288,10 @@ export async function uploadMaterial(
   meetingId: string,
   agendaItemId: string | null,
   title: string,
-  language?: MaterialLang
+  language?: MaterialLang,
+  docType?: string
 ): Promise<Material | null> {
-  const agendaSegment = agendaItemId ? `${agendaItemId}/` : "meeting/";
+  const agendaSegment = agendaItemId ? `${agendaItemId}/` : docType ? `${docType}/` : "meeting/";
   const langSegment = language ? `${language}/` : "";
   const storagePath = `${orgId}/${meetingId}/${agendaSegment}${langSegment}${Date.now()}_${sanitizeFileName(file.name)}`;
 
@@ -327,6 +329,7 @@ export async function uploadMaterial(
         storage_path: storagePath,
         uploaded_by: uploadedBy,
         language: language || null,
+        doc_type: docType || null,
       })
       .select()
       .single();

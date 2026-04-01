@@ -123,6 +123,12 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [protocolDoc, setProtocolDoc] = useState<Material | null>(null);
   const protocolInputRef = useRef<HTMLInputElement | null>(null);
+  const [agendaDoc, setAgendaDoc] = useState<Material | null>(null);
+  const agendaDocInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Archive download
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [archiveBuilding, setArchiveBuilding] = useState(false);
 
   // Voting
   const [votingsMap, setVotingsMap] = useState<Record<string, Voting>>({});
@@ -238,8 +244,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     );
     setMaterialsMap(mMap);
     const meetingDocs = await fetchMaterialsByMeeting(meetingId);
-    const proto = meetingDocs.find((d) => !d.agenda_item_id) || null;
-    setProtocolDoc(proto);
+    setProtocolDoc(meetingDocs.find((d) => !d.doc_type || d.doc_type === "protocol") || null);
+    setAgendaDoc(meetingDocs.find((d) => d.doc_type === "agenda") || null);
     if (items.length > 0) {
       const briefsByAgenda = await fetchBriefsForMeeting(items.map((i) => i.id));
       const newMap: Record<string, AgendaBrief> = {};
@@ -644,12 +650,78 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     }
   };
 
+  const handleDownloadArchive = async (lang: MaterialLang) => {
+    if (!meeting) return;
+    setArchiveBuilding(true);
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+
+      // Collect all materials
+      const agendaMats = Object.values(materialsMap).flat();
+      const allMats: Material[] = [
+        ...agendaMats,
+        ...(protocolDoc ? [protocolDoc] : []),
+      ];
+
+      // Filter by language
+      const filtered = allMats.filter((m) => m.language === lang);
+
+      if (filtered.length === 0) {
+        setArchiveBuilding(false);
+        setShowArchiveModal(false);
+        return;
+      }
+
+      // Track duplicates to avoid name collisions
+      const nameCount: Record<string, number> = {};
+
+      for (const mat of filtered) {
+        const url = await getMaterialUrl(mat.storage_path);
+        if (!url) continue;
+        const resp = await fetch(url);
+        if (!resp.ok) continue;
+        const blob = await resp.blob();
+
+        // Organise into sub-folders by language
+        const folder = mat.language ? mat.language.toUpperCase() : t("nsMeetings.matLangGeneral", "Общие");
+        const base = mat.file_name;
+        const key = `${folder}/${base}`;
+        nameCount[key] = (nameCount[key] || 0) + 1;
+        const fileName = nameCount[key] > 1
+          ? base.replace(/(\.[^.]+)$/, `_${nameCount[key]}$1`)
+          : base;
+
+        zip.file(`${folder}/${fileName}`, blob);
+      }
+
+      const content = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+      const rawTitle = getLocalizedField(meeting as unknown as Record<string, unknown>, "title") || meeting.title || "meeting";
+      const safeTitle = rawTitle.replace(/[\\/:*?"<>|]/g, "-").slice(0, 50);
+      const filename = `${safeTitle}_${lang.toUpperCase()}.zip`;
+
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(content);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+
+      logAuditEvent({ actionType: "file_download", actionLabel: "Скачивание архива материалов", entityType: "meeting", entityId: meeting.id, entityTitle: rawTitle });
+    } catch (e) {
+      console.error("Archive download error:", e);
+    }
+    setArchiveBuilding(false);
+    setShowArchiveModal(false);
+  };
+
   // ---------- Protocol draft ----------
 
   const handleUploadProtocol = async (file: File) => {
     if (!org || !profile || !meeting) return;
     try {
-      await uploadMaterial(file, org.id, profile.id, meeting.id, null, file.name);
+      await uploadMaterial(file, org.id, profile.id, meeting.id, null, file.name, undefined, "protocol");
       await loadAgenda(meeting.id);
     } catch (e) {
       console.error("Protocol upload error:", e);
@@ -663,6 +735,40 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
       await loadAgenda(meeting.id);
     } catch (e) {
       console.error("Protocol delete error:", e);
+    }
+  };
+
+  const handleUploadAgendaDoc = async (file: File) => {
+    if (!org || !profile || !meeting) return;
+    try {
+      if (agendaDoc) await deleteMaterial(agendaDoc); // replace existing
+      await uploadMaterial(file, org.id, profile.id, meeting.id, null, file.name, undefined, "agenda");
+      await loadAgenda(meeting.id);
+    } catch (e) {
+      console.error("Agenda doc upload error:", e);
+    }
+  };
+
+  const handleDeleteAgendaDoc = async () => {
+    if (!agendaDoc || !meeting) return;
+    try {
+      await deleteMaterial(agendaDoc);
+      await loadAgenda(meeting.id);
+    } catch (e) {
+      console.error("Agenda doc delete error:", e);
+    }
+  };
+
+  const handleDownloadAgendaDoc = async () => {
+    if (!agendaDoc) return;
+    try {
+      const url = await getMaterialUrl(agendaDoc.storage_path);
+      if (url) {
+        await downloadFileByUrl(url, agendaDoc.file_name);
+        logAuditEvent({ actionType: "file_download", actionLabel: "Скачивание повестки дня", entityType: "material", entityId: agendaDoc.id, entityTitle: agendaDoc.file_name, meetingId: meeting?.id });
+      }
+    } catch (e) {
+      console.error("Agenda doc download error:", e);
     }
   };
 
@@ -1536,6 +1642,79 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h3 style={{ margin: 0, fontSize: 16 }}>{t("nsMeetings.agenda")}</h3>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button
+                onClick={() => {
+                  const allMats = [...Object.values(materialsMap).flat(), ...(protocolDoc ? [protocolDoc] : [])];
+                  const langs = (["ru", "uz", "en"] as MaterialLang[]).filter(l => allMats.some(m => m.language === l));
+                  if (langs.length === 1) {
+                    handleDownloadArchive(langs[0]);
+                  } else {
+                    setShowArchiveModal(true);
+                  }
+                }}
+                style={{ ...smallBtnStyle, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13 }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="21 8 21 21 3 21 3 8"/>
+                  <rect x="1" y="3" width="22" height="5" rx="1"/>
+                  <line x1="10" y1="12" x2="14" y2="12"/>
+                </svg>
+                {t("nsMeetings.downloadArchive")}
+              </button>
+
+              {/* Agenda document button */}
+              {agendaDoc ? (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <button
+                    onClick={handleDownloadAgendaDoc}
+                    style={{ ...smallBtnStyle, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13 }}
+                    title={agendaDoc.file_name}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="12" y1="18" x2="12" y2="12"/>
+                      <polyline points="9 15 12 18 15 15"/>
+                    </svg>
+                    {t("nsMeetings.downloadAgendaDoc")}
+                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={handleDeleteAgendaDoc}
+                      style={{ ...smallBtnStyle, padding: "5px 8px", color: "#DC2626", borderColor: "#FECACA", fontSize: 13 }}
+                      title={t("nsMeetings.deleteAgendaDoc")}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ) : isAdmin ? (
+                <>
+                  <button
+                    onClick={() => agendaDocInputRef.current?.click()}
+                    style={{ ...smallBtnStyle, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13 }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="12" y1="12" x2="12" y2="18"/>
+                      <polyline points="9 15 12 12 15 15"/>
+                    </svg>
+                    {t("nsMeetings.uploadAgendaDoc")}
+                  </button>
+                  <input
+                    ref={agendaDocInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleUploadAgendaDoc(f);
+                      e.target.value = "";
+                    }}
+                  />
+                </>
+              ) : null}
               {isAdmin && agendaItems.length > 0 && agendaItems.some(item => {
                 const v = votingsMap[item.id];
                 return !v || v.status === "draft";
@@ -2361,6 +2540,95 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           </div>
         </div>
       )}
+
+      {/* ===== Archive Language Picker Modal ===== */}
+      {showArchiveModal && (() => {
+        const allMats = [
+          ...Object.values(materialsMap).flat(),
+          ...(protocolDoc ? [protocolDoc] : []),
+        ];
+        // Only show languages that actually have files
+        const langOptions: { value: MaterialLang; label: string; count: number }[] = (
+          [
+            { value: "ru" as MaterialLang, label: "Русский" },
+            { value: "uz" as MaterialLang, label: "Ўзбекча" },
+            { value: "en" as MaterialLang, label: "English" },
+          ] as { value: MaterialLang; label: string }[]
+        )
+          .map((o) => ({ ...o, count: allMats.filter((m) => m.language === o.value).length }))
+          .filter((o) => o.count > 0);
+
+        return (
+          <div style={overlayStyle}>
+            <div style={{ ...modalStyle, maxWidth: 420 }}>
+              <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="21 8 21 21 3 21 3 8"/>
+                  <rect x="1" y="3" width="22" height="5" rx="1"/>
+                  <line x1="10" y1="12" x2="14" y2="12"/>
+                </svg>
+                {t("nsMeetings.downloadArchive")}
+              </h3>
+              <p style={{ fontSize: 14, color: "#6B7280", margin: "0 0 20px" }}>
+                {t("nsMeetings.archiveModalSubtitle")}
+              </p>
+
+              {langOptions.length === 0 ? (
+                <p style={{ fontSize: 14, color: "#9CA3AF", textAlign: "center", padding: "16px 0" }}>
+                  {t("nsMeetings.archiveNoFiles")}
+                </p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+                  {langOptions.map((opt, idx) => (
+                    <button
+                      key={`${opt.value}_${idx}`}
+                      disabled={archiveBuilding}
+                      onClick={() => handleDownloadArchive(opt.value)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 16px",
+                        fontSize: 14,
+                        fontWeight: 500,
+                        borderRadius: 10,
+                        border: "1px solid #E5E7EB",
+                        background: archiveBuilding ? "#F9FAFB" : "#FFFFFF",
+                        color: "#111827",
+                        cursor: archiveBuilding ? "not-allowed" : "pointer",
+                        transition: "border-color 0.15s, background 0.15s",
+                        textAlign: "left",
+                      }}
+                      onMouseEnter={(e) => { if (!archiveBuilding) { e.currentTarget.style.background = "#F0F7FF"; e.currentTarget.style.borderColor = "#93C5FD"; } }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; e.currentTarget.style.borderColor = "#E5E7EB"; }}
+                    >
+                      <span>{opt.label}</span>
+                      <span style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 400, marginLeft: 12, whiteSpace: "nowrap" }}>
+                        {opt.count} {t("nsMeetings.archiveFiles", "файл(ов)")}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {archiveBuilding && (
+                <div style={{ fontSize: 13, color: "#6B7280", textAlign: "center", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid #D1D5DB", borderTopColor: "#2563EB", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                  {t("nsMeetings.archiveBuilding")}
+                </div>
+              )}
+
+              <button
+                onClick={() => { if (!archiveBuilding) setShowArchiveModal(false); }}
+                disabled={archiveBuilding}
+                style={{ ...smallBtnStyle, width: "100%", justifyContent: "center" }}
+              >
+                {t("nsMeetings.cancel")}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Toast */}
       {toastMsg && (

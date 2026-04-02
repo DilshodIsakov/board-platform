@@ -638,6 +638,8 @@
     "orderNumber": "№",
     "aiBrief": "AI-Brief",
     "generateBrief": "AI-Brief яратиш",
+    "briefExpand": "Брифни кўрсатиш",
+    "briefCollapse": "Брифни яшириш",
     "refreshBrief": "Briefni янгилаш",
     "copyBrief": "Нусхалаш",
     "briefCopied": "Нусхаланди!",
@@ -928,7 +930,10 @@
     "showContacts": "Алоқаларни бошқа аъзоларга кўрсатиш",
     "noData": "Тўлдирилмаган",
     "goToProfile": "Профилга ўтиш",
-    "manualTranslationNote": "Маълумотлар киритилган тилда кўрсатилади. Платформанинг барча тилларида тўғри кўрсатиш учун ҳар бир тилда (RU, EN, UZ) тўлдиринг."
+    "manualTranslationNote": "Маълумотлар киритилган тилда кўрсатилади. Платформанинг барча тилларида тўғри кўрсатиш учун ҳар бир тилда (RU, EN, UZ) тўлдиринг.",
+    "notificationSettings": "Билдиришномалар",
+    "emailNotificationsEnabled": "Муҳим хабарларни emailга олиш",
+    "emailNotificationsHint": "Мажлис таклифлари, овоз бериш сўровлари ва муддат эслатмалари электрон почтангизга юборилади."
   },
   "auditLog": {
     "title": "Ҳаракатлар журнали",

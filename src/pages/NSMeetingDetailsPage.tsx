@@ -145,6 +145,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   const [briefError, setBriefError] = useState<Record<string, string>>({});
   const [briefCopied, setBriefCopied] = useState<Record<string, boolean>>({});
   const [briefLang, setBriefLang] = useState<Record<string, BriefLang>>({});
+  const [briefExpanded, setBriefExpanded] = useState<Record<string, boolean>>({});
 
   // Discussion / Comments
   const [commentsMap, setCommentsMap] = useState<Record<string, AgendaItemComment[]>>({});
@@ -797,6 +798,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           updated_by: profile?.id || "",
         },
       }));
+      setBriefExpanded((prev) => ({ ...prev, [agendaId]: true }));
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t("nsMeetings.briefError");
       setBriefError((prev) => ({ ...prev, [key]: msg }));
@@ -1950,6 +1952,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                       const brief = briefsMap[key];
                       const isLoading = briefLoading[key];
                       const error = briefError[key];
+                      const isExpanded = !!briefExpanded[item.id];
                       return (
                         <>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -1976,6 +1979,15 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                                 {brief ? "↻ " + t("nsMeetings.refreshBrief") : "✨ " + t("nsMeetings.generateBrief")}
                               </button>
                             )}
+                            {brief && !isLoading && (
+                              <button
+                                onClick={() => setBriefExpanded((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: "#059669", background: "none", border: "none", cursor: "pointer", padding: "4px 6px" }}
+                              >
+                                <span style={{ display: "inline-block", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s" }}>▶</span>
+                                {isExpanded ? t("nsMeetings.briefCollapse") : t("nsMeetings.briefExpand")}
+                              </button>
+                            )}
                           </div>
 
                           {isLoading && (
@@ -1990,7 +2002,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             </div>
                           )}
 
-                          {brief && !isLoading && (
+                          {brief && !isLoading && isExpanded && (
                             <div style={briefBlockStyle}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                                 <span style={{ fontSize: 13, fontWeight: 600, color: "#7C3AED" }}>

@@ -638,6 +638,8 @@
     "orderNumber": "No.",
     "aiBrief": "AI-Brief",
     "generateBrief": "Generate AI-Brief",
+    "briefExpand": "Show brief",
+    "briefCollapse": "Hide brief",
     "refreshBrief": "Refresh brief",
     "copyBrief": "Copy",
     "briefCopied": "Copied!",
@@ -940,7 +942,10 @@
     "showContacts": "Show contacts to other members",
     "noData": "Not filled in",
     "goToProfile": "Go to Profile",
-    "manualTranslationNote": "Data is displayed in the language it was entered in. To display correctly in all platform languages, fill in the fields in each language (RU, EN, UZ)."
+    "manualTranslationNote": "Data is displayed in the language it was entered in. To display correctly in all platform languages, fill in the fields in each language (RU, EN, UZ).",
+    "notificationSettings": "Notifications",
+    "emailNotificationsEnabled": "Receive important notifications by email",
+    "emailNotificationsHint": "Meeting invitations, voting requests and deadline reminders will be sent to your email address."
   },
   "auditLog": {
     "title": "Audit Log",

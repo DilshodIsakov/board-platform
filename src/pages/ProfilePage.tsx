@@ -38,7 +38,6 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
   const [nameRu, setNameRu] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [nameUz, setNameUz] = useState("");
-  const [emailNotifEnabled, setEmailNotifEnabled] = useState(true);
 
   // Form state
   const [form, setForm] = useState<Record<string, string | boolean | null>>({});
@@ -49,7 +48,6 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
     setNameRu(profile.full_name || "");
     setNameEn(profile.full_name_en || "");
     setNameUz(profile.full_name_uz || "");
-    setEmailNotifEnabled(profile.email_notifications_enabled !== false);
     loadDetails();
   }, [profile?.id]);
 
@@ -105,7 +103,6 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
       full_name: nameRu.trim() || undefined,
       full_name_en: nameEn.trim() || undefined,
       full_name_uz: nameUz.trim() || undefined,
-      email_notifications_enabled: emailNotifEnabled,
     });
     if (!nameOk) {
       setError(t("common.error"));
@@ -362,23 +359,6 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
         )}
       </Section>
 
-      <Section title={t("profile.notificationSettings")}>
-        {editing ? (
-          <CheckboxField
-            label={t("profile.emailNotificationsEnabled")}
-            checked={emailNotifEnabled}
-            onChange={setEmailNotifEnabled}
-          />
-        ) : (
-          <FieldRow
-            label={t("profile.emailNotificationsEnabled")}
-            value={emailNotifEnabled ? t("common.yes") : t("common.no")}
-          />
-        )}
-        <p style={{ margin: "6px 0 0", fontSize: 12, color: "#9CA3AF" }}>
-          {t("profile.emailNotificationsHint")}
-        </p>
-      </Section>
     </div>
   );
 }

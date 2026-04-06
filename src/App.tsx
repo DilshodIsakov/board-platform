@@ -31,6 +31,10 @@ import ProfilePage from "./pages/ProfilePage";
 import UserProfilePage from "./pages/UserProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import AuditLogPage from "./pages/AuditLogPage";
+import CommitteesPage from "./pages/CommitteesPage";
+import CommitteeMeetingsPage from "./pages/CommitteeMeetingsPage";
+import CommitteeMeetingDetailsPage from "./pages/CommitteeMeetingDetailsPage";
+import RegulationsPage from "./pages/RegulationsPage";
 import { logAuditEvent } from "./lib/auditLog";
 import i18n from "./i18n";
 
@@ -205,6 +209,10 @@ export default function App() {
         <Route path="/profile/:id" element={auth(<UserProfilePage currentProfile={profile} />)} />
         <Route path="/notifications" element={auth(<NotificationsPage profile={profile} org={org} />)} />
         <Route path="/audit-log" element={auth(<AuditLogPage profile={profile} org={org} />)} />
+        <Route path="/committees" element={auth(<CommitteesPage profile={profile} org={org} />)} />
+        <Route path="/committees/:id" element={auth(<CommitteeMeetingsPage profile={profile} org={org} />)} />
+        <Route path="/committees/:id/meetings/:meetingId" element={auth(<CommitteeMeetingDetailsPage profile={profile} org={org} />)} />
+        <Route path="/regulations" element={auth(<RegulationsPage profile={profile} org={org} />)} />
         <Route path="/admin/users" element={adminAuth(<AdminUsersPage />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

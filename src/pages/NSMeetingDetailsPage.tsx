@@ -127,7 +127,6 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   const agendaDocInputRef = useRef<HTMLInputElement | null>(null);
 
   // Archive download
-  const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [archiveBuilding, setArchiveBuilding] = useState(false);
 
   // Voting
@@ -671,7 +670,6 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
 
       if (filtered.length === 0) {
         setArchiveBuilding(false);
-        setShowArchiveModal(false);
         return;
       }
 
@@ -715,7 +713,6 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
       console.error("Archive download error:", e);
     }
     setArchiveBuilding(false);
-    setShowArchiveModal(false);
   };
 
   // ---------- Protocol draft ----------
@@ -1735,25 +1732,26 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h3 style={{ margin: 0, fontSize: 16 }}>{t("nsMeetings.agenda")}</h3>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <button
-                onClick={() => {
-                  const allMats = [...Object.values(materialsMap).flat(), ...(protocolDoc ? [protocolDoc] : [])];
-                  const langs = (["ru", "uz", "en"] as MaterialLang[]).filter(l => allMats.some(m => m.language === l));
-                  if (langs.length === 1) {
-                    handleDownloadArchive(langs[0]);
-                  } else {
-                    setShowArchiveModal(true);
-                  }
-                }}
-                style={{ ...smallBtnStyle, display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13 }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="21 8 21 21 3 21 3 8"/>
-                  <rect x="1" y="3" width="22" height="5" rx="1"/>
-                  <line x1="10" y1="12" x2="14" y2="12"/>
-                </svg>
-                {t("nsMeetings.downloadArchive")}
-              </button>
+              {(["ru", "uz", "en"] as MaterialLang[])
+                .filter(lang => Object.values(materialsMap).flat().some(m => m.language === lang))
+                .map(lang => {
+                  const langCode = lang.toUpperCase();
+                  return (
+                    <button
+                      key={lang}
+                      disabled={archiveBuilding}
+                      onClick={() => handleDownloadArchive(lang)}
+                      style={{ ...smallBtnStyle, display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13, opacity: archiveBuilding ? 0.6 : 1 }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="21 8 21 21 3 21 3 8"/>
+                        <rect x="1" y="3" width="22" height="5" rx="1"/>
+                        <line x1="10" y1="12" x2="14" y2="12"/>
+                      </svg>
+                      {t("nsMeetings.downloadArchive")} ({langCode})
+                    </button>
+                  );
+                })}
 
               {isAdmin && agendaItems.length > 0 && agendaItems.some(item => {
                 const v = votingsMap[item.id];
@@ -2591,94 +2589,6 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         </div>
       )}
 
-      {/* ===== Archive Language Picker Modal ===== */}
-      {showArchiveModal && (() => {
-        const allMats = [
-          ...Object.values(materialsMap).flat(),
-          ...(protocolDoc ? [protocolDoc] : []),
-        ];
-        // Only show languages that actually have files
-        const langOptions: { value: MaterialLang; label: string; count: number }[] = (
-          [
-            { value: "ru" as MaterialLang, label: "Русский" },
-            { value: "uz" as MaterialLang, label: "Ўзбекча" },
-            { value: "en" as MaterialLang, label: "English" },
-          ] as { value: MaterialLang; label: string }[]
-        )
-          .map((o) => ({ ...o, count: allMats.filter((m) => m.language === o.value).length }))
-          .filter((o) => o.count > 0);
-
-        return (
-          <div style={overlayStyle}>
-            <div style={{ ...modalStyle, maxWidth: 420 }}>
-              <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: 8 }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="21 8 21 21 3 21 3 8"/>
-                  <rect x="1" y="3" width="22" height="5" rx="1"/>
-                  <line x1="10" y1="12" x2="14" y2="12"/>
-                </svg>
-                {t("nsMeetings.downloadArchive")}
-              </h3>
-              <p style={{ fontSize: 14, color: "#6B7280", margin: "0 0 20px" }}>
-                {t("nsMeetings.archiveModalSubtitle")}
-              </p>
-
-              {langOptions.length === 0 ? (
-                <p style={{ fontSize: 14, color: "#9CA3AF", textAlign: "center", padding: "16px 0" }}>
-                  {t("nsMeetings.archiveNoFiles")}
-                </p>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-                  {langOptions.map((opt, idx) => (
-                    <button
-                      key={`${opt.value}_${idx}`}
-                      disabled={archiveBuilding}
-                      onClick={() => handleDownloadArchive(opt.value)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        padding: "12px 16px",
-                        fontSize: 14,
-                        fontWeight: 500,
-                        borderRadius: 10,
-                        border: "1px solid #E5E7EB",
-                        background: archiveBuilding ? "#F9FAFB" : "#FFFFFF",
-                        color: "#111827",
-                        cursor: archiveBuilding ? "not-allowed" : "pointer",
-                        transition: "border-color 0.15s, background 0.15s",
-                        textAlign: "left",
-                      }}
-                      onMouseEnter={(e) => { if (!archiveBuilding) { e.currentTarget.style.background = "#F0F7FF"; e.currentTarget.style.borderColor = "#93C5FD"; } }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; e.currentTarget.style.borderColor = "#E5E7EB"; }}
-                    >
-                      <span>{opt.label}</span>
-                      <span style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 400, marginLeft: 12, whiteSpace: "nowrap" }}>
-                        {opt.count} {t("nsMeetings.archiveFiles", "файл(ов)")}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {archiveBuilding && (
-                <div style={{ fontSize: 13, color: "#6B7280", textAlign: "center", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                  <span style={{ display: "inline-block", width: 14, height: 14, border: "2px solid #D1D5DB", borderTopColor: "#2563EB", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-                  {t("nsMeetings.archiveBuilding")}
-                </div>
-              )}
-
-              <button
-                onClick={() => { if (!archiveBuilding) setShowArchiveModal(false); }}
-                disabled={archiveBuilding}
-                style={{ ...smallBtnStyle, width: "100%", justifyContent: "center" }}
-              >
-                {t("nsMeetings.cancel")}
-              </button>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* Toast */}
       {toastMsg && (

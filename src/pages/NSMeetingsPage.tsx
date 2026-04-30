@@ -27,6 +27,8 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
   const [meetings, setMeetings] = useState<NSMeeting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showOtherPlanned, setShowOtherPlanned] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   // Create form state
   const [showMeetingForm, setShowMeetingForm] = useState(false);
@@ -164,6 +166,40 @@ export default function NSMeetingsPage({ profile, org }: Props) {
     return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>{t("common.loading")}</div>;
   }
 
+  const readyMeetings = meetings.filter(m => m.status !== "completed" && m.materials_ready);
+  const otherPlanned = meetings.filter(m => m.status !== "completed" && !m.materials_ready);
+  const completedMeetings = meetings.filter(m => m.status === "completed");
+
+  const renderCard = (m: NSMeeting, green = false) => (
+    <button
+      key={m.id}
+      onClick={() => navigate(`/ns-meetings/${m.id}`)}
+      style={{
+        ...meetingCardStyle,
+        borderColor: green ? "#16A34A" : "#E5E7EB",
+        background: green ? "#F0FDF4" : "#FFFFFF",
+        borderLeft: green ? "4px solid #16A34A" : undefined,
+        boxShadow: green ? "0 0 0 1px #BBF7D0" : undefined,
+      }}
+    >
+      <div style={{ fontWeight: 600, fontSize: 14, color: "#111827", marginBottom: 4 }}>
+        {getLocalizedField(m as unknown as Record<string, unknown>, "title")}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ fontSize: 13, color: "#6B7280" }}>
+          {new Date(m.start_at).toLocaleDateString(getIntlLocale(), {
+            day: "2-digit", month: "2-digit", year: "numeric",
+          })}
+        </span>
+        {green && (
+          <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 10, background: "#DCFCE7", color: "#166534" }}>
+            {t("nsMeetings.statusScheduled")}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+
   return (
     <div>
       <h1 style={{ marginBottom: 4 }}>{t("nsMeetings.title")}</h1>
@@ -171,53 +207,89 @@ export default function NSMeetingsPage({ profile, org }: Props) {
         {t("nsMeetings.subtitle")}
       </p>
 
-      <div style={panelStyle}>
+      <div style={{ ...panelStyle, maxWidth: 620 }}>
         {isAdmin && (
           <button onClick={openCreateForm} style={primaryBtnStyle}>
             + {t("nsMeetings.createMeeting")}
           </button>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: isAdmin ? 16 : 0 }}>
-          {meetings.length === 0 && (
-            <p style={{ color: "#9CA3AF", fontSize: 14, textAlign: "center", padding: 20 }}>
-              {t("nsMeetings.noMeetingSelected")}
-            </p>
-          )}
-          {meetings.map((m) => {
-            const sc = statusColor(m.status);
-            return (
+        {/* ── Запланированные заседания ── */}
+        <div style={{ marginTop: isAdmin ? 20 : 0 }}>
+          <div style={sectionHeaderStyle}>
+            <span>{t("nsMeetings.sectionActive")}</span>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+            {readyMeetings.length === 0 && (
+              <p style={{ color: "#9CA3AF", fontSize: 14, padding: "8px 0" }}>
+                {t("nsMeetings.noActiveMeetings")}
+              </p>
+            )}
+            {readyMeetings.map(m => renderCard(m, true))}
+          </div>
+
+          {/* Toggle other planned */}
+          {otherPlanned.length > 0 && (
+            <div style={{ marginTop: 10 }}>
               <button
-                key={m.id}
-                onClick={() => navigate(`/ns-meetings/${m.id}`)}
-                style={{
-                  ...meetingCardStyle,
-                  borderColor: m.materials_ready ? "#16A34A" : "#E5E7EB",
-                  background: m.materials_ready ? "#F0FDF4" : "#FFFFFF",
-                  borderLeft: m.materials_ready ? "4px solid #16A34A" : undefined,
-                  boxShadow: m.materials_ready ? "0 0 0 1px #BBF7D0" : undefined,
-                }}
+                onClick={() => setShowOtherPlanned(v => !v)}
+                style={toggleBtnStyle}
               >
-                <div style={{ fontWeight: 600, fontSize: 14, color: "#111827", marginBottom: 4 }}>
-                  {getLocalizedField(m as unknown as Record<string, unknown>, "title")}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 13, color: "#6B7280" }}>
-                    {new Date(m.start_at).toLocaleDateString(getIntlLocale(), {
-                      day: "2-digit", month: "2-digit", year: "numeric",
-                    })}
-                  </span>
-                  <span style={{
-                    fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 10,
-                    background: sc.bg, color: sc.color,
-                  }}>
-                    {statusLabel(m.status)}
-                  </span>
-                </div>
+                {showOtherPlanned
+                  ? t("nsMeetings.hidePlanned")
+                  : t("nsMeetings.showAllPlanned", { count: otherPlanned.length })}
+                <span style={{ marginLeft: 6, fontSize: 11 }}>{showOtherPlanned ? "▲" : "▼"}</span>
               </button>
-            );
-          })}
+              {showOtherPlanned && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+                  {otherPlanned.map(m => renderCard(m, false))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* ── Завершённые заседания ── */}
+        {completedMeetings.length > 0 && (
+          <div style={{ marginTop: 24, borderTop: "1px solid #E5E7EB", paddingTop: 20 }}>
+            <div style={sectionHeaderStyle}>
+              <span>{t("nsMeetings.sectionCompleted")}</span>
+              <button
+                onClick={() => setShowCompleted(v => !v)}
+                style={toggleBtnStyle}
+              >
+                {showCompleted ? t("nsMeetings.hidePlanned") : `${completedMeetings.length}`}
+                <span style={{ marginLeft: 6, fontSize: 11 }}>{showCompleted ? "▲" : "▼"}</span>
+              </button>
+            </div>
+            {showCompleted && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
+                {completedMeetings.map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => navigate(`/ns-meetings/${m.id}`)}
+                    style={{ ...meetingCardStyle, background: "#F9FAFB", borderColor: "#E5E7EB" }}
+                  >
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "#6B7280", marginBottom: 4 }}>
+                      {getLocalizedField(m as unknown as Record<string, unknown>, "title")}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 13, color: "#9CA3AF" }}>
+                        {new Date(m.start_at).toLocaleDateString(getIntlLocale(), {
+                          day: "2-digit", month: "2-digit", year: "numeric",
+                        })}
+                      </span>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 10, background: "#DCFCE7", color: "#166534" }}>
+                        {t("nsMeetings.statusCompleted")}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ===== Create Meeting Modal ===== */}
@@ -435,4 +507,28 @@ const modalStyle: React.CSSProperties = {
   width: 440,
   maxWidth: "90vw",
   boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+};
+
+const sectionHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  fontSize: 13,
+  fontWeight: 700,
+  color: "#6B7280",
+  textTransform: "uppercase",
+  letterSpacing: "0.05em",
+};
+
+const toggleBtnStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "4px 10px",
+  fontSize: 12,
+  fontWeight: 500,
+  borderRadius: 6,
+  border: "1px solid #E5E7EB",
+  background: "#F9FAFB",
+  color: "#6B7280",
+  cursor: "pointer",
 };

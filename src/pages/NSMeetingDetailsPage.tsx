@@ -948,6 +948,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
       showToast(t("nsVideoConf.activatedSuccess"));
     } catch (e) {
       console.error("handleActivateVc error:", e);
+      showToast((e instanceof Error ? e.message : String(e)) || t("common.error"));
     }
   };
 
@@ -960,6 +961,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
       showToast(t("nsVideoConf.deactivatedSuccess"));
     } catch (e) {
       console.error("handleDeactivateVc error:", e);
+      showToast((e instanceof Error ? e.message : String(e)) || t("common.error"));
     }
   };
 

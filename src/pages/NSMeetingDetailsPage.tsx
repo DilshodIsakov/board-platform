@@ -651,54 +651,30 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     }
   };
 
-  const handleDownloadArchive = async (lang: MaterialLang) => {
-    if (!meeting) return;
+  const handleDownloadArchive = async (mats: Material[], lang: MaterialLang, zipLabel: string) => {
+    if (mats.length === 0) return;
     setArchiveBuilding(true);
     try {
       const JSZip = (await import("jszip")).default;
       const zip = new JSZip();
 
-      // Collect all materials
-      const agendaMats = Object.values(materialsMap).flat();
-      const allMats: Material[] = [
-        ...agendaMats,
-        ...(protocolDoc ? [protocolDoc] : []),
-      ];
-
-      // Filter by language
-      const filtered = allMats.filter((m) => m.language === lang);
-
-      if (filtered.length === 0) {
-        setArchiveBuilding(false);
-        return;
-      }
-
-      // Track duplicates to avoid name collisions
       const nameCount: Record<string, number> = {};
-
-      for (const mat of filtered) {
+      for (const mat of mats) {
         const url = await getMaterialUrl(mat.storage_path);
         if (!url) continue;
         const resp = await fetch(url);
         if (!resp.ok) continue;
         const blob = await resp.blob();
-
-        // Organise into sub-folders by language
-        const folder = mat.language ? mat.language.toUpperCase() : t("nsMeetings.matLangGeneral", "Общие");
         const base = mat.file_name;
-        const key = `${folder}/${base}`;
-        nameCount[key] = (nameCount[key] || 0) + 1;
-        const fileName = nameCount[key] > 1
-          ? base.replace(/(\.[^.]+)$/, `_${nameCount[key]}$1`)
+        nameCount[base] = (nameCount[base] || 0) + 1;
+        const fileName = nameCount[base] > 1
+          ? base.replace(/(\.[^.]+)$/, `_${nameCount[base]}$1`)
           : base;
-
-        zip.file(`${folder}/${fileName}`, blob);
+        zip.file(fileName, blob);
       }
 
       const content = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
-      const rawTitle = getLocalizedField(meeting as unknown as Record<string, unknown>, "title") || meeting.title || "meeting";
-      const safeTitle = rawTitle.replace(/[\\/:*?"<>|]/g, "-").slice(0, 50);
-      const filename = `${safeTitle}_${lang.toUpperCase()}.zip`;
+      const filename = `${zipLabel}_${lang.toUpperCase()}.zip`;
 
       const a = document.createElement("a");
       a.href = URL.createObjectURL(content);
@@ -708,7 +684,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
 
-      logAuditEvent({ actionType: "file_download", actionLabel: "Скачивание архива материалов", entityType: "meeting", entityId: meeting.id, entityTitle: rawTitle });
+      logAuditEvent({ actionType: "file_download", actionLabel: "Скачивание архива материалов", entityType: "meeting", entityId: meeting?.id, entityTitle: zipLabel });
     } catch (e) {
       console.error("Archive download error:", e);
     }
@@ -1732,27 +1708,6 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h3 style={{ margin: 0, fontSize: 16 }}>{t("nsMeetings.agenda")}</h3>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              {(["ru", "uz", "en"] as MaterialLang[])
-                .filter(lang => Object.values(materialsMap).flat().some(m => m.language === lang))
-                .map(lang => {
-                  const langCode = lang.toUpperCase();
-                  return (
-                    <button
-                      key={lang}
-                      disabled={archiveBuilding}
-                      onClick={() => handleDownloadArchive(lang)}
-                      style={{ ...smallBtnStyle, display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13, opacity: archiveBuilding ? 0.6 : 1 }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="21 8 21 21 3 21 3 8"/>
-                        <rect x="1" y="3" width="22" height="5" rx="1"/>
-                        <line x1="10" y1="12" x2="14" y2="12"/>
-                      </svg>
-                      {t("nsMeetings.downloadArchive")} ({langCode})
-                    </button>
-                  );
-                })}
-
               {isAdmin && agendaItems.length > 0 && agendaItems.some(item => {
                 const v = votingsMap[item.id];
                 return !v || v.status === "draft";
@@ -1830,27 +1785,45 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             <span style={{ fontSize: 12, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                               {langLabel}
                             </span>
-                            {isAdmin && (
-                              <>
+                            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                              {langMats.length > 0 && (
                                 <button
-                                  onClick={() => fileInputRefs.current[refKey]?.click()}
-                                  style={uploadBtnStyle}
-                                >
-                                  + {t("nsMeetings.uploadFile")}
-                                </button>
-                                <input
-                                  ref={(el) => { fileInputRefs.current[refKey] = el; }}
-                                  type="file"
-                                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z"
-                                  style={{ display: "none" }}
-                                  onChange={(e) => {
-                                    const f = e.target.files?.[0];
-                                    if (f) handleUploadFile(item.id, f, lang);
-                                    e.target.value = "";
+                                  disabled={archiveBuilding}
+                                  onClick={() => {
+                                    const itemTitle = (getLocalizedField(item as unknown as Record<string, unknown>, "title") || `q${item.order_index ?? ""}`)
+                                      .replace(/[\\/:*?"<>|]/g, "-").slice(0, 40);
+                                    handleDownloadArchive(langMats, lang, itemTitle);
                                   }}
-                                />
-                              </>
-                            )}
+                                  style={{ ...uploadBtnStyle, display: "inline-flex", alignItems: "center", gap: 4, opacity: archiveBuilding ? 0.6 : 1 }}
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/>
+                                  </svg>
+                                  {t("nsMeetings.downloadArchive")}
+                                </button>
+                              )}
+                              {isAdmin && (
+                                <>
+                                  <button
+                                    onClick={() => fileInputRefs.current[refKey]?.click()}
+                                    style={uploadBtnStyle}
+                                  >
+                                    + {t("nsMeetings.uploadFile")}
+                                  </button>
+                                  <input
+                                    ref={(el) => { fileInputRefs.current[refKey] = el; }}
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z"
+                                    style={{ display: "none" }}
+                                    onChange={(e) => {
+                                      const f = e.target.files?.[0];
+                                      if (f) handleUploadFile(item.id, f, lang);
+                                      e.target.value = "";
+                                    }}
+                                  />
+                                </>
+                              )}
+                            </div>
                           </div>
 
                           {langMats.length === 0 && isAdmin && (

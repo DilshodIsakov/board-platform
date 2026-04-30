@@ -150,17 +150,6 @@ export default function NSMeetingsPage({ profile, org }: Props) {
     setSaving(false);
   };
 
-  const statusLabel = (s: string) => {
-    if (s === "draft") return t("nsMeetings.statusDraft");
-    if (s === "scheduled") return t("nsMeetings.statusScheduled");
-    return t("nsMeetings.statusCompleted");
-  };
-
-  const statusColor = (s: string) => {
-    if (s === "completed") return { bg: "#DCFCE7", color: "#166534" };
-    if (s === "scheduled") return { bg: "#DBEAFE", color: "#1E40AF" };
-    return { bg: "#F3F4F6", color: "#6B7280" };
-  };
 
   if (loading) {
     return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>{t("common.loading")}</div>;

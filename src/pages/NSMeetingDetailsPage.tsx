@@ -979,9 +979,9 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     return { bg: "#F3F4F6", color: "#6B7280" };
   };
 
-  const fileTypeIcon = (mime: string) => {
-    const label = getFileTypeLabel(mime);
-    const colors: Record<string, string> = { PDF: "#DC2626", Word: "#2563EB", Excel: "#16A34A", PowerPoint: "#EA580C" };
+  const fileTypeIcon = (mime: string, fileName?: string) => {
+    const label = getFileTypeLabel(mime, fileName);
+    const colors: Record<string, string> = { PDF: "#DC2626", Word: "#2563EB", Excel: "#16A34A", PowerPoint: "#EA580C", ZIP: "#7C3AED", RAR: "#7C3AED", "7Z": "#7C3AED" };
     return { label, color: colors[label] || "#6B7280" };
   };
 
@@ -1460,7 +1460,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           )}
 
           {protocolDoc && (() => {
-            const ft = fileTypeIcon(protocolDoc.mime_type);
+            const ft = fileTypeIcon(protocolDoc.mime_type, protocolDoc.file_name);
             return (
               <div style={materialCardStyle}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
@@ -1843,7 +1843,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                                 <input
                                   ref={(el) => { fileInputRefs.current[refKey] = el; }}
                                   type="file"
-                                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z"
                                   style={{ display: "none" }}
                                   onChange={(e) => {
                                     const f = e.target.files?.[0];

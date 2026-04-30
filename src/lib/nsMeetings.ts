@@ -367,11 +367,21 @@ export function formatFileSize(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(1) + " МБ";
 }
 
-export function getFileTypeLabel(mime: string): string {
+export function getFileTypeLabel(mime: string, fileName?: string): string {
   if (mime === "application/pdf") return "PDF";
   if (mime.includes("word") || mime.includes(".document")) return "Word";
   if (mime.includes("excel") || mime.includes("spreadsheet")) return "Excel";
   if (mime.includes("powerpoint") || mime.includes("presentation")) return "PowerPoint";
+  if (mime === "application/zip" || mime === "application/x-zip-compressed") return "ZIP";
+  if (mime === "application/x-rar-compressed" || mime === "application/vnd.rar") return "RAR";
+  if (mime === "application/x-7z-compressed") return "7Z";
+  // Fallback: detect by file extension when browser reports generic MIME
+  if (fileName) {
+    const ext = fileName.split(".").pop()?.toLowerCase();
+    if (ext === "zip") return "ZIP";
+    if (ext === "rar") return "RAR";
+    if (ext === "7z") return "7Z";
+  }
   return "Файл";
 }
 

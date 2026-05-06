@@ -1170,6 +1170,8 @@ BEGIN
   END IF;
 
   RAISE NOTICE 'Seed: created 5 board tasks with assignees and comments';
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'Seed board_tasks skipped: %', SQLERRM;
 END;
 $$;
 

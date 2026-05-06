@@ -4,6 +4,14 @@ import i18n from "../i18n";
 import { supabase } from "../lib/supabaseClient";
 import { changePasswordAfterReset } from "../lib/profile";
 
+const IS_DEMO = import.meta.env.VITE_DEMO_MODE === "true";
+
+const DEMO_ACCOUNTS = [
+  { label: "Корп. секретарь", labelEn: "Corp. Secretary", email: "secretary@demo.almaz.uz" },
+  { label: "Председатель НС", labelEn: "Board Chairman",  email: "chairman@demo.almaz.uz"  },
+  { label: "Член НС",         labelEn: "Board Member",    email: "member@demo.almaz.uz"    },
+];
+
 type PageMode = "login" | "changePassword";
 
 export default function LoginPage() {
@@ -23,6 +31,14 @@ export default function LoginPage() {
   const [cpConfirmPassword, setCpConfirmPassword] = useState("");
   const [cpSuccess, setCpSuccess] = useState("");
   const [cpResetMode, setCpResetMode] = useState(false); // true = admin reset, no old password needed
+
+  const handleDemoLogin = async (email: string) => {
+    setLoading(true);
+    setError("");
+    const { error } = await supabase.auth.signInWithPassword({ email, password: "Demo1234!" });
+    if (error) setError(error.message);
+    setLoading(false);
+  };
 
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault();
@@ -170,6 +186,26 @@ export default function LoginPage() {
           >
             {t("login.changePassword.link")}
           </button>
+
+          {IS_DEMO && (
+            <div style={demoBlockStyle}>
+              <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                ⚡ Demo — быстрый вход
+              </div>
+              {DEMO_ACCOUNTS.map((acc) => (
+                <button
+                  key={acc.email}
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handleDemoLogin(acc.email)}
+                  style={demoBtnStyle}
+                >
+                  <span style={{ fontWeight: 600 }}>{acc.label}</span>
+                  <span style={{ fontSize: 11, color: "#6B7280" }}>{acc.email}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -282,6 +318,30 @@ const linkBtnStyle: React.CSSProperties = {
   cursor: "pointer",
   padding: "8px 0",
   textDecoration: "underline",
+};
+
+const demoBlockStyle: React.CSSProperties = {
+  marginTop: 24,
+  padding: "14px 16px",
+  background: "#FFFBEB",
+  border: "1px solid #FDE68A",
+  borderRadius: 8,
+};
+
+const demoBtnStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-start",
+  width: "100%",
+  padding: "8px 12px",
+  marginBottom: 6,
+  fontSize: 14,
+  borderRadius: 6,
+  border: "1px solid #E5E7EB",
+  background: "#fff",
+  cursor: "pointer",
+  textAlign: "left",
+  gap: 2,
 };
 
 const langSelectStyle: React.CSSProperties = {

@@ -128,8 +128,18 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
     setUnreadCount(0);
   }, []);
 
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
+
   return (
     <NotificationContext.Provider value={{ refresh: refreshNotifications }}>
+      {isDemoMode && (
+        <div style={demoBannerStyle}>
+          ⚡ Демо-версия · Demo version · Демо версия &nbsp;|&nbsp;
+          <span style={{ fontWeight: 400, opacity: 0.85 }}>
+            secretary@demo.almaz.uz / chairman@demo.almaz.uz / member@demo.almaz.uz — пароль: <strong>Demo1234!</strong>
+          </span>
+        </div>
+      )}
       <div style={containerStyle}>
         <Sidebar profile={profile} onSignOut={onSignOut} unreadNotificationsCount={unreadCount} unreadChatCount={unreadChatCount} />
 
@@ -389,6 +399,19 @@ const dropdownHeaderStyle: React.CSSProperties = {
   justifyContent: "space-between",
   padding: "14px 16px",
   borderBottom: "1px solid #F3F4F6",
+};
+
+const demoBannerStyle: React.CSSProperties = {
+  position: "sticky",
+  top: 0,
+  zIndex: 9999,
+  background: "#FEF3C7",
+  borderBottom: "1px solid #FDE68A",
+  padding: "7px 20px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "#92400E",
+  textAlign: "center",
 };
 
 const markAllBtnStyle: React.CSSProperties = {

@@ -80,8 +80,19 @@
     "type_personal_message": "Direct message",
     "type_group_message": "Group message",
     "type_meeting_invitation": "Meeting invitation",
+    "type_ns_meeting_invited": "Meeting invitation",
+    "type_meeting_video_conference_activated": "Video Conference",
     "type_voting_reminder": "Voting",
-    "filterVoting": "Voting"
+    "filterVoting": "Voting",
+    "translating": "Translating notifications...",
+    "typeTitleMeetingInvitation": "New Meeting",
+    "typeTitleVideoConf": "Video Conference Activated",
+    "typeTitleTaskAssigned": "New Task",
+    "typeTitleTaskStatus": "Task Status Changed",
+    "typeTitleTaskComment": "New Comment",
+    "typeTitlePersonalMessage": "Direct Message",
+    "typeTitleGroupMessage": "Group Message",
+    "typeTitleVotingReminder": "Voting Reminder"
   },
   "layout": {
     "platformTitle": "Board Platform",

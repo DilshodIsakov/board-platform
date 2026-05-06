@@ -80,8 +80,19 @@
     "type_personal_message": "Личное сообщение",
     "type_group_message": "Групповое сообщение",
     "type_meeting_invitation": "Приглашение на заседание",
+    "type_ns_meeting_invited": "Приглашение на заседание",
+    "type_meeting_video_conference_activated": "Видеоконференция",
     "type_voting_reminder": "Голосование",
-    "filterVoting": "Голосования"
+    "filterVoting": "Голосования",
+    "translating": "Переводим уведомления...",
+    "typeTitleMeetingInvitation": "Новое заседание",
+    "typeTitleVideoConf": "Видеоконференция активирована",
+    "typeTitleTaskAssigned": "Новое поручение",
+    "typeTitleTaskStatus": "Изменение статуса поручения",
+    "typeTitleTaskComment": "Новый комментарий",
+    "typeTitlePersonalMessage": "Личное сообщение",
+    "typeTitleGroupMessage": "Групповое сообщение",
+    "typeTitleVotingReminder": "Напоминание о голосовании"
   },
   "layout": {
     "platformTitle": "Наблюдательный совет платформа",

@@ -80,8 +80,19 @@
     "type_personal_message": "Шахсий хабар",
     "type_group_message": "Гуруҳ хабари",
     "type_meeting_invitation": "Мажлисга таклиф",
+    "type_ns_meeting_invited": "Мажлисга таклиф",
+    "type_meeting_video_conference_activated": "Видеоконференция",
     "type_voting_reminder": "Овоз бериш",
-    "filterVoting": "Овоз бериш"
+    "filterVoting": "Овоз бериш",
+    "translating": "Билдиришномалар таржима қилинмоқда...",
+    "typeTitleMeetingInvitation": "Янги йиғилиш",
+    "typeTitleVideoConf": "Видеоконференция фаоллаштирилди",
+    "typeTitleTaskAssigned": "Янги топшириқ",
+    "typeTitleTaskStatus": "Топшириқ ҳолати ўзгарди",
+    "typeTitleTaskComment": "Янги изоҳ",
+    "typeTitlePersonalMessage": "Шахсий хабар",
+    "typeTitleGroupMessage": "Гуруҳ хабари",
+    "typeTitleVotingReminder": "Овоз бериш эслатмаси"
   },
   "layout": {
     "platformTitle": "Кузатув кенгаши платформаси",

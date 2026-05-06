@@ -27,8 +27,22 @@ const TYPE_ICONS: Record<string, string> = {
   personal_message: "✉️",
   group_message: "👥",
   meeting_invitation: "📅",
+  ns_meeting_invited: "📅",
   meeting_video_conference_activated: "🎥",
   voting_reminder: "🗳️",
+};
+
+// Fallback titles per notification type — used when DB/auto-translation has no translation yet
+const TYPE_TITLE_I18N: Record<string, string> = {
+  meeting_invitation: "notifications.typeTitleMeetingInvitation",
+  ns_meeting_invited: "notifications.typeTitleMeetingInvitation",
+  meeting_video_conference_activated: "notifications.typeTitleVideoConf",
+  task_assigned: "notifications.typeTitleTaskAssigned",
+  task_status_changed: "notifications.typeTitleTaskStatus",
+  task_comment: "notifications.typeTitleTaskComment",
+  personal_message: "notifications.typeTitlePersonalMessage",
+  group_message: "notifications.typeTitleGroupMessage",
+  voting_reminder: "notifications.typeTitleVotingReminder",
 };
 
 // ── localStorage translation cache ───────────────────────────────────────────
@@ -207,7 +221,11 @@ export default function NotificationsPage({ profile }: Props) {
           {filtered.map((n) => {
             const isUz = lang === "uz-Cyrl" || lang === "uz";
             const langKey = isUz ? "uz" : "en";
-            const { title, body } = getLocalizedNotifContent(n, lang, autoTranslations[langKey]);
+            const { title: rawTitle, body } = getLocalizedNotifContent(n, lang, autoTranslations[langKey]);
+            // If translation is missing (still showing Russian in non-Russian mode),
+            // fall back to a type-based i18n key so the title is always localized
+            const needsFallback = lang !== "ru" && rawTitle === n.title && !!TYPE_TITLE_I18N[n.type];
+            const title = needsFallback ? t(TYPE_TITLE_I18N[n.type]) : rawTitle;
             return (
               <div
                 key={n.id}

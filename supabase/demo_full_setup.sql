@@ -32,154 +32,115 @@ alter table public.organizations enable row level security;
 -- org_update policy created later
 
 
--- 2. PROFILES
--- 1:1 с auth.users. Хранит роль, org_id, бизнес-данные.
+-- 2. PROFILES (v2 — id = auth.uid(), organization_id)
 -- ============================================================
 
-create type public.app_role as enum (
-  'chairman',
-  'board_member',
-  'executive',
-  'admin',
-  'auditor',
-  'department_head'
+-- User role enum (final version with all values pre-declared)
+DO $ud$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE public.user_role AS ENUM (
+      'admin', 'corp_secretary', 'board_member', 'management',
+      'executive', 'employee', 'auditor'
+    );
+  END IF;
+END $ud$;
+
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id                      uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  organization_id         uuid REFERENCES public.organizations(id),
+  email                   text NOT NULL DEFAULT '',
+  full_name               text,
+  full_name_en            text,
+  full_name_uz            text,
+  role                    public.user_role NOT NULL DEFAULT 'board_member',
+  role_details            text,
+  role_details_en         text,
+  role_details_uz         text,
+  approval_status         text NOT NULL DEFAULT 'approved',
+  password_reset_required boolean NOT NULL DEFAULT false,
+  avatar_url              text,
+  locale                  text NOT NULL DEFAULT 'ru',
+  shares_count            int NOT NULL DEFAULT 0,
+  created_at              timestamptz NOT NULL DEFAULT now(),
+  updated_at              timestamptz NOT NULL DEFAULT now()
 );
 
-create table public.profiles (
-  id         uuid primary key default gen_random_uuid(),
-  user_id    uuid         not null unique references auth.users(id) on delete cascade,
-  org_id     uuid         not null references public.organizations(id),
-  role       app_role     not null default 'board_member',
-  full_name  varchar(255) not null default '',
-  position   varchar(255) default '',
-  is_active  boolean      not null default true,
-  created_at timestamptz  not null default now()
-);
+CREATE INDEX IF NOT EXISTS idx_profiles_role       ON public.profiles(role);
+CREATE INDEX IF NOT EXISTS idx_profiles_created_at ON public.profiles(created_at);
 
-create index idx_profiles_org_id   on public.profiles(org_id);
-create index idx_profiles_org_role on public.profiles(org_id, role);
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-alter table public.profiles enable row level security;
+CREATE POLICY "profiles_select_authenticated" ON public.profiles
+  FOR SELECT USING (auth.role() = 'authenticated');
 
--- Все видят профили своей организации
-create policy "profiles_select" on public.profiles
-  for select using (
-    org_id in (select org_id from public.profiles where user_id = auth.uid())
+CREATE POLICY "profiles_insert_admin" ON public.profiles
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
--- Пользователь может редактировать свой профиль (имя, должность)
-create policy "profiles_update_self" on public.profiles
-  for update using (user_id = auth.uid())
-  with check (user_id = auth.uid());
+CREATE POLICY "profiles_update_own_profile" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
--- Admin может создавать профили в своей организации
-create policy "profiles_insert_admin" on public.profiles
-  for insert with check (
-    org_id in (
-      select org_id from public.profiles
-      where user_id = auth.uid() and role = 'admin'
-    )
-  );
+CREATE POLICY "profiles_update_role_as_admin" ON public.profiles
+  FOR UPDATE
+  USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
 
--- Admin может обновлять любые профили в своей организации
-create policy "profiles_update_admin" on public.profiles
-  for update using (
-    org_id in (
-      select org_id from public.profiles
-      where user_id = auth.uid() and role = 'admin'
-    )
+CREATE POLICY "profiles_delete_admin" ON public.profiles
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
 
--- 3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
--- Используются в RLS-политиках и клиентском коде.
+-- 3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (final versions — correct column names)
 -- ============================================================
 
--- Получить org_id текущего пользователя
-create or replace function public.get_my_org_id()
-returns uuid
-language sql stable security definer
-set search_path = ''
-as $$
-  select org_id from public.profiles where user_id = auth.uid() limit 1;
-$$;
+CREATE OR REPLACE FUNCTION public.get_my_org_id()
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $$ SELECT id FROM public.organizations LIMIT 1; $$;
 
--- Получить роль текущего пользователя
-create or replace function public.get_my_role()
-returns public.app_role
-language sql stable security definer
-set search_path = ''
-as $$
-  select role from public.profiles where user_id = auth.uid() limit 1;
-$$;
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $$ SELECT role::text FROM public.profiles WHERE id = auth.uid() LIMIT 1; $$;
 
--- Получить profile id текущего пользователя
-create or replace function public.get_my_profile_id()
-returns uuid
-language sql stable security definer
-set search_path = ''
-as $$
-  select id from public.profiles where user_id = auth.uid() limit 1;
-$$;
+CREATE OR REPLACE FUNCTION public.get_my_profile_id()
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $$ SELECT id FROM public.profiles WHERE id = auth.uid() LIMIT 1; $$;
 
 
 -- 4. ТРИГГЕР: автосоздание профиля при регистрации
--- Берёт org_id из user_metadata (передаётся при signUp).
--- Если org_id не передан — берёт первую активную организацию (MVP: одна компания).
 -- ============================================================
 
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql security definer
-set search_path = ''
-as $$
-declare
-  _org_id uuid;
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $$
+DECLARE
+  _org_id    uuid;
   _full_name text;
-  _role public.app_role;
-begin
-  -- org_id из metadata или первая активная организация
-  _org_id := coalesce(
-    (new.raw_user_meta_data ->> 'org_id')::uuid,
-    (select id from public.organizations where is_active = true limit 1)
-  );
-
-  -- Если организации нет — не создаём профиль (пользователь увидит ошибку)
-  if _org_id is null then
-    return new;
-  end if;
-
+BEGIN
+  _org_id := (SELECT id FROM public.organizations WHERE is_active = true LIMIT 1);
+  IF _org_id IS NULL THEN RETURN new; END IF;
   _full_name := coalesce(new.raw_user_meta_data ->> 'full_name', '');
-  _role := coalesce(
-    (new.raw_user_meta_data ->> 'role')::public.app_role,
-    'board_member'
-  );
-
-  insert into public.profiles (user_id, org_id, full_name, role)
-  values (new.id, _org_id, _full_name, _role);
-
-  return new;
-end;
+  INSERT INTO public.profiles (id, organization_id, email, full_name, role, approval_status)
+  VALUES (new.id, _org_id, new.email, _full_name, 'board_member', 'pending')
+  ON CONFLICT (id) DO NOTHING;
+  RETURN new;
+END;
 $$;
 
--- Привязываем триггер к auth.users
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row
-  execute function public.handle_new_user();
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 
--- 5. SEED: организация по умолчанию (MVP)
+-- 5. SEED: организация по умолчанию
 -- ============================================================
 
-insert into public.organizations (name)
-values ('Наблюдательный совет')
-on conflict do nothing;
+INSERT INTO public.organizations (name) VALUES ('Наблюдательный совет') ON CONFLICT DO NOTHING;
 
--- Add permissive org policy (will be tightened by later migrations)
-DO $$ BEGIN
+DO $op$ BEGIN
   CREATE POLICY "org_select" ON public.organizations FOR SELECT USING (true);
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+EXCEPTION WHEN duplicate_object THEN NULL; END $op$;
 
 
 -- ============================================================
@@ -324,31 +285,18 @@ create policy "decisions_delete" on public.decisions
 -- Запускать ПОСЛЕ schema.sql в Supabase SQL Editor
 -- ============================================================
 
--- Вспомогательные функции (CREATE OR REPLACE — безопасно перезапускать)
--- В вашей БД: profiles.id = auth.uid(), колонка organization_id (не org_id)
-create or replace function public.get_my_org_id()
-returns uuid
-language sql stable security definer
-set search_path = ''
-as $$
-  select organization_id from public.profiles where id = auth.uid() limit 1;
-$$;
+-- Helper functions (already defined correctly in schema section above; re-applying)
+CREATE OR REPLACE FUNCTION public.get_my_org_id()
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $$ SELECT id FROM public.organizations LIMIT 1; $$;
 
-create or replace function public.get_my_role()
-returns text
-language sql stable security definer
-set search_path = ''
-as $$
-  select role::text from public.profiles where id = auth.uid() limit 1;
-$$;
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $$ SELECT role::text FROM public.profiles WHERE id = auth.uid() LIMIT 1; $$;
 
-create or replace function public.get_my_profile_id()
-returns uuid
-language sql stable security definer
-set search_path = ''
-as $$
-  select id from public.profiles where id = auth.uid() limit 1;
-$$;
+CREATE OR REPLACE FUNCTION public.get_my_profile_id()
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $$ SELECT id FROM public.profiles WHERE id = auth.uid() LIMIT 1; $$;
 
 -- ---------- messages ----------
 
@@ -2338,15 +2286,8 @@ begin
 end
 $$;
 
--- 2. Create new profiles table for single-company
-create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text not null,
-  full_name text,
-  role public.user_role not null default 'board_member',
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+-- 2. profiles table already created with full schema in schema.sql section above
+-- (CREATE TABLE IF NOT EXISTS would be a no-op anyway)
 
 -- NOTE: If you have old profiles data, manually migrate with:
 -- INSERT INTO public.profiles (id, email, full_name, role, created_at, updated_at)
@@ -2655,22 +2596,7 @@ UPDATE public.board_work_plans SET title_ru = title WHERE title_ru IS NULL AND t
 -- ========================
 -- 8. plan_meetings
 -- ========================
-ALTER TABLE IF EXISTS public.plan_meetings
-  ADD COLUMN IF NOT EXISTS planned_date_range_text_ru text,
-  ADD COLUMN IF NOT EXISTS planned_date_range_text_uz text,
-  ADD COLUMN IF NOT EXISTS planned_date_range_text_en text;
-
-UPDATE public.plan_meetings SET planned_date_range_text_ru = planned_date_range_text WHERE planned_date_range_text_ru IS NULL AND planned_date_range_text IS NOT NULL;
-
--- ========================
--- 9. plan_agenda_items
--- ========================
-ALTER TABLE IF EXISTS public.plan_agenda_items
-  ADD COLUMN IF NOT EXISTS title_ru text,
-  ADD COLUMN IF NOT EXISTS title_uz text,
-  ADD COLUMN IF NOT EXISTS title_en text;
-
-UPDATE public.plan_agenda_items SET title_ru = title WHERE title_ru IS NULL AND title IS NOT NULL;
+-- plan_meetings / plan_agenda_items not in this schema — skipped
 
 -- ========================
 -- 10. shareholder_meetings

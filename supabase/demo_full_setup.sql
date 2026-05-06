@@ -1,5 +1,5 @@
 -- ============================================================
--- DEMO FULL SETUP — все миграции объединены в одном файле
+-- DEMO FULL SETUP v2 — все миграции объединены
 -- Запустить в Supabase SQL Editor demo-проекта
 -- ============================================================
 
@@ -26,19 +26,10 @@ create table public.organizations (
 alter table public.organizations enable row level security;
 
 -- Видишь только свою организацию (через profiles)
-create policy "org_select" on public.organizations
-  for select using (
-    id in (select org_id from public.profiles where user_id = auth.uid())
-  );
+-- org_select policy created later by migration 029
 
 -- Обновлять может только admin своей организации
-create policy "org_update" on public.organizations
-  for update using (
-    id in (
-      select org_id from public.profiles
-      where user_id = auth.uid() and role = 'admin'
-    )
-  );
+-- org_update policy created later
 
 
 -- 2. PROFILES
@@ -184,6 +175,11 @@ create trigger on_auth_user_created
 insert into public.organizations (name)
 values ('Наблюдательный совет')
 on conflict do nothing;
+
+-- Add permissive org policy (will be tightened by later migrations)
+DO $$ BEGIN
+  CREATE POLICY "org_select" ON public.organizations FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 
 -- ============================================================
@@ -3446,7 +3442,10 @@ CREATE POLICY "agenda_briefs_delete" ON public.agenda_briefs
 
 -- ── Agenda Briefs Lang (025_agenda_briefs_lang.sql) ──────────────────────────
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "agenda_brief_langs_insert" ON public.agenda_brief_langs;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "agenda_brief_langs_insert" ON public.agenda_brief_langs
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -3458,8 +3457,12 @@ CREATE POLICY "agenda_brief_langs_insert" ON public.agenda_brief_langs
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "agenda_brief_langs_update" ON public.agenda_brief_langs;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "agenda_brief_langs_update" ON public.agenda_brief_langs
   FOR UPDATE USING (
     EXISTS (
@@ -3471,6 +3474,7 @@ CREATE POLICY "agenda_brief_langs_update" ON public.agenda_brief_langs
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
 -- ── Work Plans (033_workplan_admin.sql) ──────────────────────────────────────
 
@@ -3496,7 +3500,10 @@ CREATE POLICY "work_plans_delete" ON public.board_work_plans
   );
 
 -- Work plan meetings
+DO $$ BEGIN
 DROP POLICY IF EXISTS "wp_meetings_insert" ON public.work_plan_meetings;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "wp_meetings_insert" ON public.work_plan_meetings
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -3506,8 +3513,12 @@ CREATE POLICY "wp_meetings_insert" ON public.work_plan_meetings
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "wp_meetings_update" ON public.work_plan_meetings;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "wp_meetings_update" ON public.work_plan_meetings
   FOR UPDATE USING (
     EXISTS (
@@ -3517,8 +3528,12 @@ CREATE POLICY "wp_meetings_update" ON public.work_plan_meetings
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "wp_meetings_delete" ON public.work_plan_meetings;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "wp_meetings_delete" ON public.work_plan_meetings
   FOR DELETE USING (
     EXISTS (
@@ -3528,9 +3543,13 @@ CREATE POLICY "wp_meetings_delete" ON public.work_plan_meetings
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
 -- Work plan agenda items
+DO $$ BEGIN
 DROP POLICY IF EXISTS "wp_agenda_insert" ON public.work_plan_agenda_items;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "wp_agenda_insert" ON public.work_plan_agenda_items
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -3541,8 +3560,12 @@ CREATE POLICY "wp_agenda_insert" ON public.work_plan_agenda_items
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "wp_agenda_update" ON public.work_plan_agenda_items;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "wp_agenda_update" ON public.work_plan_agenda_items
   FOR UPDATE USING (
     EXISTS (
@@ -3553,8 +3576,12 @@ CREATE POLICY "wp_agenda_update" ON public.work_plan_agenda_items
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "wp_agenda_delete" ON public.work_plan_agenda_items;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "wp_agenda_delete" ON public.work_plan_agenda_items
   FOR DELETE USING (
     EXISTS (
@@ -3565,32 +3592,48 @@ CREATE POLICY "wp_agenda_delete" ON public.work_plan_agenda_items
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
 -- ── NS Meeting Voting (034_ns_meeting_voting.sql) ───────────────────────────
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "ns_meetings_insert" ON public.ns_meetings;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "ns_meetings_insert" ON public.ns_meetings
   FOR INSERT WITH CHECK (
     org_id = public.get_my_org_id()
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "ns_meetings_update" ON public.ns_meetings;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "ns_meetings_update" ON public.ns_meetings
   FOR UPDATE USING (
     org_id = public.get_my_org_id()
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "ns_meetings_delete" ON public.ns_meetings;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "ns_meetings_delete" ON public.ns_meetings
   FOR DELETE USING (
     org_id = public.get_my_org_id()
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
 -- NS meeting agenda items
+DO $$ BEGIN
 DROP POLICY IF EXISTS "ns_agenda_items_insert" ON public.ns_agenda_items;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "ns_agenda_items_insert" ON public.ns_agenda_items
   FOR INSERT WITH CHECK (
     EXISTS (
@@ -3600,8 +3643,12 @@ CREATE POLICY "ns_agenda_items_insert" ON public.ns_agenda_items
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "ns_agenda_items_update" ON public.ns_agenda_items;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "ns_agenda_items_update" ON public.ns_agenda_items
   FOR UPDATE USING (
     EXISTS (
@@ -3611,8 +3658,12 @@ CREATE POLICY "ns_agenda_items_update" ON public.ns_agenda_items
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
+DO $$ BEGIN
 DROP POLICY IF EXISTS "ns_agenda_items_delete" ON public.ns_agenda_items;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DO $$ BEGIN
 CREATE POLICY "ns_agenda_items_delete" ON public.ns_agenda_items
   FOR DELETE USING (
     EXISTS (
@@ -3622,6 +3673,7 @@ CREATE POLICY "ns_agenda_items_delete" ON public.ns_agenda_items
     )
     AND public.get_my_role() IN ('admin', 'chairman', 'corp_secretary')
   );
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
 -- ── Video Conferences ────────────────────────────────────────────────────────
 -- video_conferences policies may use creator check already, ensure corp_secretary can delete

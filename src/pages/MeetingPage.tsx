@@ -18,6 +18,7 @@ import {
   type Voting,
 } from "../lib/voting";
 import { formatDateTime } from "../lib/format";
+import { getLocalizedField } from "../lib/i18nHelpers";
 
 const CAN_EDIT = ["admin", "corp_secretary"];
 
@@ -205,7 +206,7 @@ export default function MeetingPage({ profile, org }: Props) {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1 style={{ margin: 0, marginBottom: 4 }}>{meeting.title}</h1>
+        <h1 style={{ margin: 0, marginBottom: 4 }}>{getLocalizedField(meeting as unknown as Record<string, unknown>, "title")}</h1>
         <Link to={`/meetings/${meetingId}/protocol`} style={protocolBtnStyle}>
           {t("protocol.title")}
         </Link>
@@ -302,11 +303,11 @@ export default function MeetingPage({ profile, org }: Props) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
                 <strong style={{ fontSize: 15 }}>
-                  {item.order_index}. {item.title}
+                  {item.order_index}. {getLocalizedField(item as unknown as Record<string, unknown>, "title")}
                 </strong>
                 {item.presenter && (
                   <span style={{ color: "#6b7280", fontSize: 13, marginLeft: 8 }}>
-                    — {item.presenter}
+                    — {getLocalizedField(item as unknown as Record<string, unknown>, "presenter")}
                   </span>
                 )}
               </div>

@@ -5,8 +5,14 @@ export interface AgendaItem {
   meeting_id: string;
   org_id: string;
   title: string;
+  title_ru: string | null;
+  title_en: string | null;
+  title_uz: string | null;
   order_index: number;
   presenter: string | null;
+  presenter_ru: string | null;
+  presenter_en: string | null;
+  presenter_uz: string | null;
   decisions?: Decision[];
 }
 

@@ -2078,7 +2078,7 @@ BEGIN
   END LOOP;
 END $$;
 
-ALTER TABLE public.messages ALTER COLUMN body DROP NOT NULL;
+ALTER TABLE public.messages ALTER COLUMN content DROP NOT NULL;
 
 -- Для chat_group_messages: сделать content nullable
 ALTER TABLE public.chat_group_messages ALTER COLUMN content DROP NOT NULL;

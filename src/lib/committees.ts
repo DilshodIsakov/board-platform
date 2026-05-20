@@ -126,7 +126,7 @@ export async function fetchCommitteeMembers(committeeId: string): Promise<Commit
     .from("committee_members")
     .select(`
       *,
-      profile:profiles(id, full_name, full_name_en, full_name_uz, avatar_url, role)
+      profile:profiles(*)
     `)
     .eq("committee_id", committeeId)
     .order("added_at", { ascending: true });

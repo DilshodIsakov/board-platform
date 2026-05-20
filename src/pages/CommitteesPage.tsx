@@ -40,13 +40,29 @@ export default function CommitteesPage({ profile }: Props) {
 
   useEffect(() => { loadAll(); }, []);
 
+  const attachProfiles = (members: CommitteeMember[], profiles: Profile[]): CommitteeMember[] => {
+    const profileMap = new Map(profiles.map((p) => [p.id, p]));
+    return members.map((m) => {
+      const p = profileMap.get(m.profile_id);
+      return {
+        ...m,
+        profile: p
+          ? { id: p.id, full_name: p.full_name, full_name_en: p.full_name_en ?? null, full_name_uz: p.full_name_uz ?? null, avatar_url: (p as unknown as Record<string, unknown>).avatar_url as string | null ?? null, role: p.role }
+          : undefined,
+      };
+    });
+  };
+
   const loadAll = async () => {
     setLoading(true);
     const [cList, profiles] = await Promise.all([fetchCommittees(), getAllProfiles()]);
     setCommittees(cList);
     setAllProfiles(profiles);
     const mMap: Record<string, CommitteeMember[]> = {};
-    await Promise.all(cList.map(async (c) => { mMap[c.id] = await fetchCommitteeMembers(c.id); }));
+    await Promise.all(cList.map(async (c) => {
+      const raw = await fetchCommitteeMembers(c.id);
+      mMap[c.id] = attachProfiles(raw, profiles);
+    }));
     setMembersMap(mMap);
     setLoading(false);
   };
@@ -92,20 +108,20 @@ export default function CommitteesPage({ profile }: Props) {
     setSaving(false);
     // Background sync to get real DB state
     fetchCommitteeMembers(committeeId).then((updated) => {
-      if (updated.length > 0) setMembersMap((prev) => ({ ...prev, [committeeId]: updated }));
+      if (updated.length > 0) setMembersMap((prev) => ({ ...prev, [committeeId]: attachProfiles(updated, allProfiles) }));
     });
   };
 
   const handleRemoveMember = async (committeeId: string, profileId: string) => {
     await removeCommitteeMember(committeeId, profileId);
     const updated = await fetchCommitteeMembers(committeeId);
-    setMembersMap((prev) => ({ ...prev, [committeeId]: updated }));
+    setMembersMap((prev) => ({ ...prev, [committeeId]: attachProfiles(updated, allProfiles) }));
   };
 
   const handleChangeRole = async (committeeId: string, profileId: string, role: "chair" | "member") => {
     await updateCommitteeMemberRole(committeeId, profileId, role);
     const updated = await fetchCommitteeMembers(committeeId);
-    setMembersMap((prev) => ({ ...prev, [committeeId]: updated }));
+    setMembersMap((prev) => ({ ...prev, [committeeId]: attachProfiles(updated, allProfiles) }));
   };
 
   if (loading) return (

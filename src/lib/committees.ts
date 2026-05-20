@@ -124,14 +124,11 @@ export async function fetchCommitteeById(id: string): Promise<Committee | null> 
 export async function fetchCommitteeMembers(committeeId: string): Promise<CommitteeMember[]> {
   const { data, error } = await supabase
     .from("committee_members")
-    .select(`
-      *,
-      profile:profiles(*)
-    `)
+    .select("*")
     .eq("committee_id", committeeId)
     .order("added_at", { ascending: true });
   if (error) { console.error("fetchCommitteeMembers:", error); return []; }
-  return data as CommitteeMember[];
+  return (data ?? []) as CommitteeMember[];
 }
 
 export async function addCommitteeMember(

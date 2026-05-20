@@ -7,6 +7,7 @@ import type { Profile, Organization } from "../lib/profile";
 import {
   getTask,
   updateTask,
+  deleteTask,
   setTaskStatus,
   addAssignee,
   removeAssignee,
@@ -285,6 +286,18 @@ export default function TaskDetailsPage({ profile, org }: Props) {
     }
   };
 
+  const handleDeleteTask = async () => {
+    if (!task) return;
+    if (!confirm(t("taskDetails.deleteTaskConfirm"))) return;
+    try {
+      await deleteTask(task.id);
+      logAuditEvent({ actionType: "task_delete", actionLabel: "Удаление поручения", entityType: "task", entityId: task.id, entityTitle: task.title });
+      navigate("/tasks");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("common.error"));
+    }
+  };
+
   const canDeleteAttachment = (att: BoardTaskAttachment) =>
     profile && (att.uploaded_by === profile.id || MANAGE_ROLES.includes(profile.role));
 
@@ -354,6 +367,11 @@ export default function TaskDetailsPage({ profile, org }: Props) {
           {canManage && !editing && (
             <button onClick={() => setEditing(true)} style={editBtnStyle}>
               {t("admin.edit")}
+            </button>
+          )}
+          {canManage && !editing && (
+            <button onClick={handleDeleteTask} style={deleteBtnStyle}>
+              {t("common.delete")}
             </button>
           )}
         </div>
@@ -897,6 +915,17 @@ const editBtnStyle: React.CSSProperties = {
   fontSize: 13,
   cursor: "pointer",
   color: "#374151",
+};
+
+const deleteBtnStyle: React.CSSProperties = {
+  padding: "6px 14px",
+  background: "#FEE2E2",
+  border: "1px solid #FECACA",
+  borderRadius: 8,
+  fontSize: 13,
+  cursor: "pointer",
+  color: "#DC2626",
+  fontWeight: 500,
 };
 
 const saveBtnStyle: React.CSSProperties = {

@@ -136,12 +136,18 @@ export async function fetchCommitteeMembers(committeeId: string): Promise<Commit
 
 export async function addCommitteeMember(
   committeeId: string, profileId: string, role: "chair" | "member"
-): Promise<boolean> {
+): Promise<{ ok: boolean; error?: string }> {
   const { error } = await supabase
     .from("committee_members")
-    .upsert({ committee_id: committeeId, profile_id: profileId, role }, { onConflict: "committee_id,profile_id" });
-  if (error) { console.error("addCommitteeMember:", error); return false; }
-  return true;
+    .upsert(
+      { committee_id: committeeId, profile_id: profileId, role },
+      { onConflict: "committee_id,profile_id" }
+    );
+  if (error) {
+    console.error("addCommitteeMember:", error);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 export async function updateCommitteeMemberRole(

@@ -846,6 +846,7 @@
     "manageAssignees": "Manage assignees",
     "makeMain": "Make main",
     "deleteFileConfirm": "Delete file?",
+    "deleteTaskConfirm": "Delete this task? This action cannot be undone.",
     "descriptionPlaceholder": "Description...",
     "send": "Send",
     "uploading": "Uploading...",

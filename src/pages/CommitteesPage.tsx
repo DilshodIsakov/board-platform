@@ -36,6 +36,7 @@ export default function CommitteesPage({ profile }: Props) {
   const [addingProfileId, setAddingProfileId] = useState("");
   const [addingRole, setAddingRole] = useState<"chair" | "member">("member");
   const [saving, setSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   useEffect(() => { loadAll(); }, []);
 
@@ -53,12 +54,46 @@ export default function CommitteesPage({ profile }: Props) {
   const handleAddMember = async (committeeId: string) => {
     if (!addingProfileId) return;
     setSaving(true);
-    await addCommitteeMember(committeeId, addingProfileId, addingRole);
-    const updated = await fetchCommitteeMembers(committeeId);
-    setMembersMap((prev) => ({ ...prev, [committeeId]: updated }));
+    setAddError(null);
+    const result = await addCommitteeMember(committeeId, addingProfileId, addingRole);
+    if (!result.ok) {
+      setAddError(result.error ?? "Ошибка при добавлении");
+      setSaving(false);
+      return;
+    }
+    // Optimistic update — immediately show the new member in the UI
+    const addedProfile = allProfiles.find((p) => p.id === addingProfileId);
+    if (addedProfile) {
+      const newMember: CommitteeMember = {
+        id: crypto.randomUUID(),
+        committee_id: committeeId,
+        profile_id: addingProfileId,
+        role: addingRole,
+        added_at: new Date().toISOString(),
+        profile: {
+          id: addedProfile.id,
+          full_name: addedProfile.full_name,
+          full_name_en: addedProfile.full_name_en ?? null,
+          full_name_uz: addedProfile.full_name_uz ?? null,
+          avatar_url: addedProfile.avatar_url ?? null,
+          role: addedProfile.role,
+        },
+      };
+      setMembersMap((prev) => ({
+        ...prev,
+        [committeeId]: [
+          ...(prev[committeeId] || []).filter((m) => m.profile_id !== addingProfileId),
+          newMember,
+        ],
+      }));
+    }
     setAddingProfileId("");
     setAddingRole("member");
     setSaving(false);
+    // Background sync to get real DB state
+    fetchCommitteeMembers(committeeId).then((updated) => {
+      if (updated.length > 0) setMembersMap((prev) => ({ ...prev, [committeeId]: updated }));
+    });
   };
 
   const handleRemoveMember = async (committeeId: string, profileId: string) => {
@@ -169,7 +204,7 @@ export default function CommitteesPage({ profile }: Props) {
                   </span>
                   {isAdmin && (
                     <button
-                      onClick={() => { setManagingId(isManaging ? null : c.id); setAddingProfileId(""); setAddingRole("member"); }}
+                      onClick={() => { setManagingId(isManaging ? null : c.id); setAddingProfileId(""); setAddingRole("member"); setAddError(null); }}
                       style={{ fontSize: 12, color: isManaging ? "#6B7280" : color, background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
                     >
                       {isManaging ? t("common.close") : t("committees.manage")}
@@ -232,37 +267,44 @@ export default function CommitteesPage({ profile }: Props) {
 
                 {/* Add member form */}
                 {isAdmin && isManaging && (
-                  <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
-                    <select
-                      value={addingProfileId}
-                      onChange={(e) => setAddingProfileId(e.target.value)}
-                      style={{ flex: 1, minWidth: 130, fontSize: 13, padding: "6px 8px", borderRadius: 8, border: "1px solid #D1D5DB", background: "#fff" }}
-                    >
-                      <option value="">{t("committees.selectMember")}</option>
-                      {allProfiles
-                        .filter((p) => !members.some((m) => m.profile_id === p.id))
-                        .map((p) => <option key={p.id} value={p.id}>{getLocalizedName(p, i18n.language) || p.full_name || p.email}</option>)}
-                    </select>
-                    <select
-                      value={addingRole}
-                      onChange={(e) => setAddingRole(e.target.value as "chair" | "member")}
-                      style={{ fontSize: 13, padding: "6px 8px", borderRadius: 8, border: "1px solid #D1D5DB", background: "#fff" }}
-                    >
-                      <option value="member">{t("committees.roleMember")}</option>
-                      <option value="chair">{t("committees.roleChair")}</option>
-                    </select>
-                    <button
-                      onClick={() => handleAddMember(c.id)}
-                      disabled={!addingProfileId || saving}
-                      style={{
-                        padding: "6px 14px", fontSize: 13, fontWeight: 600,
-                        background: color, color: "#fff", border: "none",
-                        borderRadius: 8, cursor: addingProfileId ? "pointer" : "not-allowed",
-                        opacity: addingProfileId ? 1 : 0.5,
-                      }}
-                    >
-                      {t("committees.addMember")}
-                    </button>
+                  <div style={{ marginTop: 10 }}>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      <select
+                        value={addingProfileId}
+                        onChange={(e) => { setAddingProfileId(e.target.value); setAddError(null); }}
+                        style={{ flex: 1, minWidth: 130, fontSize: 13, padding: "6px 8px", borderRadius: 8, border: `1px solid ${addError ? "#EF4444" : "#D1D5DB"}`, background: "#fff" }}
+                      >
+                        <option value="">{t("committees.selectMember")}</option>
+                        {allProfiles
+                          .filter((p) => !members.some((m) => m.profile_id === p.id))
+                          .map((p) => <option key={p.id} value={p.id}>{getLocalizedName(p, i18n.language) || p.full_name || p.email}</option>)}
+                      </select>
+                      <select
+                        value={addingRole}
+                        onChange={(e) => setAddingRole(e.target.value as "chair" | "member")}
+                        style={{ fontSize: 13, padding: "6px 8px", borderRadius: 8, border: "1px solid #D1D5DB", background: "#fff" }}
+                      >
+                        <option value="member">{t("committees.roleMember")}</option>
+                        <option value="chair">{t("committees.roleChair")}</option>
+                      </select>
+                      <button
+                        onClick={() => handleAddMember(c.id)}
+                        disabled={!addingProfileId || saving}
+                        style={{
+                          padding: "6px 14px", fontSize: 13, fontWeight: 600,
+                          background: color, color: "#fff", border: "none",
+                          borderRadius: 8, cursor: addingProfileId && !saving ? "pointer" : "not-allowed",
+                          opacity: addingProfileId && !saving ? 1 : 0.5,
+                        }}
+                      >
+                        {saving ? "..." : t("committees.addMember")}
+                      </button>
+                    </div>
+                    {addError && managingId === c.id && (
+                      <div style={{ marginTop: 6, fontSize: 12, color: "#DC2626", padding: "4px 8px", background: "#FEF2F2", borderRadius: 6 }}>
+                        {addError}
+                      </div>
+                    )}
                   </div>
                 )}
 

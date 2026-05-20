@@ -851,6 +851,7 @@
     "manageAssignees": "Управление исполнителями",
     "makeMain": "Назначить главным",
     "deleteFileConfirm": "Удалить файл?",
+    "deleteTaskConfirm": "Удалить это поручение? Действие необратимо.",
     "descriptionPlaceholder": "Описание...",
     "send": "Отправить",
     "uploading": "Загрузка...",

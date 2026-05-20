@@ -846,6 +846,7 @@
     "manageAssignees": "Ижрочиларни бошқариш",
     "makeMain": "Асосий қилиш",
     "deleteFileConfirm": "Файлни ўчириш?",
+    "deleteTaskConfirm": "Бу топшириқни ўчириш? Бу амал қайтарилмайди.",
     "descriptionPlaceholder": "Тавсиф...",
     "send": "Юбориш",
     "uploading": "Юкланмоқда...",

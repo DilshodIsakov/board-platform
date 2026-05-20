@@ -11,6 +11,9 @@ export interface BoardTask {
   title: string;
   description: string | null;
   basis: string | null;
+  basis_ru?: string | null;
+  basis_uz?: string | null;
+  basis_en?: string | null;
   priority: "low" | "medium" | "high";
   status: "open" | "in_progress" | "done" | "canceled" | "overdue";
   due_date: string | null;
@@ -156,6 +159,9 @@ export async function createTask(payload: {
   title: string;
   description?: string;
   basis?: string;
+  basis_ru?: string;
+  basis_uz?: string;
+  basis_en?: string;
   priority?: string;
   due_date?: string;
   related_meeting_id?: string;
@@ -182,6 +188,9 @@ export async function createTask(payload: {
       title:                  payload.title,
       description:            payload.description || null,
       basis:                  payload.basis || null,
+      basis_ru:               payload.basis_ru || null,
+      basis_uz:               payload.basis_uz || null,
+      basis_en:               payload.basis_en || null,
       priority:               payload.priority || "medium",
       due_date:               payload.due_date || null,
       related_meeting_id:     payload.related_meeting_id || null,
@@ -209,7 +218,7 @@ export async function createTask(payload: {
 export async function updateTask(
   id: string,
   patch: Partial<Pick<BoardTask,
-    | "title" | "description" | "basis" | "priority" | "status" | "due_date"
+    | "title" | "description" | "basis" | "basis_ru" | "basis_uz" | "basis_en" | "priority" | "status" | "due_date"
     | "source_language"
     | "title_ru" | "title_uz" | "title_en"
     | "description_ru" | "description_uz" | "description_en"

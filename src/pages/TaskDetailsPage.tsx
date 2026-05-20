@@ -77,7 +77,9 @@ export default function TaskDetailsPage({ profile, org }: Props) {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
-  const [editBasis, setEditBasis] = useState("");
+  const [editBasisRu, setEditBasisRu] = useState("");
+  const [editBasisUz, setEditBasisUz] = useState("");
+  const [editBasisEn, setEditBasisEn] = useState("");
   const [editPriority, setEditPriority] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
   const [saving, setSaving] = useState(false);
@@ -132,7 +134,9 @@ export default function TaskDetailsPage({ profile, org }: Props) {
     if (t) {
       setEditTitle(t.title);
       setEditDesc(t.description || "");
-      setEditBasis(t.basis || "");
+      setEditBasisRu(t.basis_ru || t.basis || "");
+      setEditBasisUz(t.basis_uz || "");
+      setEditBasisEn(t.basis_en || "");
       setEditPriority(t.priority);
       setEditDueDate(t.due_date || "");
       // multilingual
@@ -186,10 +190,14 @@ export default function TaskDetailsPage({ profile, org }: Props) {
     const resolvedUz = resolveEditStatus("uz", editStatusUz);
     const resolvedEn = resolveEditStatus("en", editStatusEn);
     try {
+      const srcBasis = (editSourceLang === "ru" ? editBasisRu : editSourceLang === "uz" ? editBasisUz : editBasisEn).trim();
       await updateTask(task.id, {
         title:       srcTitle || editTitle.trim(),
         description: srcDesc || editDesc.trim() || null,
-        basis:       editBasis.trim() || null,
+        basis:       srcBasis || null,
+        basis_ru:    editBasisRu.trim() || null,
+        basis_uz:    editBasisUz.trim() || null,
+        basis_en:    editBasisEn.trim() || null,
         priority:    editPriority as BoardTask["priority"],
         due_date:    editDueDate || null,
         source_language:       editSourceLang,
@@ -208,7 +216,10 @@ export default function TaskDetailsPage({ profile, org }: Props) {
         ...task,
         title:       srcTitle || editTitle.trim(),
         description: srcDesc || editDesc.trim() || null,
-        basis:       editBasis.trim() || null,
+        basis:       srcBasis || null,
+        basis_ru:    editBasisRu.trim() || null,
+        basis_uz:    editBasisUz.trim() || null,
+        basis_en:    editBasisEn.trim() || null,
         priority:    editPriority as BoardTask["priority"],
         due_date:    editDueDate || null,
         source_language:       editSourceLang,
@@ -527,8 +538,13 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                 {t("taskTable.basisLabel")}
               </label>
               <textarea
-                value={editBasis}
-                onChange={(e) => setEditBasis(e.target.value)}
+                value={editLangTab === "ru" ? editBasisRu : editLangTab === "uz" ? editBasisUz : editBasisEn}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (editLangTab === "ru") setEditBasisRu(v);
+                  else if (editLangTab === "uz") setEditBasisUz(v);
+                  else setEditBasisEn(v);
+                }}
                 rows={2}
                 style={{ ...inputStyle, marginBottom: 10, resize: "vertical" }}
                 placeholder={t("taskTable.basisPlaceholder")}
@@ -600,10 +616,10 @@ export default function TaskDetailsPage({ profile, org }: Props) {
               return desc ? <p style={{ color: "#4B5563", fontSize: 15, margin: "0 0 16px", lineHeight: 1.6 }}>{desc}</p> : null;
             })()}
 
-            {task.basis && (
+            {getLocalizedField(task as unknown as Record<string, unknown>, "basis") && (
               <div style={{ marginBottom: 16 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: "#6B7280" }}>{t("taskTable.basisLabel")}:</span>
-                <p style={{ color: "#4B5563", fontSize: 14, margin: "4px 0 0", lineHeight: 1.5 }}>{task.basis}</p>
+                <p style={{ color: "#4B5563", fontSize: 14, margin: "4px 0 0", lineHeight: 1.5 }}>{getLocalizedField(task as unknown as Record<string, unknown>, "basis")}</p>
               </div>
             )}
 

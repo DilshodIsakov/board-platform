@@ -329,7 +329,9 @@ function CreateTaskModal({
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [mainExecutor, setMainExecutor] = useState<string>("");
   const [orgProfiles, setOrgProfiles] = useState<{ id: string; full_name: string; role: string }[]>([]);
-  const [basis, setBasis] = useState("");
+  const [basisRu, setBasisRu] = useState("");
+  const [basisUz, setBasisUz] = useState("");
+  const [basisEn, setBasisEn] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -387,6 +389,13 @@ function CreateTaskModal({
       else if (lang === "uz") setStatusUz(newStatus);
       else setStatusEn(newStatus);
     }
+  };
+
+  const getBasis = (lang: SupportedLang) => lang === "ru" ? basisRu : lang === "uz" ? basisUz : basisEn;
+  const setBasisForLang = (lang: SupportedLang, v: string) => {
+    if (lang === "ru") setBasisRu(v);
+    else if (lang === "uz") setBasisUz(v);
+    else setBasisEn(v);
   };
 
   const sourceTitle = getTitle(sourceLang);
@@ -456,7 +465,10 @@ function CreateTaskModal({
         created_by:      profile.id,
         title:           sourceTitle.trim(),
         description:     sourceDesc.trim() || undefined,
-        basis:           basis.trim() || undefined,
+        basis:           getBasis(sourceLang).trim() || undefined,
+        basis_ru:        basisRu.trim() || undefined,
+        basis_uz:        basisUz.trim() || undefined,
+        basis_en:        basisEn.trim() || undefined,
         priority,
         due_date:        dueDate || undefined,
         source_language: sourceLang,
@@ -572,8 +584,8 @@ function CreateTaskModal({
           {/* Basis */}
           <label style={labelStyle}>{t("taskTable.basisLabel")}</label>
           <textarea
-            value={basis}
-            onChange={(e) => setBasis(e.target.value)}
+            value={getBasis(langTab)}
+            onChange={(e) => setBasisForLang(langTab, e.target.value)}
             placeholder={t("taskTable.basisPlaceholder")}
             rows={2}
             style={{ ...inputStyle, resize: "vertical" }}

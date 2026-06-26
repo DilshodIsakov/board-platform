@@ -136,6 +136,7 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
             key={item.to}
             to={item.to}
             end={item.to === "/"}
+            className="sidebar-nav-item"
             style={({ isActive }) => ({
               ...navItemStyle,
               background: isActive ? "rgba(37,99,235,0.18)" : "transparent",

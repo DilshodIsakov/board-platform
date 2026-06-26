@@ -269,7 +269,20 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
   if (!doc) return shell(<EmptyState icon="📄" title={error || t("review.notFound")} />);
 
   return shell(
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <div className="dc-review" style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <style>{`
+        .dc-review-body { display: flex; gap: 16px; flex: 1; min-height: 0; }
+        .dc-review-doc { flex: 1; overflow: auto; }
+        .dc-review-panel { width: 360px; display: flex; flex-direction: column; min-height: 0; }
+        @media (max-width: 900px) {
+          .dc-review-body { flex-direction: column; overflow: auto; }
+          .dc-review-doc { flex: none; min-height: 55vh; }
+          .dc-review-panel { width: 100%; min-height: 40vh; }
+        }
+        .dc-review button:focus-visible,
+        .dc-review select:focus-visible,
+        .dc-review textarea:focus-visible { outline: 2px solid #2563EB; outline-offset: 2px; }
+      `}</style>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
         <button onClick={closeWindow} style={backBtn}>✕ {t("review.close")}</button>
@@ -329,9 +342,9 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 16, flex: 1, minHeight: 0 }}>
+      <div className="dc-review-body">
         {/* Document */}
-        <div style={{ flex: 1, overflow: "auto", border: "1px solid #E5E7EB", borderRadius: 12, padding: 24, background: "#fff" }}>
+        <div className="dc-review-doc" style={{ border: "1px solid #E5E7EB", borderRadius: 12, padding: 24, background: "#fff" }}>
           {kind === "other" ? (
             <EmptyState icon="📄" title={t("review.unsupported")} description={t("review.unsupportedDesc")} />
           ) : rendering ? (
@@ -351,11 +364,11 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
         </div>
 
         {/* Comments panel */}
-        <div style={{ width: 360, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <div className="dc-review-panel">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <h3 style={{ margin: 0, fontSize: 15 }}>{t("review.commentsTitle")}</h3>
             <span style={{ fontSize: 12, color: "#9CA3AF" }}>{t("review.openCount", { count: openCount })}</span>
-            <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)} style={{ ...selectStyle, marginLeft: "auto", padding: "4px 8px" }}>
+            <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)} style={{ ...selectStyle, marginLeft: "auto" }}>
               <option value="all">{t("review.filterAll")}</option>
               <option value="open">{t("review.filterOpen")}</option>
               <option value="resolved">{t("review.filterResolved")}</option>
@@ -422,8 +435,8 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
   );
 }
 
-const backBtn: React.CSSProperties = { padding: "6px 12px", fontSize: 13, border: "1px solid #D1D5DB", borderRadius: 6, background: "#fff", cursor: "pointer" };
-const secondaryBtn: React.CSSProperties = { padding: "6px 12px", fontSize: 13, border: "1px solid #D1D5DB", borderRadius: 6, background: "#fff", cursor: "pointer", whiteSpace: "nowrap" };
-const primaryBtn: React.CSSProperties = { padding: "6px 14px", fontSize: 13, border: "none", borderRadius: 6, background: "#2563EB", color: "#fff", cursor: "pointer", fontWeight: 500, whiteSpace: "nowrap" };
-const selectStyle: React.CSSProperties = { padding: "6px 10px", fontSize: 13, border: "1px solid #D1D5DB", borderRadius: 6, background: "#fff", cursor: "pointer" };
+const backBtn: React.CSSProperties = { padding: "9px 14px", minHeight: 40, fontSize: 13, border: "1px solid #D1D5DB", borderRadius: 6, background: "#fff", cursor: "pointer" };
+const secondaryBtn: React.CSSProperties = { padding: "9px 14px", minHeight: 40, fontSize: 13, border: "1px solid #D1D5DB", borderRadius: 6, background: "#fff", cursor: "pointer", whiteSpace: "nowrap" };
+const primaryBtn: React.CSSProperties = { padding: "9px 16px", minHeight: 40, fontSize: 13, border: "none", borderRadius: 6, background: "#2563EB", color: "#fff", cursor: "pointer", fontWeight: 500, whiteSpace: "nowrap" };
+const selectStyle: React.CSSProperties = { padding: "8px 10px", minHeight: 40, fontSize: 13, border: "1px solid #D1D5DB", borderRadius: 6, background: "#fff", cursor: "pointer" };
 const fullShell: React.CSSProperties = { height: "100vh", padding: 16, background: "#fff", boxSizing: "border-box", display: "flex", flexDirection: "column", overflow: "hidden" };

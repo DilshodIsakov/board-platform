@@ -697,6 +697,15 @@ function DocCard({ doc, lang, isAdmin, accentColor, onDownload, onArchive, onDel
 
       {/* Actions */}
       <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+        {/\.(docx|xlsx)$/i.test(doc.file_name) && (
+          <button
+            onClick={() => window.open(`/reg-documents/${doc.id}/review`, "_blank", "noopener")}
+            title={t("review.openHint")}
+            style={{ ...actionBtnStyle, color: "#4338CA" }}
+          >
+            📝
+          </button>
+        )}
         <button
           onClick={onDownload}
           title={t("regs.download")}

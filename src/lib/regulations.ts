@@ -139,6 +139,16 @@ export async function uploadRegDocument(
   return data as RegDocument;
 }
 
+export async function fetchRegDocumentById(id: string): Promise<RegDocument | null> {
+  const { data, error } = await supabase
+    .from("reg_documents")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) { console.error("fetchRegDocumentById:", error); return null; }
+  return data as RegDocument | null;
+}
+
 export async function getRegDocumentUrl(storagePath: string): Promise<string | null> {
   const { data } = await supabase.storage
     .from(BUCKET)

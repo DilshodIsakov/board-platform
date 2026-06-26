@@ -1455,6 +1455,11 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  {/\.(docx|xlsx)$/i.test(protocolDoc.file_name) && (
+                    <button onClick={() => window.open(`/documents/${protocolDoc.id}/review`, "_blank", "noopener")} style={reviewBtnStyle} title={t("review.openHint")}>
+                      📝 {t("review.open")}
+                    </button>
+                  )}
                   <button onClick={() => handleDownload(protocolDoc)} style={downloadBtnStyle}>
                     ↓ {t("nsMeetings.download")}
                   </button>
@@ -1524,6 +1529,11 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  {agendaDoc && /\.(docx|xlsx)$/i.test(agendaDoc.file_name) && (
+                    <button onClick={() => window.open(`/documents/${agendaDoc.id}/review`, "_blank", "noopener")} style={reviewBtnStyle} title={t("review.openHint")}>
+                      📝 {t("review.open")}
+                    </button>
+                  )}
                   <button onClick={handleDownloadAgendaDoc} style={downloadBtnStyle}>
                     ↓ {t("nsMeetings.download")}
                   </button>
@@ -1855,6 +1865,11 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                                   </div>
                                 </div>
                                 <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                  {/\.(docx|xlsx)$/i.test(mat.file_name) && (
+                                    <button onClick={() => window.open(`/documents/${mat.id}/review`, "_blank", "noopener")} style={reviewBtnStyle} title={t("review.openHint")}>
+                                      📝 {t("review.open")}
+                                    </button>
+                                  )}
                                   <button onClick={() => handleDownload(mat)} style={downloadBtnStyle}>
                                     ↓ {t("nsMeetings.download")}
                                   </button>
@@ -1900,6 +1915,11 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                                 </div>
                               </div>
                               <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                                {/\.(docx|xlsx)$/i.test(mat.file_name) && (
+                                  <button onClick={() => window.open(`/documents/${mat.id}/review`, "_blank", "noopener")} style={reviewBtnStyle} title={t("review.openHint")}>
+                                    📝 {t("review.open")}
+                                  </button>
+                                )}
                                 <button onClick={() => handleDownload(mat)} style={downloadBtnStyle}>
                                   ↓ {t("nsMeetings.download")}
                                 </button>
@@ -2655,6 +2675,18 @@ const downloadBtnStyle: React.CSSProperties = {
   border: "1px solid #DBEAFE",
   background: "#EFF6FF",
   color: "#1E40AF",
+  cursor: "pointer",
+  whiteSpace: "nowrap",
+};
+
+const reviewBtnStyle: React.CSSProperties = {
+  padding: "4px 12px",
+  fontSize: 12,
+  fontWeight: 500,
+  borderRadius: 6,
+  border: "1px solid #C7D2FE",
+  background: "#EEF2FF",
+  color: "#4338CA",
   cursor: "pointer",
   whiteSpace: "nowrap",
 };

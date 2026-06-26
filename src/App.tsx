@@ -35,6 +35,7 @@ import CommitteesPage from "./pages/CommitteesPage";
 import CommitteeMeetingsPage from "./pages/CommitteeMeetingsPage";
 import CommitteeMeetingDetailsPage from "./pages/CommitteeMeetingDetailsPage";
 import RegulationsPage from "./pages/RegulationsPage";
+import DocumentReviewPage from "./pages/DocumentReviewPage";
 import { logAuditEvent } from "./lib/auditLog";
 import i18n from "./i18n";
 
@@ -171,6 +172,23 @@ export default function App() {
       <Navigate to="/login" replace />
     );
 
+  // Full-screen guard helper - authenticated page WITHOUT the app Layout (sidebar).
+  // Used for the document review tab, which opens standalone in a new window.
+  const authFull = (page: React.ReactNode) =>
+    user ? (
+      profileLoading ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "#9CA3AF" }}>
+          {t("common.loading")}
+        </div>
+      ) : profile && profile.approval_status === "approved" ? (
+        page
+      ) : (
+        <Navigate to="/" replace />
+      )
+    ) : (
+      <Navigate to="/login" replace />
+    );
+
   // Admin guard helper - only show if user is admin
   const adminAuth = (page: React.ReactNode) =>
     user && profile && profile.role === "admin" ? (
@@ -213,6 +231,8 @@ export default function App() {
         <Route path="/committees/:id" element={auth(<CommitteeMeetingsPage profile={profile} org={org} />)} />
         <Route path="/committees/:id/meetings/:meetingId" element={auth(<CommitteeMeetingDetailsPage profile={profile} org={org} />)} />
         <Route path="/regulations" element={auth(<RegulationsPage profile={profile} org={org} />)} />
+        <Route path="/documents/:documentId/review" element={authFull(<DocumentReviewPage profile={profile} org={org} />)} />
+        <Route path="/reg-documents/:documentId/review" element={authFull(<DocumentReviewPage profile={profile} org={org} source="reg_document" />)} />
         <Route path="/admin/users" element={adminAuth(<AdminUsersPage />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

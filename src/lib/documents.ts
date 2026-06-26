@@ -52,6 +52,21 @@ export async function fetchDocuments(): Promise<Document[]> {
   return data as Document[];
 }
 
+/** Загрузить один документ по id */
+export async function fetchDocumentById(id: string): Promise<Document | null> {
+  const { data, error } = await supabase
+    .from("documents")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("fetchDocumentById error:", error);
+    return null;
+  }
+  return data as Document | null;
+}
+
 /** Загрузить документы по заседанию */
 export async function fetchDocumentsByMeeting(meetingId: string): Promise<Document[]> {
   const { data, error } = await supabase

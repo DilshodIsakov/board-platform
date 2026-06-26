@@ -609,6 +609,11 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                     <div style={{ fontSize: 11, color: "#9CA3AF" }}>{formatFileSize(doc.file_size)} · {new Date(doc.created_at).toLocaleDateString(getIntlLocale())}</div>
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
+                    {/\.(docx|xlsx)$/i.test(doc.file_name) && (
+                      <button onClick={() => window.open(`/documents/${doc.id}/review`, "_blank", "noopener")} style={{ ...downloadBtnStyle, border: "1px solid #C7D2FE", background: "#EEF2FF", color: "#4338CA" }} title={t("review.openHint")}>
+                        📝 {t("review.open")}
+                      </button>
+                    )}
                     <button onClick={() => handleDownloadDoc(doc)} style={downloadBtnStyle}>↓ {t("nsMeetings.download")}</button>
                     {canParticipate && <button onClick={() => handleDeleteDoc(doc)} style={deleteBtnStyle}>✕</button>}
                   </div>

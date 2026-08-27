@@ -78,8 +78,9 @@ export default function StatsPage({ profile }: Props) {
   const onlineMeetings = meetings.filter((m) => !!m.meet_url).length;
   const offlineMeetings = totalMeetings - onlineMeetings;
 
-  // Average duration placeholder (120 min default, real data would need end_at)
-  const avgDuration = totalMeetings > 0 ? 120 : 0;
+  // У заседаний нет времени окончания (end_at) — честно показываем прочерк,
+  // а не выдуманную длительность.
+  const avgDuration = "—";
 
   const handleExport = () => {
     if (meetings.length === 0) return;
@@ -90,7 +91,7 @@ export default function StatsPage({ profile }: Props) {
       getLocalizedField(m as unknown as Record<string, unknown>, "title"),
       t("stats.boardOfDirectors"),
       m.meet_url ? t("stats.online") : t("stats.offline"),
-      t("stats.durationMin", { min: 120 }),
+      "—",
     ]);
 
     if (exportFormat === "csv") {
@@ -273,7 +274,7 @@ export default function StatsPage({ profile }: Props) {
                         )}
                       </div>
                     </td>
-                    <td style={{ ...tdStyle, color: "#6B7280" }}>{t("stats.durationMin", { min: 120 })}</td>
+                    <td style={{ ...tdStyle, color: "#6B7280" }}>—</td>
                     <td style={tdStyle}>
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

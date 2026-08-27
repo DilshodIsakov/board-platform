@@ -692,6 +692,9 @@ function DocCard({ doc, lang, isAdmin, accentColor, onDownload, onArchive, onDel
           {dateStr && <span>📅 {dateStr}</span>}
           {doc.issuing_body && <span>🏛 {doc.issuing_body}</span>}
           <span>{doc.file_name} · {formatBytes(doc.file_size)}</span>
+          <span title={t("regs.uploadedOn")}>
+            ⬆ {t("regs.uploadedOn")}: {new Date(doc.created_at).toLocaleDateString(lang === "en" ? "en-GB" : "ru-RU", { day: "numeric", month: "short", year: "numeric" })}
+          </span>
         </div>
       </div>
 

@@ -5917,3 +5917,253 @@ ALTER TABLE public.reg_categories
 ALTER TABLE public.reg_categories
   ADD CONSTRAINT uq_regcat_org_kind_name UNIQUE (org_id, kind, name);
 
+
+
+-- ============================================================
+-- ВНИМАНИЕ: этот сводный скрипт включает миграции по 058b.
+-- Миграции 060_task_basis_multilingual.sql, 061_document_versions.sql,
+-- 062_document_comments.sql, 063_document_review_cleanup.sql
+-- в него НЕ вшиты — запустите их отдельными файлами ПОСЛЕ этого скрипта,
+-- затем выполните секции 064–066 ниже (или соответствующие файлы).
+-- ============================================================
+
+
+-- ============================================================
+-- 064_storage_hardening.sql
+-- Ужесточение Storage-политик + лимиты бакетов
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.can_manage_storage_object(obj_owner uuid, obj_owner_id text)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT
+    obj_owner = auth.uid()
+    OR obj_owner_id = auth.uid()::text
+    OR public.get_my_role() IN ('admin', 'corp_secretary');
+$$;
+
+DROP POLICY IF EXISTS "documents_storage_select" ON storage.objects;
+DROP POLICY IF EXISTS "documents_storage_insert" ON storage.objects;
+DROP POLICY IF EXISTS "documents_storage_delete" ON storage.objects;
+DROP POLICY IF EXISTS "chat_att_select" ON storage.objects;
+DROP POLICY IF EXISTS "chat_att_insert" ON storage.objects;
+DROP POLICY IF EXISTS "chat_att_delete" ON storage.objects;
+DROP POLICY IF EXISTS "btf_select" ON storage.objects;
+DROP POLICY IF EXISTS "btf_insert" ON storage.objects;
+DROP POLICY IF EXISTS "btf_delete" ON storage.objects;
+DROP POLICY IF EXISTS "briefs_select" ON storage.objects;
+DROP POLICY IF EXISTS "briefs_insert" ON storage.objects;
+DROP POLICY IF EXISTS "briefs_update" ON storage.objects;
+
+CREATE POLICY "documents_storage_select" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'documents'
+    AND (storage.foldername(name))[1] = public.get_my_org_id()::text);
+
+CREATE POLICY "documents_storage_insert" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'documents'
+    AND (storage.foldername(name))[1] = public.get_my_org_id()::text);
+
+CREATE POLICY "documents_storage_update" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'documents'
+    AND (storage.foldername(name))[1] = public.get_my_org_id()::text
+    AND public.can_manage_storage_object(owner, owner_id));
+
+CREATE POLICY "documents_storage_delete" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'documents'
+    AND (storage.foldername(name))[1] = public.get_my_org_id()::text
+    AND public.can_manage_storage_object(owner, owner_id));
+
+CREATE POLICY "chat_att_select" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'chat-attachments'
+    AND (storage.foldername(name))[1] = public.get_my_org_id()::text);
+
+CREATE POLICY "chat_att_insert" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'chat-attachments'
+    AND (storage.foldername(name))[1] = public.get_my_org_id()::text);
+
+CREATE POLICY "chat_att_delete" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'chat-attachments'
+    AND (storage.foldername(name))[1] = public.get_my_org_id()::text
+    AND public.can_manage_storage_object(owner, owner_id));
+
+CREATE POLICY "btf_select" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'board-task-files'
+    AND (storage.foldername(name))[2] = public.get_my_org_id()::text);
+
+CREATE POLICY "btf_insert" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'board-task-files'
+    AND (storage.foldername(name))[2] = public.get_my_org_id()::text);
+
+CREATE POLICY "btf_delete" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'board-task-files'
+    AND (storage.foldername(name))[2] = public.get_my_org_id()::text
+    AND public.can_manage_storage_object(owner, owner_id));
+
+CREATE POLICY "briefs_select" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'briefs');
+
+UPDATE storage.buckets SET file_size_limit = 52428800 WHERE id = 'documents';
+UPDATE storage.buckets SET file_size_limit = 26214400 WHERE id = 'chat-attachments';
+UPDATE storage.buckets SET file_size_limit = 26214400 WHERE id = 'board-task-files';
+UPDATE storage.buckets SET file_size_limit = 20971520 WHERE id = 'briefs';
+
+
+-- ============================================================
+-- 065_profile_photos_bucket.sql
+-- Бакет profile-photos (аватары)
+-- ============================================================
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('profile-photos', 'profile-photos', true, 5242880,
+        ARRAY['image/jpeg', 'image/png', 'image/webp'])
+ON CONFLICT (id) DO UPDATE SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+DROP POLICY IF EXISTS "profile_photos_select" ON storage.objects;
+DROP POLICY IF EXISTS "profile_photos_insert" ON storage.objects;
+DROP POLICY IF EXISTS "profile_photos_update" ON storage.objects;
+DROP POLICY IF EXISTS "profile_photos_delete" ON storage.objects;
+
+CREATE POLICY "profile_photos_select" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'profile-photos');
+
+CREATE POLICY "profile_photos_insert" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'profile-photos'
+    AND ((storage.foldername(name))[1] = auth.uid()::text
+         OR public.get_my_role() = 'admin'));
+
+CREATE POLICY "profile_photos_update" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'profile-photos'
+    AND ((storage.foldername(name))[1] = auth.uid()::text
+         OR public.get_my_role() = 'admin'));
+
+CREATE POLICY "profile_photos_delete" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'profile-photos'
+    AND ((storage.foldername(name))[1] = auth.uid()::text
+         OR public.get_my_role() = 'admin'));
+
+
+-- ============================================================
+-- 066_chat_unread_counter.sql
+-- Счётчик непрочитанных сообщений чата
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS public.chat_group_reads (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  group_id      uuid NOT NULL REFERENCES public.chat_groups(id) ON DELETE CASCADE,
+  last_read_at  timestamptz NOT NULL DEFAULT now(),
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(user_id, group_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_group_reads_user_group ON public.chat_group_reads(user_id, group_id);
+CREATE INDEX IF NOT EXISTS idx_chat_group_reads_updated_at ON public.chat_group_reads(updated_at);
+
+ALTER TABLE public.chat_group_reads ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "chat_group_reads_select" ON public.chat_group_reads;
+CREATE POLICY "chat_group_reads_select" ON public.chat_group_reads
+  FOR SELECT USING (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "chat_group_reads_insert" ON public.chat_group_reads;
+CREATE POLICY "chat_group_reads_insert" ON public.chat_group_reads
+  FOR INSERT WITH CHECK (user_id = auth.uid());
+
+DROP POLICY IF EXISTS "chat_group_reads_update" ON public.chat_group_reads;
+CREATE POLICY "chat_group_reads_update" ON public.chat_group_reads
+  FOR UPDATE USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE OR REPLACE FUNCTION public.get_unread_chat_count()
+RETURNS integer
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = 'public'
+AS $$
+  SELECT (
+    (SELECT COUNT(*)::integer
+     FROM public.messages m
+     WHERE m.receiver_id = auth.uid()
+       AND m.is_read = false
+       AND m.sender_id != auth.uid())
+    +
+    (SELECT COUNT(*)::integer
+     FROM public.chat_group_messages cgm
+     JOIN public.chat_group_members mem ON mem.group_id = cgm.group_id
+     LEFT JOIN public.chat_group_reads cgr
+       ON cgr.group_id = cgm.group_id AND cgr.user_id = auth.uid()
+     WHERE mem.profile_id = auth.uid()
+       AND cgm.sender_id != auth.uid()
+       AND (cgr.last_read_at IS NULL OR cgm.created_at > cgr.last_read_at))
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.mark_group_as_read(group_id_param uuid)
+RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = 'public'
+AS $$
+BEGIN
+  INSERT INTO public.chat_group_reads (user_id, group_id, last_read_at, updated_at)
+  VALUES (auth.uid(), group_id_param, now(), now())
+  ON CONFLICT (user_id, group_id)
+  DO UPDATE SET
+    last_read_at = now(),
+    updated_at = now();
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.mark_personal_messages_as_read()
+RETURNS void
+LANGUAGE sql SECURITY DEFINER
+SET search_path = 'public'
+AS $$
+  UPDATE public.messages
+  SET is_read = true
+  WHERE receiver_id = auth.uid()
+    AND is_read = false;
+$$;
+
+NOTIFY pgrst, 'reload schema';
+
+
+-- ============================================================
+-- 067_realtime_voting.sql
+-- Realtime для голосования и группового чата
+-- ============================================================
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.votings;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.votes;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.meeting_vote_signatures;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_group_messages;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;

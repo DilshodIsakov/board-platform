@@ -5946,6 +5946,7 @@ $$;
 
 DROP POLICY IF EXISTS "documents_storage_select" ON storage.objects;
 DROP POLICY IF EXISTS "documents_storage_insert" ON storage.objects;
+DROP POLICY IF EXISTS "documents_storage_update" ON storage.objects;
 DROP POLICY IF EXISTS "documents_storage_delete" ON storage.objects;
 DROP POLICY IF EXISTS "chat_att_select" ON storage.objects;
 DROP POLICY IF EXISTS "chat_att_insert" ON storage.objects;

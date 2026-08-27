@@ -9,7 +9,10 @@
 --   SELECT  — только файлы своей организации (первый сегмент пути = org_id);
 --   INSERT  — только в каталог своей организации;
 --   DELETE  — только владелец файла (загрузивший) или admin/corp_secretary;
---   UPDATE  — приравнен к DELETE.
+--   UPDATE  — разрешён по тем же правилам, что и DELETE, и только для
+--             бакета documents (перезапись версий). Для остальных бакетов
+--             UPDATE-политики нет: приложение туда пишет всегда новым
+--             путём, поэтому перезапись объектов запрещена полностью.
 --
 -- Пути в бакетах (задаются фронтендом):
 --   documents        → {org_id}/...
@@ -37,6 +40,7 @@ $$;
 
 DROP POLICY IF EXISTS "documents_storage_select" ON storage.objects;
 DROP POLICY IF EXISTS "documents_storage_insert" ON storage.objects;
+DROP POLICY IF EXISTS "documents_storage_update" ON storage.objects;
 DROP POLICY IF EXISTS "documents_storage_delete" ON storage.objects;
 
 DROP POLICY IF EXISTS "chat_att_select" ON storage.objects;

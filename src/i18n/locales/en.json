@@ -1,4 +1,8 @@
 {
+  "fileValidation": {
+    "tooLarge": "File “{{name}}” is too large. Maximum size: {{max}} MB",
+    "blockedType": "Files of type .{{ext}} are not allowed"
+  },
   "review": {
     "open": "Review",
     "openHint": "Open in review mode",
@@ -1227,6 +1231,36 @@
     "categoryName": "Section name",
     "kind": "Section type",
     "deleteCategoryConfirm": "Delete section",
-    "deleteDocConfirm": "Delete document? The file will be permanently removed."
+    "deleteDocConfirm": "Delete document? The file will be permanently removed.",
+    "uploadedOn": "Uploaded"
+  },
+  "mfa": {
+    "title": "Two-factor authentication (2FA)",
+    "description": "Extra account protection: signing in will require a code from your authenticator app in addition to the password.",
+    "enabled": "2FA is enabled",
+    "enable": "Enable 2FA",
+    "disable": "Disable",
+    "disableConfirm": "Disable two-factor authentication?",
+    "scanQr": "Scan the QR code with your authenticator app (Google Authenticator, 1Password, etc.) and enter the 6-digit code to confirm.",
+    "secretLabel": "Manual entry key",
+    "codePlaceholder": "Code from the app",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "invalidCode": "Invalid code. Please try again.",
+    "challengeTitle": "Verify your sign-in",
+    "challengeHint": "Enter the 6-digit code from your authenticator app.",
+    "signOut": "Sign out"
+  },
+  "search": {
+    "title": "Search",
+    "subtitle": "Search across meetings, materials, tasks, regulatory documents and committees",
+    "placeholder": "Search the platform...",
+    "submit": "Search",
+    "noResults": "Nothing found for “{{query}}”",
+    "section_meeting": "Meetings",
+    "section_document": "Materials",
+    "section_task": "Tasks",
+    "section_regulation": "Regulatory documents",
+    "section_committee": "Committees"
   }
 }

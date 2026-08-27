@@ -130,6 +130,20 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
 
   const isDemoMode = import.meta.env.VITE_DEMO_MODE === "true";
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearchSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const q = searchQuery.trim();
+      if (q.length >= 2) {
+        navigate(`/search?q=${encodeURIComponent(q)}`);
+        setSearchQuery("");
+      }
+    },
+    [navigate, searchQuery]
+  );
+
   return (
     <NotificationContext.Provider value={{ refresh: refreshNotifications }}>
       {isDemoMode && (
@@ -159,6 +173,18 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* Global search */}
+            <form onSubmit={handleSearchSubmit} style={{ display: "flex" }}>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("search.placeholder")}
+                title={t("search.title")}
+                style={headerSearchStyle}
+              />
+            </form>
+
             {/* Notification bell */}
             <div style={{ position: "relative" }}>
               <button
@@ -323,6 +349,17 @@ const headerStyle: React.CSSProperties = {
   top: 0,
   zIndex: 50,
   boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+};
+
+const headerSearchStyle: React.CSSProperties = {
+  width: 220,
+  padding: "7px 12px",
+  fontSize: 13,
+  border: "1px solid #E5E7EB",
+  borderRadius: 8,
+  background: "#F9FAFB",
+  boxSizing: "border-box",
+  outline: "none",
 };
 
 const headerIconBtnStyle: React.CSSProperties = {

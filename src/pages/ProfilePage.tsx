@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { logAuditEvent } from "../lib/auditLog";
 import type { Profile, Organization } from "../lib/profile";
 import { getLocalizedName, getLocalizedRoleDetails, updateMyProfile } from "../lib/profile";
+import TwoFactorSettings from "../components/TwoFactorSettings";
 import {
   fetchMyProfileDetails,
   upsertProfileDetails,
@@ -358,6 +359,9 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
           </>
         )}
       </Section>
+
+      {/* Безопасность: двухфакторная аутентификация */}
+      <TwoFactorSettings />
 
     </div>
   );

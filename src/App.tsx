@@ -36,6 +36,9 @@ import CommitteeMeetingsPage from "./pages/CommitteeMeetingsPage";
 import CommitteeMeetingDetailsPage from "./pages/CommitteeMeetingDetailsPage";
 import RegulationsPage from "./pages/RegulationsPage";
 import DocumentReviewPage from "./pages/DocumentReviewPage";
+import SearchPage from "./pages/SearchPage";
+import MfaChallengePage from "./pages/MfaChallengePage";
+import { mfaChallengeRequired } from "./lib/mfa";
 import { logAuditEvent } from "./lib/auditLog";
 import i18n from "./i18n";
 
@@ -47,6 +50,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const [mfaRequired, setMfaRequired] = useState(false);
   // Track whether we've done the initial profile load.
   // After the first successful load, we NEVER show the loading screen again,
   // because that unmounts the entire page tree (Layout + page component),
@@ -117,15 +121,24 @@ export default function App() {
       }
 
       if (u && (event === "SIGNED_IN" || event === "INITIAL_SESSION") && !profileLoadedRef.current) {
-        loadProfileAndOrg();
-        // Log login event to audit log
-        if (event === "SIGNED_IN") {
-          logAuditEvent({ actionType: "login", actionLabel: "Login" });
-        }
+        // 2FA-гейт: при включённом TOTP сессия после пароля имеет уровень aal1 —
+        // не пускаем в приложение, пока пользователь не введёт код (aal2).
+        mfaChallengeRequired().then((required) => {
+          if (required) {
+            setMfaRequired(true);
+            return;
+          }
+          loadProfileAndOrg();
+          // Log login event to audit log
+          if (event === "SIGNED_IN") {
+            logAuditEvent({ actionType: "login", actionLabel: "Login" });
+          }
+        });
       } else if (!u) {
         setProfile(null);
         setOrg(null);
         profileLoadedRef.current = false;
+        setMfaRequired(false);
       }
     });
 
@@ -144,6 +157,20 @@ export default function App() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "#9CA3AF" }}>
         {t("common.loading")}
       </div>
+    );
+  }
+
+  // Второй фактор: блокируем всё приложение до подтверждения кода
+  if (user && mfaRequired) {
+    return (
+      <MfaChallengePage
+        onVerified={() => {
+          setMfaRequired(false);
+          loadProfileAndOrg();
+          logAuditEvent({ actionType: "login", actionLabel: "Login (2FA)" });
+        }}
+        onCancel={() => supabase.auth.signOut()}
+      />
     );
   }
 
@@ -231,6 +258,7 @@ export default function App() {
         <Route path="/committees/:id" element={auth(<CommitteeMeetingsPage profile={profile} org={org} />)} />
         <Route path="/committees/:id/meetings/:meetingId" element={auth(<CommitteeMeetingDetailsPage profile={profile} org={org} />)} />
         <Route path="/regulations" element={auth(<RegulationsPage profile={profile} org={org} />)} />
+        <Route path="/search" element={auth(<SearchPage />)} />
         <Route path="/documents/:documentId/review" element={authFull(<DocumentReviewPage profile={profile} org={org} />)} />
         <Route path="/reg-documents/:documentId/review" element={authFull(<DocumentReviewPage profile={profile} org={org} source="reg_document" />)} />
         <Route path="/admin/users" element={adminAuth(<AdminUsersPage />)} />

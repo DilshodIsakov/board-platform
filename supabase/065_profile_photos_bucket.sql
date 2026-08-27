@@ -24,6 +24,16 @@ ON CONFLICT (id) DO UPDATE SET
   file_size_limit = EXCLUDED.file_size_limit,
   allowed_mime_types = EXCLUDED.allowed_mime_types;
 
+-- Легаси-политики, созданные вручную через дашборд при первоначальной
+-- настройке бакета: avatar_select / avatar_upload / avatar_update /
+-- avatar_delete. Ограничения у них те же (своя папка в profile-photos),
+-- то есть дыры они не давали, но дублировали политики ниже. Снимаем,
+-- чтобы на бакете остался один набор правил.
+DROP POLICY IF EXISTS "avatar_select" ON storage.objects;
+DROP POLICY IF EXISTS "avatar_upload" ON storage.objects;
+DROP POLICY IF EXISTS "avatar_update" ON storage.objects;
+DROP POLICY IF EXISTS "avatar_delete" ON storage.objects;
+
 DROP POLICY IF EXISTS "profile_photos_select" ON storage.objects;
 DROP POLICY IF EXISTS "profile_photos_insert" ON storage.objects;
 DROP POLICY IF EXISTS "profile_photos_update" ON storage.objects;

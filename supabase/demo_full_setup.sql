@@ -6035,6 +6035,12 @@ ON CONFLICT (id) DO UPDATE SET
   file_size_limit = EXCLUDED.file_size_limit,
   allowed_mime_types = EXCLUDED.allowed_mime_types;
 
+-- Легаси-политики от ручной настройки бакета через дашборд
+DROP POLICY IF EXISTS "avatar_select" ON storage.objects;
+DROP POLICY IF EXISTS "avatar_upload" ON storage.objects;
+DROP POLICY IF EXISTS "avatar_update" ON storage.objects;
+DROP POLICY IF EXISTS "avatar_delete" ON storage.objects;
+
 DROP POLICY IF EXISTS "profile_photos_select" ON storage.objects;
 DROP POLICY IF EXISTS "profile_photos_insert" ON storage.objects;
 DROP POLICY IF EXISTS "profile_photos_update" ON storage.objects;

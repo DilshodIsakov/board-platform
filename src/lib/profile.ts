@@ -1,6 +1,9 @@
 import { supabase, supabaseAnonKey } from "./supabaseClient";
 
-export type UserRole = "admin" | "corp_secretary" | "board_member" | "management" | "executive" | "employee" | "auditor" | "department_head" | "chairman";
+// Значения соответствуют enum public.user_role в БД (026 + 027).
+// Ролей "chairman" и "department_head" в БД не существует — не добавлять
+// сюда без миграции enum.
+export type UserRole = "admin" | "corp_secretary" | "board_member" | "management" | "executive" | "employee" | "auditor";
 
 export type ApprovalStatus = "pending" | "approved" | "rejected";
 
@@ -51,8 +54,6 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   employee: "Сотрудник",
   corp_secretary: "Секретарь",
   auditor: "Внутренний аудитор",
-  department_head: "Рук. подразделения",
-  chairman: "Председатель",
 };
 
 export interface Organization {

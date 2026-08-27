@@ -28,7 +28,7 @@ import { LoadingScreen, EmptyState } from "../components/ui";
 import DocumentViewer from "../components/DocumentViewer";
 import DocumentCommentThread from "../components/DocumentCommentThread";
 
-const COMMENT_ROLES = ["admin", "corp_secretary", "board_member", "chairman", "executive"];
+const COMMENT_ROLES = ["admin", "corp_secretary", "board_member", "executive"];
 const MANAGE_ROLES = ["admin", "corp_secretary"];
 
 type Kind = "docx" | "xlsx" | "other";

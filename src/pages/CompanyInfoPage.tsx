@@ -5,9 +5,9 @@ import { supabase } from "../lib/supabaseClient";
 import { getLocalizedName, getLocalizedRoleDetails, type Profile, type Organization } from "../lib/profile";
 import ProfileModal from "../components/ProfileModal";
 
-const BOARD_ROLES = ["board_member", "chairman"];
+const BOARD_ROLES = ["board_member"];
 const EXECUTIVE_ROLES = ["executive"];
-const STAFF_EXCLUDED_ROLES = ["board_member", "chairman", "executive", "admin"];
+const STAFF_EXCLUDED_ROLES = ["board_member", "executive", "admin"];
 
 interface MemberProfile {
   id: string;

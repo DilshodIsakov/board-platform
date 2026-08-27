@@ -24,7 +24,7 @@ interface Props {
   onMessage?: () => void;
 }
 
-const BOARD_ROLES = ["board_member", "chairman"];
+const BOARD_ROLES = ["board_member"];
 const EXEC_ROLES = ["executive"];
 
 export default function ProfileModal({ member, currentProfileId, isAdmin, onClose, onMessage }: Props) {

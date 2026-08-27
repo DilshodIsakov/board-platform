@@ -31,7 +31,7 @@ const ACTION_TYPES = [
 ];
 
 const ENTITY_TYPES = ["meeting","agenda_item","voting","vote","file","comment","document","profile","user","work_plan","task","task_comment","task_attachment","video_conference"];
-const ROLES = ["admin","corp_secretary","chairman","board_member","management","executive","employee","auditor","department_head"];
+const ROLES = ["admin","corp_secretary","board_member","management","executive","employee","auditor"];
 
 function getActionColor(action: string): { bg: string; text: string } {
   if (action.includes("create") || action === "login" || action === "file_upload") return { bg: "#DCFCE7", text: "#166534" };

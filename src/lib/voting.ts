@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -267,6 +268,31 @@ export function tallyBoardVotes(votes: Vote[]) {
   }
 
   return { forCount, againstCount, abstainCount, total: forCount + againstCount + abstainCount };
+}
+
+// ─── Realtime ─────────────────────────────────────────────────────────────────
+
+/**
+ * Живое табло голосования: подписка на изменения votes / votings /
+ * meeting_vote_signatures (INSERT/UPDATE/DELETE). Требует, чтобы таблицы
+ * были в публикации supabase_realtime (миграция 067). onChange вызывается
+ * без параметров — вызывающая страница делает refetch своих данных.
+ */
+export function subscribeToVotingUpdates(
+  key: string,
+  onChange: () => void
+): RealtimeChannel {
+  return supabase
+    .channel(`voting-live-${key}`)
+    .on("postgres_changes", { event: "*", schema: "public", table: "votes" }, onChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "votings" }, onChange)
+    .on("postgres_changes", { event: "*", schema: "public", table: "meeting_vote_signatures" }, onChange)
+    .subscribe();
+}
+
+/** Отписаться от живого табло */
+export function unsubscribeVotingUpdates(channel: RealtimeChannel): void {
+  supabase.removeChannel(channel);
 }
 
 // ─── Meeting-level signature ──────────────────────────────────────────────────

@@ -13,6 +13,8 @@ import {
   fetchMySignatures,
   castVote,
   tallyBoardVotes,
+  subscribeToVotingUpdates,
+  unsubscribeVotingUpdates,
   type VotingWithMeeting,
   type MeetingVoteSignature,
 } from "../lib/voting";
@@ -44,6 +46,10 @@ export default function VotingPage({ profile, org }: Props) {
   useEffect(() => {
     if (!profile) { setLoading(false); return; }
     loadData();
+
+    // Живое табло: обновляем данные при чужих голосах/смене статуса
+    const channel = subscribeToVotingUpdates("voting-page", () => loadData(true));
+    return () => unsubscribeVotingUpdates(channel);
   }, [profile?.id]);
 
   const showToast = (msg: string) => {
@@ -65,9 +71,9 @@ export default function VotingPage({ profile, org }: Props) {
     setVotingInProgress(null);
   };
 
-  const loadData = async () => {
+  const loadData = async (silent = false) => {
     if (!profile) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
 
     const [meetings, allVotings, mySignaturesMap] = await Promise.all([
       fetchNSMeetings(),
@@ -122,7 +128,7 @@ export default function VotingPage({ profile, org }: Props) {
     setLoading(false);
   };
 
-  const canVote = profile ? ["board_member", "chairman"].includes(profile.role) : false;
+  const canVote = profile ? profile.role === "board_member" : false;
   const activeMeetings = meetingStatuses.filter((s) => s.openVotings.length > 0);
   const doneMeetings   = meetingStatuses.filter((s) => s.openVotings.length === 0);
 

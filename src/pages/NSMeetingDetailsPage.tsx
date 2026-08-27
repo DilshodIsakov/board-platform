@@ -57,6 +57,8 @@ import {
   tallyBoardVotes,
   signMeetingVotes,
   fetchMeetingSignature,
+  subscribeToVotingUpdates,
+  unsubscribeVotingUpdates,
   type Voting,
   type Vote,
   type MeetingVoteSignature,
@@ -181,6 +183,20 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
     loadAgenda(id);
   }, [profile?.id, id]);
 
+  // Живое табло голосования: обновляем голоса/статусы при чужих действиях
+  const agendaItemsRef = useRef<AgendaItem[]>([]);
+  useEffect(() => {
+    agendaItemsRef.current = agendaItems;
+  }, [agendaItems]);
+
+  useEffect(() => {
+    if (!profile || !id) return;
+    const channel = subscribeToVotingUpdates(`ns-meeting-${id}`, () => {
+      loadVotingData(agendaItemsRef.current, id);
+    });
+    return () => unsubscribeVotingUpdates(channel);
+  }, [profile?.id, id]);
+
   const loadMeeting = async () => {
     if (!id) return;
     setLoading(true);
@@ -283,8 +299,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
 
   // ---------- Discussion / Comments ----------
 
-  const canWriteComment = profile && ["admin", "corp_secretary", "board_member", "chairman"].includes(profile.role);
-  const canVote = profile && ["board_member", "chairman"].includes(profile.role);
+  const canWriteComment = profile && ["admin", "corp_secretary", "board_member"].includes(profile.role);
+  const canVote = profile && profile.role === "board_member";
   const isMeetingCompleted = meeting?.status === "completed";
 
   const handleAddComment = async (agendaItemId: string, parentId?: string | null) => {

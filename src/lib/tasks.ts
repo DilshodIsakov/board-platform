@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { assertFileAllowed } from "./fileValidation";
 
 // ============================================================
 // Интерфейсы
@@ -336,6 +337,7 @@ export async function uploadAttachment(
   profileId: string,
   orgId: string
 ): Promise<BoardTaskAttachment> {
+  assertFileAllowed(file, "task");
   const fileId = crypto.randomUUID();
   const storagePath = `org/${orgId}/tasks/${taskId}/${fileId}_${file.name}`;
 

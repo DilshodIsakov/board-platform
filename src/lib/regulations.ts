@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { assertFileAllowed } from "./fileValidation";
 
 export type RegKind = "internal" | "external" | "reports";
 
@@ -105,6 +106,7 @@ export async function uploadRegDocument(
     issuing_body?: string;
   }
 ): Promise<RegDocument> {
+  assertFileAllowed(file, "document");
   const safeName = file.name.replace(/[^a-zA-Zа-яА-Я0-9._-]/g, "_");
   const storagePath = `${orgId}/regulations/${categoryId}/${Date.now()}_${safeName}`;
 

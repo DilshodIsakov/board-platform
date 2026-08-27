@@ -1,4 +1,5 @@
 import { supabase, supabaseAnonKey } from "./supabaseClient";
+import { assertFileAllowed } from "./fileValidation";
 
 // ---------- Types ----------
 
@@ -291,6 +292,8 @@ export async function uploadMaterial(
   language?: MaterialLang,
   docType?: string
 ): Promise<Material | null> {
+  assertFileAllowed(file, "document");
+
   const agendaSegment = agendaItemId ? `${agendaItemId}/` : docType ? `${docType}/` : "meeting/";
   const langSegment = language ? `${language}/` : "";
   const storagePath = `${orgId}/${meetingId}/${agendaSegment}${langSegment}${Date.now()}_${sanitizeFileName(file.name)}`;

@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { assertFileAllowed } from "./fileValidation";
 
 export interface Document {
   id: string;
@@ -92,6 +93,8 @@ export async function uploadDocument(
   meetingId?: string,
   agendaItemId?: string
 ): Promise<Document | null> {
+  assertFileAllowed(file, "document");
+
   // Уникальный путь: org_id/timestamp_safename
   const storagePath = `${orgId}/${Date.now()}_${sanitizeFileName(file.name)}`;
 

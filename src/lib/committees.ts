@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { assertFileAllowed } from "./fileValidation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -364,6 +365,7 @@ export async function uploadCommitteeDocument(
   committeeMeetingId: string,
   language?: string
 ): Promise<CommitteeDocument | null> {
+  assertFileAllowed(file, "document");
   const storagePath = `${orgId}/committee/${committeeMeetingId}/${Date.now()}_${file.name.replace(/[^a-zA-Zа-яА-Я0-9._-]/g, "_")}`;
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, file);
   if (uploadError) { console.error("uploadCommitteeDocument storage:", uploadError); throw new Error(uploadError.message); }

@@ -1,5 +1,6 @@
 import { supabase } from "./supabaseClient";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { assertFileAllowed } from "./fileValidation";
 
 export interface Message {
   id: string;
@@ -628,6 +629,7 @@ function sanitizeFileName(name: string): string {
 
 /** Загрузить файл в Storage bucket chat-attachments */
 export async function uploadChatFile(file: File, orgId: string): Promise<string> {
+  assertFileAllowed(file, "chat");
   const storagePath = `${orgId}/${Date.now()}_${sanitizeFileName(file.name)}`;
   const { error } = await supabase.storage.from(CHAT_BUCKET).upload(storagePath, file);
   if (error) {
@@ -698,7 +700,8 @@ export async function loadUnreadChatCount(): Promise<number> {
     return 0;
   }
 
-  // Суммируем результаты из UNION ALL
+  // RPC возвращает сумму (личные + групповые); массив — на случай старой версии функции
+  if (typeof data === "number") return data;
   return Array.isArray(data) ? data.reduce((sum: number, count: number) => sum + count, 0) : 0;
 }
 

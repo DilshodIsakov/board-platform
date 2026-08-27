@@ -1,5 +1,6 @@
 import { supabase } from "./supabaseClient";
 import type { DocSource } from "./documentComments";
+import { assertFileAllowed } from "./fileValidation";
 
 const BUCKET = "documents";
 
@@ -149,6 +150,8 @@ export async function uploadNewVersion(
   uploadedBy: string,
   changeNote?: string
 ): Promise<DocumentVersion | null> {
+  assertFileAllowed(file, "document");
+
   const nextNo = (await latestVersionNo(doc.id, source)) + 1;
   const storagePath = `${doc.org_id}/${doc.id}/v${nextNo}_${sanitizeFileName(file.name)}`;
 

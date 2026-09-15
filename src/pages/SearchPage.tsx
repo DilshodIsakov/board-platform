@@ -81,7 +81,7 @@ export default function SearchPage() {
   return (
     <div style={{ maxWidth: 800, margin: "0 auto" }}>
       <h1 style={{ marginBottom: 8 }}>{t("search.title")}</h1>
-      <p style={{ color: "#525252", fontSize: 14, marginBottom: 20 }}>{t("search.subtitle")}</p>
+      <p style={{ color: "#6b7384", fontSize: 14, marginBottom: 20 }}>{t("search.subtitle")}</p>
 
       <form onSubmit={handleSubmit} style={{ display: "flex", gap: 8, marginBottom: 24 }}>
         <input
@@ -92,25 +92,25 @@ export default function SearchPage() {
           autoFocus
           style={{
             flex: 1, padding: "10px 14px", fontSize: 15,
-            border: "1px solid #c6c6c6", borderRadius: 0, boxSizing: "border-box",
+            border: "1px solid #cfd5df", borderRadius: 10, boxSizing: "border-box",
           }}
         />
         <button
           type="submit"
           disabled={input.trim().length < 2}
           style={{
-            padding: "10px 22px", fontSize: 14, fontWeight: 600, borderRadius: 0,
-            border: "none", cursor: "pointer", background: "#0f62fe", color: "#fff",
+            padding: "10px 22px", fontSize: 14, fontWeight: 600, borderRadius: 10,
+            border: "none", cursor: "pointer", background: "#3557d6", color: "#fff",
           }}
         >
           {t("search.submit")}
         </button>
       </form>
 
-      {loading && <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>}
+      {loading && <div style={{ color: "#9ba3b4" }}>{t("common.loading")}</div>}
 
       {!loading && searched && results.length === 0 && (
-        <div style={{ color: "#525252", padding: "30px 0", textAlign: "center" }}>
+        <div style={{ color: "#6b7384", padding: "30px 0", textAlign: "center" }}>
           {t("search.noResults", { query: urlQuery })}
         </div>
       )}
@@ -121,7 +121,7 @@ export default function SearchPage() {
           if (!items || items.length === 0) return null;
           return (
             <div key={type} style={{ marginBottom: 24 }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: "#525252", margin: "0 0 8px 0" }}>
+              <h2 style={{ fontSize: 14, fontWeight: 700, color: "#6b7384", margin: "0 0 8px 0" }}>
                 {SECTION_ICON[type]} {t(`search.section_${type}`)} ({items.length})
               </h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -132,15 +132,15 @@ export default function SearchPage() {
                     onClick={() => navigate(r.route)}
                     style={{
                       display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12,
-                      padding: "10px 14px", background: "#fff", border: "1px solid #e0e0e0",
-                      borderRadius: 0, cursor: "pointer", textAlign: "left", fontSize: 14, width: "100%",
+                      padding: "10px 14px", background: "#fff", border: "1px solid #e3e7ee",
+                      borderRadius: 10, cursor: "pointer", textAlign: "left", fontSize: 14, width: "100%",
                     }}
                   >
-                    <span style={{ fontWeight: 500, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span style={{ fontWeight: 500, color: "#1a1f2b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {localizedTitle(r, i18n.language)}
                     </span>
                     {r.subtitle && (
-                      <span style={{ color: "#8d8d8d", fontSize: 12, flexShrink: 0 }}>{r.subtitle}</span>
+                      <span style={{ color: "#9ba3b4", fontSize: 12, flexShrink: 0 }}>{r.subtitle}</span>
                     )}
                   </button>
                 ))}

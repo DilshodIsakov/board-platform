@@ -152,21 +152,21 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
 
   return (
     <NotificationContext.Provider value={{ refresh: refreshNotifications }}>
-      {/* Header: the single dark surface in the system */}
       <header style={headerStyle}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12, minWidth: 0 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--shell-header-text)", whiteSpace: "nowrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+          <div style={markStyle} aria-hidden="true">{t("sidebar.mark")}</div>
+          <span style={{ fontSize: 15, fontWeight: 600, color: "var(--color-text)", whiteSpace: "nowrap" }}>
             {t("sidebar.title")}
           </span>
           {org && (
-            <span style={{ fontSize: 14, color: "var(--shell-header-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {getLocalizedOrgName(org, i18n.language)}
+            <span style={{ fontSize: 14, color: "var(--color-text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              · {getLocalizedOrgName(org, i18n.language)}
             </span>
           )}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <form onSubmit={handleSearchSubmit} style={{ display: "flex", height: "100%" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <form onSubmit={handleSearchSubmit} style={{ display: "flex" }}>
             <input
               type="search"
               value={searchQuery}
@@ -188,7 +188,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
             <option value="uz-Cyrl">Ўзбекча</option>
           </select>
 
-          <div style={{ position: "relative", height: "100%" }}>
+          <div style={{ position: "relative" }}>
             <button
               ref={bellRef}
               style={headerIconBtnStyle}
@@ -196,7 +196,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
               aria-label={t("layout.notifications")}
               onClick={handleBellClick}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
               </svg>
               {unreadCount > 0 && (
@@ -209,7 +209,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
             {dropdownOpen && (
               <div ref={dropdownRef} style={dropdownStyle}>
                 <div style={dropdownHeaderStyle}>
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>{t("layout.notifications")}</span>
+                  <span style={{ fontSize: 15, fontWeight: 600 }}>{t("layout.notifications")}</span>
                   {unreadCount > 0 && (
                     <button style={markAllBtnStyle} onClick={handleMarkAllRead}>
                       {t("layout.readAll")}
@@ -219,7 +219,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
 
                 <div style={dropdownListStyle}>
                   {notifications.length === 0 ? (
-                    <div style={{ padding: "24px 16px", color: "#525252", fontSize: 14 }}>
+                    <div style={{ padding: "28px 16px", color: "#6b7384", fontSize: 14, textAlign: "center" }}>
                       {t("layout.noNotifications")}
                     </div>
                   ) : (
@@ -228,19 +228,19 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
                         key={n.id}
                         style={{
                           ...notificationItemStyle,
-                          background: n.is_read ? "#ffffff" : "#edf5ff",
+                          background: n.is_read ? "#ffffff" : "#f5f7ff",
                         }}
                         onClick={() => handleNotificationClick(n)}
                       >
                         <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 14, fontWeight: n.is_read ? 400 : 600, color: "#161616" }}>
+                            <div style={{ fontSize: 14, fontWeight: n.is_read ? 400 : 600, color: "#1a1f2b" }}>
                               {n.title}
                             </div>
                             {n.body && (
                               <div style={{
-                                fontSize: 14,
-                                color: "#525252",
+                                fontSize: 13.5,
+                                color: "#6b7384",
                                 marginTop: 2,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
@@ -249,7 +249,7 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
                                 {n.body}
                               </div>
                             )}
-                            <div style={{ fontSize: 12, color: "#8c8c8c", marginTop: 4, letterSpacing: "0.32px" }}>
+                            <div style={{ fontSize: 12.5, color: "#9ba3b4", marginTop: 4 }}>
                               {formatTimeAgo(n.created_at, t)}
                             </div>
                           </div>
@@ -328,16 +328,30 @@ function formatTimeAgo(isoDate: string, t: (key: string, options?: Record<string
 
 const headerStyle: React.CSSProperties = {
   height: "var(--header-height)",
-  background: "var(--shell-header-bg)",
+  background: "var(--color-surface)",
+  borderBottom: "1px solid var(--color-border)",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "0 0 0 16px",
+  padding: "0 20px",
   position: "fixed",
   top: 0,
   left: 0,
   right: 0,
   zIndex: 200,
+};
+
+const markStyle: React.CSSProperties = {
+  width: 30,
+  height: 30,
+  borderRadius: 9,
+  background: "var(--color-primary)",
+  color: "#ffffff",
+  display: "grid",
+  placeItems: "center",
+  fontSize: 12,
+  fontWeight: 700,
+  flexShrink: 0,
 };
 
 const containerStyle: React.CSSProperties = {
@@ -356,93 +370,94 @@ const mainStyle: React.CSSProperties = {
 
 const contentStyle: React.CSSProperties = {
   flex: 1,
-  padding: "32px 32px 64px",
+  padding: "28px 32px 64px",
   width: "100%",
-  maxWidth: 1584,
+  maxWidth: 1440,
   boxSizing: "border-box" as const,
 };
 
 const headerSearchStyle: React.CSSProperties = {
-  width: 240,
-  height: "100%",
-  padding: "0 16px",
+  width: 280,
+  height: 38,
+  padding: "0 14px",
   fontSize: 14,
-  border: "none",
-  borderLeft: "1px solid #393939",
-  background: "var(--shell-header-bg)",
-  color: "var(--shell-header-text)",
+  border: "1px solid var(--color-border)",
+  borderRadius: 10,
+  background: "var(--color-bg)",
+  color: "var(--color-text)",
   boxSizing: "border-box",
   outline: "none",
 };
 
 const langSelectStyle: React.CSSProperties = {
-  height: "100%",
-  padding: "0 12px",
-  fontSize: 14,
-  border: "none",
-  borderLeft: "1px solid #393939",
-  background: "var(--shell-header-bg)",
-  color: "var(--shell-header-muted)",
+  height: 38,
+  padding: "0 10px",
+  fontSize: 13.5,
+  fontWeight: 500,
+  border: "1px solid var(--color-border)",
+  borderRadius: 10,
+  background: "var(--color-surface)",
+  color: "var(--color-text)",
   cursor: "pointer",
   outline: "none",
 };
 
 const headerIconBtnStyle: React.CSSProperties = {
   position: "relative",
-  width: 48,
-  height: "100%",
-  color: "var(--shell-header-muted)",
+  width: 38,
+  height: 38,
+  borderRadius: 10,
+  color: "var(--color-text-secondary)",
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "none",
-  border: "none",
-  borderLeft: "1px solid #393939",
+  background: "var(--color-surface)",
+  border: "1px solid var(--color-border)",
 };
 
 const headerAvatarBtnStyle: React.CSSProperties = {
-  width: 48,
-  height: "100%",
+  width: 38,
+  height: 38,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  borderLeft: "1px solid #393939",
+  borderRadius: "50%",
   cursor: "pointer",
 };
 
 const headerAvatarStyle: React.CSSProperties = {
-  width: 28,
-  height: 28,
+  width: 34,
+  height: 34,
   borderRadius: "50%",
   background: "var(--color-primary)",
   color: "#ffffff",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 11,
+  fontSize: 12,
   fontWeight: 600,
-  letterSpacing: 0,
 };
 
 const headerAvatarImgStyle: React.CSSProperties = {
-  width: 28,
-  height: 28,
+  width: 34,
+  height: 34,
   borderRadius: "50%",
   objectFit: "cover",
 };
 
 const badgeStyle: React.CSSProperties = {
   position: "absolute",
-  top: 8,
-  right: 8,
+  top: -5,
+  right: -5,
   background: "var(--color-primary)",
   color: "#ffffff",
   fontSize: 10,
   fontWeight: 600,
-  letterSpacing: 0,
-  minWidth: 16,
-  height: 16,
+  minWidth: 17,
+  height: 17,
+  borderRadius: 999,
+  border: "2px solid #ffffff",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -452,46 +467,47 @@ const badgeStyle: React.CSSProperties = {
 
 const dropdownStyle: React.CSSProperties = {
   position: "absolute",
-  top: "100%",
+  top: "calc(100% + 8px)",
   right: 0,
   width: 384,
   maxHeight: 480,
   background: "#ffffff",
+  borderRadius: 14,
   boxShadow: "var(--shadow-overlay)",
-  border: "1px solid #e0e0e0",
+  border: "1px solid var(--color-border)",
   zIndex: 100,
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
-  color: "#161616",
+  color: "var(--color-text)",
 };
 
 const dropdownHeaderStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "12px 16px",
-  borderBottom: "1px solid #e0e0e0",
+  padding: "14px 16px",
+  borderBottom: "1px solid var(--color-border)",
 };
 
 const demoBannerStyle: React.CSSProperties = {
   position: "sticky",
   top: "var(--header-height)",
   zIndex: 150,
-  background: "#fcf4d6",
-  borderBottom: "1px solid #f1c21b",
+  background: "#fff5dd",
+  borderBottom: "1px solid #f4e2a8",
   padding: "8px 16px",
-  fontSize: 12,
-  color: "#161616",
+  fontSize: 12.5,
+  color: "#7a5410",
   textAlign: "center",
-  letterSpacing: "0.32px",
 };
 
 const markAllBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
   color: "var(--color-primary)",
-  fontSize: 14,
+  fontSize: 13.5,
+  fontWeight: 500,
   cursor: "pointer",
 };
 
@@ -502,9 +518,9 @@ const dropdownListStyle: React.CSSProperties = {
 
 const notificationItemStyle: React.CSSProperties = {
   padding: "12px 16px",
-  borderBottom: "1px solid #e0e0e0",
+  borderBottom: "1px solid var(--color-border-light)",
   cursor: "pointer",
-  transition: "background 70ms",
+  transition: "background 120ms ease",
 };
 
 const unreadDotStyle: React.CSSProperties = {

@@ -51,20 +51,20 @@ export default function DocumentCommentThread({
   };
 
   const renderOne = (c: DocumentComment, isReply: boolean) => (
-    <div key={c.id} style={{ marginTop: isReply ? 10 : 0, paddingLeft: isReply ? 12 : 0, borderLeft: isReply ? "2px solid #e0e0e0" : undefined }}>
+    <div key={c.id} style={{ marginTop: isReply ? 10 : 0, paddingLeft: isReply ? 12 : 0, borderLeft: isReply ? "2px solid #e3e7ee" : undefined }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
         <span style={{ fontWeight: 600, fontSize: 13 }}>{c.user_name || t("review.unknownUser")}</span>
-        <span style={{ fontSize: 11, color: "#8d8d8d" }}>{formatDateTime(c.created_at, i18n.language)}</span>
+        <span style={{ fontSize: 11, color: "#9ba3b4" }}>{formatDateTime(c.created_at, i18n.language)}</span>
         {(c.user_id === currentUserId || isAdmin) && !c.is_deleted && (
           <button
             onClick={() => onDelete(c.id)}
-            style={{ marginLeft: "auto", background: "none", border: "none", color: "#da1e28", fontSize: 11, cursor: "pointer" }}
+            style={{ marginLeft: "auto", background: "none", border: "none", color: "#d14343", fontSize: 11, cursor: "pointer" }}
           >
             {t("common.delete")}
           </button>
         )}
       </div>
-      <div style={{ fontSize: 13, color: c.is_deleted ? "#8d8d8d" : "#393939", lineHeight: 1.5, fontStyle: c.is_deleted ? "italic" : "normal" }}>
+      <div style={{ fontSize: 13, color: c.is_deleted ? "#9ba3b4" : "#2a3040", lineHeight: 1.5, fontStyle: c.is_deleted ? "italic" : "normal" }}>
         {c.is_deleted ? t("review.commentDeleted") : c.content}
       </div>
     </div>
@@ -74,10 +74,10 @@ export default function DocumentCommentThread({
     <div
       onClick={onSelect}
       style={{
-        border: "1px solid " + (isActive ? "#0f62fe" : "#e0e0e0"),
-        borderRadius: 0,
+        border: "1px solid " + (isActive ? "#3557d6" : "#e3e7ee"),
+        borderRadius: 10,
         padding: 12,
-        background: resolved ? "#f4f4f4" : "#fff",
+        background: resolved ? "#f5f7fa" : "#fff",
         cursor: "pointer",
         boxShadow: isActive ? "0 0 0 2px rgba(37,99,235,0.15)" : undefined,
         opacity: resolved ? 0.85 : 1,
@@ -90,7 +90,7 @@ export default function DocumentCommentThread({
           <StatusBadge variant="warning" dot>{t("review.statusOpen")}</StatusBadge>
         )}
         {root.anchor && (
-          <span style={{ fontSize: 11, color: "#8d8d8d" }}>
+          <span style={{ fontSize: 11, color: "#9ba3b4" }}>
             {root.anchor.type === "xlsx"
               ? `${root.anchor.sheet}!${root.anchor.start}${root.anchor.start !== root.anchor.end ? ":" + root.anchor.end : ""}`
               : t("review.versionLabel", { n: root.version_no })}
@@ -100,8 +100,8 @@ export default function DocumentCommentThread({
 
       {root.quoted_text && (
         <div style={{
-          fontSize: 12, color: "#525252", background: "#fcf4d6", borderLeft: "3px solid #f1c21b",
-          padding: "4px 8px", borderRadius: 0, marginBottom: 8, maxHeight: 60, overflow: "hidden",
+          fontSize: 12, color: "#6b7384", background: "#fff5dd", borderLeft: "3px solid #e0a520",
+          padding: "4px 8px", borderRadius: 8, marginBottom: 8, maxHeight: 60, overflow: "hidden",
         }}>
           «{root.quoted_text}»
         </div>
@@ -114,7 +114,7 @@ export default function DocumentCommentThread({
         {canReply && !resolved && (
           <button
             onClick={() => setShowReply((v) => !v)}
-            style={{ fontSize: 12, color: "#0f62fe", background: "none", border: "none", cursor: "pointer", fontWeight: 500 }}
+            style={{ fontSize: 12, color: "#3557d6", background: "none", border: "none", cursor: "pointer", fontWeight: 500 }}
           >
             {t("review.reply")}
           </button>
@@ -122,7 +122,7 @@ export default function DocumentCommentThread({
         {canResolve && (
           <button
             onClick={() => onResolve(!resolved)}
-            style={{ fontSize: 12, color: resolved ? "#525252" : "#24a148", background: "none", border: "none", cursor: "pointer", fontWeight: 500, marginLeft: "auto" }}
+            style={{ fontSize: 12, color: resolved ? "#6b7384" : "#2e9e5b", background: "none", border: "none", cursor: "pointer", fontWeight: 500, marginLeft: "auto" }}
           >
             {resolved ? t("review.reopen") : t("review.markResolved")}
           </button>
@@ -136,13 +136,13 @@ export default function DocumentCommentThread({
             onChange={(e) => setReplyText(e.target.value)}
             placeholder={t("review.replyPlaceholder")}
             rows={2}
-            style={{ width: "100%", boxSizing: "border-box", fontSize: 13, padding: 8, border: "1px solid #c6c6c6", borderRadius: 0, resize: "vertical" }}
+            style={{ width: "100%", boxSizing: "border-box", fontSize: 13, padding: 8, border: "1px solid #cfd5df", borderRadius: 10, resize: "vertical" }}
           />
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 6, marginTop: 6 }}>
-            <button onClick={() => { setShowReply(false); setReplyText(""); }} style={{ fontSize: 12, padding: "5px 10px", border: "1px solid #c6c6c6", borderRadius: 0, background: "#fff", cursor: "pointer" }}>
+            <button onClick={() => { setShowReply(false); setReplyText(""); }} style={{ fontSize: 12, padding: "5px 10px", border: "1px solid #cfd5df", borderRadius: 8, background: "#fff", cursor: "pointer" }}>
               {t("common.cancel")}
             </button>
-            <button onClick={submitReply} disabled={sending || !replyText.trim()} style={{ fontSize: 12, padding: "5px 12px", border: "none", borderRadius: 0, background: "#0f62fe", color: "#fff", cursor: "pointer" }}>
+            <button onClick={submitReply} disabled={sending || !replyText.trim()} style={{ fontSize: 12, padding: "5px 12px", border: "none", borderRadius: 8, background: "#3557d6", color: "#fff", cursor: "pointer" }}>
               {sending ? t("common.saving") : t("review.send")}
             </button>
           </div>

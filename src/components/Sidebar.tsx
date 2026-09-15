@@ -39,10 +39,10 @@ function SidebarIcon({ name, size = 16 }: { name: string; size?: number }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={{ flexShrink: 0 }}
+      style={{ flexShrink: 0, opacity: 0.9 }}
       aria-hidden="true"
     >
       <path d={d} />
@@ -64,13 +64,13 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
   type MenuItem = { to: string; label: string; icon: string };
 
   // Grouped by what a board member does: prepare → decide → communicate → reference.
-  const groups: { items: MenuItem[] }[] = [
+  const groups: { caption?: string; items: MenuItem[] }[] = [
     { items: [
       { to: "/",               label: t("sidebar.dashboard"),      icon: "dashboard"    },
       { to: "/notifications",  label: t("sidebar.notifications"),  icon: "bell"         },
       { to: "/calendar",       label: t("sidebar.calendar"),       icon: "calendar"     },
     ]},
-    { items: [
+    { caption: t("sidebar.groupBoard"), items: [
       { to: "/ns-meetings",    label: t("sidebar.nsMeetings"),     icon: "protocol"     },
       { to: "/voting",         label: t("sidebar.voting"),         icon: "vote"         },
       { to: "/tasks",          label: t("sidebar.tasks"),          icon: "tasks"        },
@@ -78,11 +78,11 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
       { to: "/committees",     label: t("sidebar.committees"),     icon: "committees"   },
       { to: "/shareholder-meeting", label: t("sidebar.shareholders"), icon: "shareholders" },
     ]},
-    { items: [
+    { caption: t("sidebar.groupComms"), items: [
       { to: "/chat",           label: t("sidebar.chat"),           icon: "chat"         },
       { to: "/videoconference",label: t("sidebar.videoconference"),icon: "video"        },
     ]},
-    { items: [
+    { caption: t("sidebar.groupReference"), items: [
       { to: "/company",        label: t("sidebar.company"),        icon: "info"         },
       { to: "/regulations",    label: t("sidebar.regulations"),    icon: "library"      },
       { to: "/stats",          label: t("sidebar.stats"),          icon: "stats"        },
@@ -99,7 +99,10 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
     <aside style={sidebarStyle} aria-label="Navigation">
       <nav style={navStyle}>
         {groups.map((group, gi) => (
-          <div key={gi} style={{ borderTop: gi === 0 ? "none" : "1px solid var(--sidebar-border)", padding: "8px 0" }}>
+          <div key={gi} style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: gi === 0 ? 0 : 12 }}>
+            {group.caption && (
+              <div style={captionStyle}>{group.caption}</div>
+            )}
             {group.items.map((item) => (
               <NavLink
                 key={item.to}
@@ -110,8 +113,6 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
                   ...navItemStyle,
                   background: isActive ? "var(--sidebar-active)" : "transparent",
                   color: isActive ? "var(--sidebar-text-active)" : "var(--sidebar-text)",
-                  fontWeight: isActive ? 600 : 400,
-                  borderLeft: isActive ? "3px solid var(--color-primary)" : "3px solid transparent",
                 })}
               >
                 <SidebarIcon name={item.icon} />
@@ -139,10 +140,10 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
             </div>
           </NavLink>
           <NavLink to="/profile" style={{ flex: 1, minWidth: 0, textDecoration: "none" }}>
-            <div style={{ fontSize: 14, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div style={{ fontSize: 14, fontWeight: 500, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {getLocalizedName(profile, i18n.language) || t("sidebar.user")}
             </div>
-            <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2, letterSpacing: "0.32px" }}>
+            <div style={{ fontSize: 12.5, color: "var(--color-text-secondary)", marginTop: 1 }}>
               {t(`roles.${profile.role}`, profile.role)}
             </div>
           </NavLink>
@@ -178,31 +179,40 @@ const navStyle: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   overflowY: "auto",
+  padding: "16px 12px",
+};
+
+const captionStyle: React.CSSProperties = {
+  padding: "0 12px 6px",
+  fontSize: 12,
+  fontWeight: 500,
+  color: "var(--color-text-muted)",
 };
 
 const navItemStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: 12,
+  gap: 10,
   minHeight: 40,
-  padding: "8px 16px 8px 13px",
+  padding: "8px 12px",
+  borderRadius: 10,
   fontSize: 14,
-  letterSpacing: "0.16px",
+  fontWeight: 500,
   textDecoration: "none",
-  lineHeight: 1.29,
-  transition: "background-color 70ms",
+  lineHeight: 1.3,
+  transition: "background-color 120ms ease, color 120ms ease",
 };
 
 const countStyle: React.CSSProperties = {
   minWidth: 20,
   height: 20,
-  padding: "0 6px",
+  padding: "0 7px",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 12,
+  fontSize: 11,
   fontWeight: 600,
-  letterSpacing: 0,
+  borderRadius: 999,
   background: "var(--color-primary)",
   color: "#ffffff",
   flexShrink: 0,
@@ -234,6 +244,7 @@ const userAvatarStyle: React.CSSProperties = {
 const logoutBtnStyle: React.CSSProperties = {
   width: 32,
   height: 32,
+  borderRadius: 8,
   color: "var(--color-text-secondary)",
   cursor: "pointer",
   flexShrink: 0,

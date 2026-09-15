@@ -105,7 +105,11 @@
     "logout": "Sign out",
     "auditLog": "Audit Log",
     "committees": "Committees",
-    "regulations": "Regulatory Library"
+    "regulations": "Regulatory Library",
+    "groupBoard": "Board",
+    "groupComms": "Communication",
+    "groupReference": "Reference",
+    "mark": "SB"
   },
   "notifications": {
     "title": "Notifications",
@@ -240,7 +244,13 @@
     "goToVoting": "Go to voting",
     "quickActions": "Quick Actions",
     "createNSMeeting": "Create Board Meeting",
-    "goToNSMeetings": "Board Meetings"
+    "goToNSMeetings": "Board Meetings",
+    "inDays_one": "in {{count}} day",
+    "inDays_other": "in {{count}} days",
+    "today": "today",
+    "agendaTitle": "Agenda",
+    "noAgenda": "Agenda is not set yet",
+    "materials": "Materials"
   },
   "meetingStatus": {
     "draft": "Draft",

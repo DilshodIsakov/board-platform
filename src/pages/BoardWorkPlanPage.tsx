@@ -34,9 +34,9 @@ interface Props {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  planned: "#525252",
-  completed: "#24a148",
-  canceled: "#8d8d8d",
+  planned: "#6b7384",
+  completed: "#2e9e5b",
+  canceled: "#9ba3b4",
 };
 
 const PLAN_STATUS_OPTIONS = ["draft", "approved", "archived"];
@@ -556,13 +556,13 @@ export default function BoardWorkPlanPage({ profile, org }: Props) {
   );
 
   // ── Render ────────────────────────────────────────────────────────────────
-  if (loading) return <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>;
+  if (loading) return <div style={{ color: "#9ba3b4" }}>{t("common.loading")}</div>;
   if (plans.length === 0) {
     return (
       <div>
         <div style={{ textAlign: "center", padding: "60px 20px" }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}></div>
-          <div style={{ fontSize: 16, color: "#8d8d8d", marginBottom: 20 }}>{t("workplan.noPlans")}</div>
+          <div style={{ fontSize: 16, color: "#9ba3b4", marginBottom: 20 }}>{t("workplan.noPlans")}</div>
           {isAdmin && (
             <button onClick={openCreatePlan} style={primaryBtnStyle}>
               + {t("workplan.createPlan")}
@@ -587,11 +587,11 @@ export default function BoardWorkPlanPage({ profile, org }: Props) {
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 6px" }}>
             {getLocalizedField(plan as unknown as Record<string, unknown>, "title")}
           </h1>
-          <div style={{ fontSize: 13, color: "#525252" }}>
+          <div style={{ fontSize: 13, color: "#6b7384" }}>
             {t("workplan.period", { start: formatDate(plan.period_start), end: formatDate(plan.period_end) })}
             <span style={{
               display: "inline-block", marginLeft: 12, padding: "2px 10px",
-              borderRadius: 0, background: "#f4f4f4", color: "#525252",
+              borderRadius: 8, background: "#f5f7fa", color: "#6b7384",
               fontSize: 12, fontWeight: 600,
             }}>
               {plan.status === "approved" ? t("workplan.approved") : plan.status}
@@ -609,7 +609,7 @@ export default function BoardWorkPlanPage({ profile, org }: Props) {
       {/* Upcoming meetings */}
       <h2 style={sectionTitleStyle}>{t("workplan.upcomingMeetings", { count: futureMeetings.length })}</h2>
       {futureMeetings.length === 0 ? (
-        <div style={{ color: "#8d8d8d", fontSize: 14, marginBottom: 20 }}>{t("workplan.noUpcomingMeetings")}</div>
+        <div style={{ color: "#9ba3b4", fontSize: 14, marginBottom: 20 }}>{t("workplan.noUpcomingMeetings")}</div>
       ) : (
         futureMeetings.map((m) => (
           <MeetingCard
@@ -634,7 +634,7 @@ export default function BoardWorkPlanPage({ profile, org }: Props) {
       {/* Past meetings */}
       {pastMeetings.length > 0 && (
         <>
-          <h2 style={{ ...sectionTitleStyle, marginTop: 32, color: "#8d8d8d" }}>
+          <h2 style={{ ...sectionTitleStyle, marginTop: 32, color: "#9ba3b4" }}>
             {t("workplan.pastMeetings", { count: pastMeetings.length })}
           </h2>
           {pastMeetings.map((m) => (
@@ -833,7 +833,7 @@ function MeetingCard({
   onDeleteAgendaItem: (item: PlanAgendaItem) => void;
 }) {
   const { t } = useTranslation();
-  const statusColor = STATUS_COLORS[meeting.status] || "#8d8d8d";
+  const statusColor = STATUS_COLORS[meeting.status] || "#9ba3b4";
   const items = meeting.agenda_items || [];
 
   const statusI18nKey =
@@ -846,18 +846,18 @@ function MeetingCard({
       <div style={cardHeaderStyle} onClick={onToggle}>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#161616" }}>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#1a1f2b" }}>
               {t("workplan.meetingNumber", { number: meeting.meeting_number })}
             </span>
             <span style={{
-              padding: "2px 8px", borderRadius: 0,
+              padding: "2px 8px", borderRadius: 8,
               background: statusColor + "1A", color: statusColor,
               fontSize: 11, fontWeight: 600,
             }}>
               {t(statusI18nKey)}
             </span>
           </div>
-          <div style={{ fontSize: 13, color: "#525252", marginTop: 4 }}>
+          <div style={{ fontSize: 13, color: "#6b7384", marginTop: 4 }}>
             {formatPlanDateRange(meeting.planned_date_from, meeting.planned_date_to)}
           </div>
         </div>
@@ -877,7 +877,7 @@ function MeetingCard({
                   <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </button>
-              <button style={{ ...iconBtnStyle, color: "#da1e28" }} onClick={onDelete} title={t("workplan.deleteMeeting")}>
+              <button style={{ ...iconBtnStyle, color: "#d14343" }} onClick={onDelete} title={t("workplan.deleteMeeting")}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="3 6 5 6 21 6" />
                   <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4a1 1 0 011-1h2a1 1 0 011 1v2" />
@@ -886,7 +886,7 @@ function MeetingCard({
             </>
           )}
           <svg
-            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8d8d8d" strokeWidth="2"
+            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ba3b4" strokeWidth="2"
             style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s", cursor: "pointer", flexShrink: 0 }}
             onClick={onToggle}
           >
@@ -899,7 +899,7 @@ function MeetingCard({
         <div style={agendaListStyle}>
           {items.length > 0 && (
             <>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#393939", marginBottom: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#2a3040", marginBottom: 8 }}>
                 {t("workplan.agenda", { count: items.length })}
               </div>
               {items.map((item) => (
@@ -915,7 +915,7 @@ function MeetingCard({
                           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                         </svg>
                       </button>
-                      <button style={{ ...iconBtnSmallStyle, color: "#da1e28" }} onClick={() => onDeleteAgendaItem(item)} title={t("workplan.deleteAgendaItem")}>
+                      <button style={{ ...iconBtnSmallStyle, color: "#d14343" }} onClick={() => onDeleteAgendaItem(item)} title={t("workplan.deleteAgendaItem")}>
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6" />
                           <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4a1 1 0 011-1h2a1 1 0 011 1v2" />
@@ -936,7 +936,7 @@ function MeetingCard({
             </button>
           )}
           {items.length === 0 && !isAdmin && (
-            <div style={{ fontSize: 13, color: "#8d8d8d" }}>{t("workplan.noAgendaItems")}</div>
+            <div style={{ fontSize: 13, color: "#9ba3b4" }}>{t("workplan.noAgendaItems")}</div>
           )}
         </div>
       )}
@@ -953,12 +953,12 @@ function formatDate(iso: string): string {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const sectionTitleStyle: React.CSSProperties = {
-  fontSize: 16, fontWeight: 600, color: "#393939", marginBottom: 12,
+  fontSize: 16, fontWeight: 600, color: "#2a3040", marginBottom: 12,
 };
 
 const cardStyle: React.CSSProperties = {
-  background: "#FFFFFF", borderRadius: 0,
-  border: "1px solid #e0e0e0", marginBottom: 10, overflow: "hidden",
+  background: "#FFFFFF", borderRadius: 10,
+  border: "1px solid #e3e7ee", marginBottom: 10, overflow: "hidden",
 };
 
 const cardHeaderStyle: React.CSSProperties = {
@@ -967,51 +967,51 @@ const cardHeaderStyle: React.CSSProperties = {
 };
 
 const agendaListStyle: React.CSSProperties = {
-  padding: "12px 18px 14px", borderTop: "1px solid #f4f4f4",
+  padding: "12px 18px 14px", borderTop: "1px solid #f5f7fa",
 };
 
 const agendaItemStyle: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: 10,
-  fontSize: 13, color: "#393939", padding: "6px 0", lineHeight: 1.5,
+  fontSize: 13, color: "#2a3040", padding: "6px 0", lineHeight: 1.5,
 };
 
 const agendaNumberStyle: React.CSSProperties = {
   width: 22, height: 22, borderRadius: "50%",
-  background: "#f4f4f4", color: "#525252",
+  background: "#f5f7fa", color: "#6b7384",
   display: "flex", alignItems: "center", justifyContent: "center",
   fontSize: 11, fontWeight: 700, flexShrink: 0, marginTop: 1,
 };
 
 const iconBtnStyle: React.CSSProperties = {
   display: "flex", alignItems: "center", justifyContent: "center",
-  width: 30, height: 30, borderRadius: 0,
-  border: "1px solid #e0e0e0", background: "transparent",
-  cursor: "pointer", color: "#525252",
+  width: 30, height: 30, borderRadius: 10,
+  border: "1px solid #e3e7ee", background: "transparent",
+  cursor: "pointer", color: "#6b7384",
 };
 
 const iconBtnSmallStyle: React.CSSProperties = {
   display: "flex", alignItems: "center", justifyContent: "center",
-  width: 24, height: 24, borderRadius: 0,
-  border: "1px solid #e0e0e0", background: "transparent",
-  cursor: "pointer", color: "#525252",
+  width: 24, height: 24, borderRadius: 10,
+  border: "1px solid #e3e7ee", background: "transparent",
+  cursor: "pointer", color: "#6b7384",
 };
 
 const primaryBtnStyle: React.CSSProperties = {
-  padding: "8px 18px", borderRadius: 0,
-  background: "#0f62fe", color: "#FFFFFF",
+  padding: "8px 18px", borderRadius: 10,
+  background: "#3557d6", color: "#FFFFFF",
   border: "none", cursor: "pointer", fontSize: 14, fontWeight: 500,
 };
 
 const secondaryBtnStyle: React.CSSProperties = {
-  padding: "7px 14px", borderRadius: 0,
-  background: "transparent", color: "#393939",
-  border: "1px solid #c6c6c6", cursor: "pointer", fontSize: 14, fontWeight: 500,
+  padding: "7px 14px", borderRadius: 10,
+  background: "transparent", color: "#2a3040",
+  border: "1px solid #cfd5df", cursor: "pointer", fontSize: 14, fontWeight: 500,
 };
 
 const cancelBtnStyle: React.CSSProperties = {
-  padding: "8px 18px", borderRadius: 0,
-  background: "transparent", color: "#393939",
-  border: "1px solid #c6c6c6", cursor: "pointer", fontSize: 14,
+  padding: "8px 18px", borderRadius: 10,
+  background: "transparent", color: "#2a3040",
+  border: "1px solid #cfd5df", cursor: "pointer", fontSize: 14,
 };
 
 const overlayStyle: React.CSSProperties = {
@@ -1021,11 +1021,11 @@ const overlayStyle: React.CSSProperties = {
 };
 
 const modalStyle: React.CSSProperties = {
-  background: "#FFFFFF", borderRadius: 0, padding: "28px 32px",
+  background: "#FFFFFF", borderRadius: 14, padding: "28px 32px",
   width: "100%", maxWidth: 580, boxShadow: "var(--shadow-overlay)", };
 
 const modalTitleStyle: React.CSSProperties = {
-  fontSize: 20, fontWeight: 700, margin: "0 0 20px", color: "#161616",
+  fontSize: 20, fontWeight: 700, margin: "0 0 20px", color: "#1a1f2b",
 };
 
 const modalFooterStyle: React.CSSProperties = {
@@ -1034,12 +1034,12 @@ const modalFooterStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   display: "block", fontSize: 13, fontWeight: 500,
-  color: "#393939", marginBottom: 6, marginTop: 12,
+  color: "#2a3040", marginBottom: 6, marginTop: 12,
 };
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "9px 12px", borderRadius: 0,
-  border: "1px solid #c6c6c6", fontSize: 14, color: "#161616",
+  width: "100%", padding: "9px 12px", borderRadius: 10,
+  border: "1px solid #cfd5df", fontSize: 14, color: "#1a1f2b",
   boxSizing: "border-box" as const, background: "#FFFFFF",
 };
 
@@ -1047,17 +1047,17 @@ const selectStyle: React.CSSProperties = { ...inputStyle, cursor: "pointer" };
 
 const tabBarStyle: React.CSSProperties = {
   display: "flex", gap: 4, marginTop: 16, marginBottom: 4,
-  borderBottom: "1px solid #e0e0e0",
+  borderBottom: "1px solid #e3e7ee",
 };
 
 const tabBtnStyle = (active: boolean): React.CSSProperties => ({
   padding: "7px 16px", fontSize: 13, fontWeight: 500,
   background: "none", border: "none", cursor: "pointer",
-  borderBottom: active ? "2px solid #0f62fe" : "2px solid transparent",
-  color: active ? "#0f62fe" : "#525252", marginBottom: -1,
+  borderBottom: active ? "2px solid #3557d6" : "2px solid transparent",
+  color: active ? "#3557d6" : "#6b7384", marginBottom: -1,
 });
 
 const errorStyle: React.CSSProperties = {
-  marginTop: 8, fontSize: 13, color: "#da1e28",
-  background: "#fff1f1", borderRadius: 0, padding: "8px 12px",
+  marginTop: 8, fontSize: 13, color: "#d14343",
+  background: "#fdeaea", borderRadius: 10, padding: "8px 12px",
 };

@@ -125,7 +125,7 @@ export default function CommitteesPage({ profile }: Props) {
   };
 
   if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#8d8d8d" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#9ba3b4" }}>
       {t("common.loading")}
     </div>
   );
@@ -133,10 +133,10 @@ export default function CommitteesPage({ profile }: Props) {
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: "#161616", margin: 0 }}>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: "#1a1f2b", margin: 0 }}>
           {t("committees.title")}
         </h1>
-        <p style={{ color: "#525252", fontSize: 14, margin: "6px 0 0" }}>
+        <p style={{ color: "#6b7384", fontSize: 14, margin: "6px 0 0" }}>
           {t("committees.subtitle")}
         </p>
       </div>
@@ -156,9 +156,9 @@ export default function CommitteesPage({ profile }: Props) {
           return (
             <div key={c.id} style={{
               background: "#fff",
-              border: "1px solid #e0e0e0",
+              border: "1px solid #e3e7ee",
               borderTop: `3px solid ${color}`,
-              borderRadius: 0,
+              borderRadius: 10,
               overflow: "hidden",
               }}>
               {/* Card header */}
@@ -166,7 +166,7 @@ export default function CommitteesPage({ profile }: Props) {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: 22, flexShrink: 0 }}>{icon}</span>
-                    <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#161616", lineHeight: 1.3 }}>
+                    <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#1a1f2b", lineHeight: 1.3 }}>
                       {name}
                     </h2>
                   </div>
@@ -174,7 +174,7 @@ export default function CommitteesPage({ profile }: Props) {
                     <span style={{
                       flexShrink: 0, marginLeft: 8,
                       fontSize: 11, fontWeight: 600, padding: "2px 9px",
-                      borderRadius: 0, background: color + "18", color,
+                      borderRadius: 8, background: color + "18", color,
                     }}>
                       {t("committees.roleChair")}
                     </span>
@@ -182,7 +182,7 @@ export default function CommitteesPage({ profile }: Props) {
                 </div>
 
                 {description && (
-                  <p style={{ margin: "10px 0 0", fontSize: 13, color: "#525252", lineHeight: 1.5 }}>
+                  <p style={{ margin: "10px 0 0", fontSize: 13, color: "#6b7384", lineHeight: 1.5 }}>
                     {description}
                   </p>
                 )}
@@ -192,14 +192,14 @@ export default function CommitteesPage({ profile }: Props) {
                   onClick={() => navigate(`/committees/${c.id}`)}
                   style={{
                     marginTop: 14, width: "100%",
-                    background: "#f4f4f4", border: `1px solid #e0e0e0`,
-                    color: color, borderRadius: 0,
+                    background: "#f5f7fa", border: `1px solid #e3e7ee`,
+                    color: color, borderRadius: 10,
                     padding: "8px 14px", fontSize: 13, fontWeight: 600,
                     cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                     transition: "background 0.15s",
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = color + "0E")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "#f4f4f4")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#f5f7fa")}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
@@ -209,18 +209,18 @@ export default function CommitteesPage({ profile }: Props) {
               </div>
 
               {/* Divider */}
-              <div style={{ height: 1, background: "#f4f4f4" }} />
+              <div style={{ height: 1, background: "#f5f7fa" }} />
 
               {/* Members section */}
               <div style={{ padding: "14px 22px 18px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "#525252", }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7384", }}>
                     {t("committees.members")} ({members.length})
                   </span>
                   {isAdmin && (
                     <button
                       onClick={() => { setManagingId(isManaging ? null : c.id); setAddingProfileId(""); setAddingRole("member"); setAddError(null); }}
-                      style={{ fontSize: 12, color: isManaging ? "#525252" : color, background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
+                      style={{ fontSize: 12, color: isManaging ? "#6b7384" : color, background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}
                     >
                       {isManaging ? t("common.close") : t("committees.manage")}
                     </button>
@@ -228,7 +228,7 @@ export default function CommitteesPage({ profile }: Props) {
                 </div>
 
                 {members.length === 0 ? (
-                  <p style={{ fontSize: 13, color: "#c6c6c6", margin: 0 }}>{t("committees.noMembers")}</p>
+                  <p style={{ fontSize: 13, color: "#cfd5df", margin: 0 }}>{t("committees.noMembers")}</p>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     {members.map((m) => {
@@ -237,8 +237,8 @@ export default function CommitteesPage({ profile }: Props) {
                       return (
                         <div key={m.id} style={{
                           display: "flex", alignItems: "center", gap: 8,
-                          padding: "6px 8px", borderRadius: 0,
-                          background: m.role === "chair" ? "#f4f4f4" : "transparent",
+                          padding: "6px 8px", borderRadius: 10,
+                          background: m.role === "chair" ? "#f5f7fa" : "transparent",
                         }}>
                           <div style={{
                             width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
@@ -249,7 +249,7 @@ export default function CommitteesPage({ profile }: Props) {
                             {displayName.charAt(0).toUpperCase()}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: m.role === "chair" ? 600 : 400, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <div style={{ fontSize: 13, fontWeight: m.role === "chair" ? 600 : 400, color: "#1a1f2b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               {displayName}
                             </div>
                           </div>
@@ -263,14 +263,14 @@ export default function CommitteesPage({ profile }: Props) {
                               <select
                                 value={m.role}
                                 onChange={(e) => handleChangeRole(c.id, m.profile_id, e.target.value as "chair" | "member")}
-                                style={{ fontSize: 11, padding: "2px 4px", borderRadius: 0, border: "1px solid #c6c6c6", background: "#fff" }}
+                                style={{ fontSize: 11, padding: "2px 4px", borderRadius: 8, border: "1px solid #cfd5df", background: "#fff" }}
                               >
                                 <option value="member">{t("committees.roleMember")}</option>
                                 <option value="chair">{t("committees.roleChair")}</option>
                               </select>
                               <button
                                 onClick={() => handleRemoveMember(c.id, m.profile_id)}
-                                style={{ fontSize: 12, color: "#da1e28", background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
+                                style={{ fontSize: 12, color: "#d14343", background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}
                               ></button>
                             </div>
                           )}
@@ -287,7 +287,7 @@ export default function CommitteesPage({ profile }: Props) {
                       <select
                         value={addingProfileId}
                         onChange={(e) => { setAddingProfileId(e.target.value); setAddError(null); }}
-                        style={{ flex: 1, minWidth: 130, fontSize: 13, padding: "6px 8px", borderRadius: 0, border: `1px solid ${addError ? "#da1e28" : "#c6c6c6"}`, background: "#fff" }}
+                        style={{ flex: 1, minWidth: 130, fontSize: 13, padding: "6px 8px", borderRadius: 10, border: `1px solid ${addError ? "#d14343" : "#cfd5df"}`, background: "#fff" }}
                       >
                         <option value="">{t("committees.selectMember")}</option>
                         {allProfiles
@@ -297,7 +297,7 @@ export default function CommitteesPage({ profile }: Props) {
                       <select
                         value={addingRole}
                         onChange={(e) => setAddingRole(e.target.value as "chair" | "member")}
-                        style={{ fontSize: 13, padding: "6px 8px", borderRadius: 0, border: "1px solid #c6c6c6", background: "#fff" }}
+                        style={{ fontSize: 13, padding: "6px 8px", borderRadius: 10, border: "1px solid #cfd5df", background: "#fff" }}
                       >
                         <option value="member">{t("committees.roleMember")}</option>
                         <option value="chair">{t("committees.roleChair")}</option>
@@ -308,7 +308,7 @@ export default function CommitteesPage({ profile }: Props) {
                         style={{
                           padding: "6px 14px", fontSize: 13, fontWeight: 600,
                           background: color, color: "#fff", border: "none",
-                          borderRadius: 0, cursor: addingProfileId && !saving ? "pointer" : "not-allowed",
+                          borderRadius: 10, cursor: addingProfileId && !saving ? "pointer" : "not-allowed",
                           opacity: addingProfileId && !saving ? 1 : 0.5,
                         }}
                       >
@@ -316,7 +316,7 @@ export default function CommitteesPage({ profile }: Props) {
                       </button>
                     </div>
                     {addError && managingId === c.id && (
-                      <div style={{ marginTop: 6, fontSize: 12, color: "#da1e28", padding: "4px 8px", background: "#fff1f1", borderRadius: 0 }}>
+                      <div style={{ marginTop: 6, fontSize: 12, color: "#d14343", padding: "4px 8px", background: "#fdeaea", borderRadius: 8 }}>
                         {addError}
                       </div>
                     )}
@@ -327,12 +327,12 @@ export default function CommitteesPage({ profile }: Props) {
                 {!isManaging && (
                   <div style={{ marginTop: members.length > 0 ? 10 : 0, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     {chair ? (
-                      <div style={{ fontSize: 12, color: "#8d8d8d" }}>
-                        {t("committees.chair")}: <span style={{ fontWeight: 600, color: "#393939" }}>{chair.profile?.full_name}</span>
+                      <div style={{ fontSize: 12, color: "#9ba3b4" }}>
+                        {t("committees.chair")}: <span style={{ fontWeight: 600, color: "#2a3040" }}>{chair.profile?.full_name}</span>
                       </div>
                     ) : <span />}
                     {!isMember && !isAdmin && (
-                      <div style={{ fontSize: 12, color: "#8d8d8d", fontStyle: "italic" }}>{t("committees.notMember")}</div>
+                      <div style={{ fontSize: 12, color: "#9ba3b4", fontStyle: "italic" }}>{t("committees.notMember")}</div>
                     )}
                   </div>
                 )}

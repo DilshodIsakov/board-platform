@@ -105,7 +105,11 @@
     "logout": "Выйти",
     "auditLog": "Журнал действий",
     "committees": "Комитеты",
-    "regulations": "Нормативная база"
+    "regulations": "Нормативная база",
+    "groupBoard": "Совет",
+    "groupComms": "Общение",
+    "groupReference": "Справочное",
+    "mark": "НС"
   },
   "notifications": {
     "title": "Уведомления",
@@ -242,7 +246,15 @@
     "goToVoting": "Перейти к голосованию",
     "quickActions": "Быстрые действия",
     "createNSMeeting": "Создать заседание НС",
-    "goToNSMeetings": "Заседания НС"
+    "goToNSMeetings": "Заседания НС",
+    "inDays_one": "через {{count}} день",
+    "inDays_few": "через {{count}} дня",
+    "inDays_many": "через {{count}} дней",
+    "inDays_other": "через {{count}} дней",
+    "today": "сегодня",
+    "agendaTitle": "Повестка",
+    "noAgenda": "Повестка ещё не сформирована",
+    "materials": "Материалы"
   },
   "meetingStatus": {
     "draft": "Черновик",

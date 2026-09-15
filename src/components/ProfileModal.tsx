@@ -67,14 +67,14 @@ export default function ProfileModal({ member, currentProfileId, isAdmin, onClos
           {member.avatar_url ? (
             <img src={member.avatar_url} alt="" style={avatarStyle} />
           ) : (
-            <div style={{ ...avatarStyle, background: "#0f62fe", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700 }}>
+            <div style={{ ...avatarStyle, background: "#3557d6", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700 }}>
               {getInitials(displayName)}
             </div>
           )}
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: "#161616" }}>{displayName}</div>
-            <div style={{ fontSize: 14, color: "#525252", marginTop: 2 }}>{t(`roles.${member.role}`)}</div>
-            {displayRole && <div style={{ fontSize: 14, fontWeight: 500, color: "#393939", marginTop: 4 }}>{displayRole}</div>}
+            <div style={{ fontSize: 22, fontWeight: 700, color: "#1a1f2b" }}>{displayName}</div>
+            <div style={{ fontSize: 14, color: "#6b7384", marginTop: 2 }}>{t(`roles.${member.role}`)}</div>
+            {displayRole && <div style={{ fontSize: 14, fontWeight: 500, color: "#2a3040", marginTop: 4 }}>{displayRole}</div>}
             {isBoard && boardStatusLabel && (
               <span style={statusBadgeStyle}>{boardStatusLabel}</span>
             )}
@@ -82,7 +82,7 @@ export default function ProfileModal({ member, currentProfileId, isAdmin, onClos
         </div>
 
         {loading ? (
-          <div style={{ padding: 24, textAlign: "center", color: "#8d8d8d" }}>{t("common.loading")}</div>
+          <div style={{ padding: 24, textAlign: "center", color: "#9ba3b4" }}>{t("common.loading")}</div>
         ) : (
           <div style={{ maxHeight: "50vh", overflowY: "auto", padding: "0 24px 24px" }}>
             {/* Position & Company */}
@@ -108,11 +108,11 @@ export default function ProfileModal({ member, currentProfileId, isAdmin, onClos
                     const institution = getLoc("institution");
                     const years = [entry.year_start, entry.year_end].filter(Boolean).join(" – ");
                     return (
-                      <div key={idx} style={{ padding: "8px 12px", border: "1px solid #f4f4f4", borderRadius: 0, background: "#f4f4f4" }}>
-                        {degree && <div style={{ fontSize: 13, fontWeight: 600, color: "#161616" }}>{degree}</div>}
-                        {specialty && <div style={{ fontSize: 12, color: "#393939", marginTop: 1 }}>{specialty}</div>}
-                        {institution && <div style={{ fontSize: 12, color: "#525252", marginTop: 2 }}>{institution}</div>}
-                        {years && <div style={{ fontSize: 11, color: "#8d8d8d", marginTop: 2 }}>{years}</div>}
+                      <div key={idx} style={{ padding: "8px 12px", border: "1px solid #f5f7fa", borderRadius: 10, background: "#f5f7fa" }}>
+                        {degree && <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1f2b" }}>{degree}</div>}
+                        {specialty && <div style={{ fontSize: 12, color: "#2a3040", marginTop: 1 }}>{specialty}</div>}
+                        {institution && <div style={{ fontSize: 12, color: "#6b7384", marginTop: 2 }}>{institution}</div>}
+                        {years && <div style={{ fontSize: 11, color: "#9ba3b4", marginTop: 2 }}>{years}</div>}
                       </div>
                     );
                   })}
@@ -140,7 +140,7 @@ export default function ProfileModal({ member, currentProfileId, isAdmin, onClos
 
             {/* No details filled */}
             {!position && !company && !bio && !education && !experience && (
-              <div style={{ padding: "16px 0", color: "#8d8d8d", fontSize: 14, fontStyle: "italic" }}>
+              <div style={{ padding: "16px 0", color: "#9ba3b4", fontSize: 14, fontStyle: "italic" }}>
                 {t("profile.noData")}
               </div>
             )}
@@ -180,8 +180,8 @@ function getInitials(name: string): string {
 function InfoRow({ label, value }: { icon: string; label: string; value: string }) {
   return (
     <div style={{ display: "flex", gap: 8, marginTop: 10, fontSize: 14 }}>
-      <span style={{ color: "#525252", minWidth: 100, flexShrink: 0 }}>{label}:</span>
-      <span style={{ color: "#161616" }}>{value}</span>
+      <span style={{ color: "#6b7384", minWidth: 100, flexShrink: 0 }}>{label}:</span>
+      <span style={{ color: "#1a1f2b" }}>{value}</span>
     </div>
   );
 }
@@ -190,7 +190,7 @@ function InfoBlock({ title, text }: { title: string; text: string }) {
   return (
     <div style={{ marginTop: 16 }}>
       <div style={blockTitleStyle}>{title}</div>
-      <div style={{ fontSize: 14, color: "#393939", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{text}</div>
+      <div style={{ fontSize: 14, color: "#2a3040", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{text}</div>
     </div>
   );
 }
@@ -202,35 +202,35 @@ const overlayStyle: React.CSSProperties = {
   alignItems: "center", justifyContent: "center", zIndex: 1000,
 };
 const modalStyle: React.CSSProperties = {
-  background: "#fff", borderRadius: 0, width: "100%", maxWidth: 520,
+  background: "#fff", borderRadius: 10, width: "100%", maxWidth: 520,
   maxHeight: "85vh", display: "flex", flexDirection: "column",
   boxShadow: "var(--shadow-overlay)", position: "relative",
 };
 const closeBtnStyle: React.CSSProperties = {
   position: "absolute", top: 12, right: 16, background: "none", border: "none",
-  fontSize: 24, cursor: "pointer", color: "#8d8d8d", zIndex: 1,
+  fontSize: 24, cursor: "pointer", color: "#9ba3b4", zIndex: 1,
 };
 const headerStyle: React.CSSProperties = {
-  display: "flex", gap: 20, alignItems: "flex-start", padding: 24, borderBottom: "1px solid #f4f4f4",
+  display: "flex", gap: 20, alignItems: "flex-start", padding: 24, borderBottom: "1px solid #f5f7fa",
 };
 const avatarStyle: React.CSSProperties = {
   width: 80, height: 80, borderRadius: "50%", objectFit: "cover", flexShrink: 0,
 };
 const statusBadgeStyle: React.CSSProperties = {
-  display: "inline-block", padding: "2px 10px", borderRadius: 0, fontSize: 12,
-  fontWeight: 500, background: "#f4f4f4", color: "#393939", marginTop: 6,
+  display: "inline-block", padding: "2px 10px", borderRadius: 8, fontSize: 12,
+  fontWeight: 500, background: "#f5f7fa", color: "#2a3040", marginTop: 6,
 };
 const blockTitleStyle: React.CSSProperties = {
-  fontSize: 13, fontWeight: 600, color: "#525252", marginBottom: 6, };
+  fontSize: 13, fontWeight: 600, color: "#6b7384", marginBottom: 6, };
 const actionsStyle: React.CSSProperties = {
-  display: "flex", gap: 8, padding: "16px 24px", borderTop: "1px solid #f4f4f4",
+  display: "flex", gap: 8, padding: "16px 24px", borderTop: "1px solid #f5f7fa",
 };
 const msgBtnStyle: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", fontSize: 14,
-  fontWeight: 500, borderRadius: 0, border: "1px solid #c6c6c6", background: "#fff",
-  color: "#393939", cursor: "pointer",
+  fontWeight: 500, borderRadius: 10, border: "1px solid #cfd5df", background: "#fff",
+  color: "#2a3040", cursor: "pointer",
 };
 const profileBtnStyle: React.CSSProperties = {
-  padding: "8px 16px", fontSize: 14, fontWeight: 500, borderRadius: 0, border: "none",
-  background: "#0f62fe", color: "#fff", cursor: "pointer",
+  padding: "8px 16px", fontSize: 14, fontWeight: 500, borderRadius: 10, border: "none",
+  background: "#3557d6", color: "#fff", cursor: "pointer",
 };

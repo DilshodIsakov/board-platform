@@ -105,7 +105,11 @@
     "logout": "Чиқиш",
     "auditLog": "Ҳаракатлар журнали",
     "committees": "Қўмиталар",
-    "regulations": "Норматив база"
+    "regulations": "Норматив база",
+    "groupBoard": "Кенгаш",
+    "groupComms": "Мулоқот",
+    "groupReference": "Маълумот",
+    "mark": "КК"
   },
   "notifications": {
     "title": "Билдиришномалар",
@@ -240,7 +244,13 @@
     "goToVoting": "Овоз беришга ўтиш",
     "quickActions": "Тез ҳаракатлар",
     "createNSMeeting": "КК мажлиси яратиш",
-    "goToNSMeetings": "КК мажлислари"
+    "goToNSMeetings": "КК мажлислари",
+    "inDays_one": "{{count}} кундан кейин",
+    "inDays_other": "{{count}} кундан кейин",
+    "today": "бугун",
+    "agendaTitle": "Кун тартиби",
+    "noAgenda": "Кун тартиби ҳали шакллантирилмаган",
+    "materials": "Материаллар"
   },
   "meetingStatus": {
     "draft": "Қоралама",

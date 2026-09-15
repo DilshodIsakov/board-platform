@@ -12,11 +12,11 @@ import BoardWorkPlanPage from "./BoardWorkPlanPage";
    ═══════════════════════════════════════════════════════ */
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "#8d8d8d",
-  scheduled: "#0f62fe",
-  completed: "#24a148",
+  draft: "#9ba3b4",
+  scheduled: "#3557d6",
+  completed: "#2e9e5b",
 };
-const WORK_PLAN_COLOR = "#525252";
+const WORK_PLAN_COLOR = "#6b7384";
 
 type CalendarView = "month" | "week" | "list";
 type EventFilter = "all" | "meetings" | "workplan";
@@ -196,7 +196,7 @@ export default function CalendarPage({ profile, org }: Props) {
   };
   const statusColor = (s: string, source?: string) => {
     if (source === "work_plan") return WORK_PLAN_COLOR;
-    return STATUS_COLORS[s] || "#8d8d8d";
+    return STATUS_COLORS[s] || "#9ba3b4";
   };
 
   const formatTime = (iso: string) =>
@@ -217,7 +217,7 @@ export default function CalendarPage({ profile, org }: Props) {
         style={{
           padding: compact ? "4px 6px" : "5px 8px",
           marginBottom: 3,
-          borderRadius: 0,
+          borderRadius: 10,
           borderLeft: `3px solid ${color}`,
           background: isSelected ? color + "20" : color + "0D",
           cursor: "pointer",
@@ -230,7 +230,7 @@ export default function CalendarPage({ profile, org }: Props) {
           <span style={{ fontSize: 11, fontWeight: 700, color, flexShrink: 0 }}>{time}</span>
         </div>
         <div style={{
-          fontSize: 11, lineHeight: 1.35, color: "#393939",
+          fontSize: 11, lineHeight: 1.35, color: "#2a3040",
           overflow: "hidden", display: "-webkit-box",
           WebkitLineClamp: compact ? 2 : 3, WebkitBoxOrient: "vertical" as const,
           wordBreak: "break-word",
@@ -266,8 +266,8 @@ export default function CalendarPage({ profile, org }: Props) {
       {/* ═══ Segmented Tab Control ═══ */}
       <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 24 }}>
         <div style={{
-          display: "inline-flex", background: "#f4f4f4", borderRadius: 0, padding: 3,
-          border: "1px solid #e0e0e0",
+          display: "inline-flex", background: "#f5f7fa", borderRadius: 10, padding: 3,
+          border: "1px solid #e3e7ee",
         }}>
           {(["calendar", "workplan"] as const).map((tabKey) => (
             <button
@@ -275,9 +275,9 @@ export default function CalendarPage({ profile, org }: Props) {
               onClick={() => setTab(tabKey)}
               style={{
                 padding: "8px 24px", fontSize: 13, fontWeight: 600, border: "none",
-                borderRadius: 0, cursor: "pointer", transition: "all 0.2s",
+                borderRadius: 10, cursor: "pointer", transition: "all 0.2s",
                 background: tab === tabKey ? "#FFFFFF" : "transparent",
-                color: tab === tabKey ? "#161616" : "#525252",
+                color: tab === tabKey ? "#1a1f2b" : "#6b7384",
                 boxShadow: tab === tabKey ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
               }}
             >
@@ -291,30 +291,30 @@ export default function CalendarPage({ profile, org }: Props) {
 
       {tab === "calendar" && (
         <div style={{
-          background: "#FFFFFF", borderRadius: 0, border: "1px solid #e0e0e0",
+          background: "#FFFFFF", borderRadius: 10, border: "1px solid #e3e7ee",
           overflow: "hidden",
         }}>
           {loading ? (
-            <div style={{ padding: 60, textAlign: "center", color: "#8d8d8d" }}>{t("common.loading")}</div>
+            <div style={{ padding: 60, textAlign: "center", color: "#9ba3b4" }}>{t("common.loading")}</div>
           ) : (
             <>
               {/* ═══ Calendar Header ═══ */}
               <div style={{
                 padding: "20px 24px 16px",
-                borderBottom: "1px solid #f4f4f4",
+                borderBottom: "1px solid #f5f7fa",
                 display: "flex", justifyContent: "space-between", alignItems: "center",
                 flexWrap: "wrap", gap: 12,
               }}>
                 {/* Left: navigation */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <button onClick={view === "week" ? prevWeek : prevMonth} style={navBtn}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="#6b7384" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
-                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#161616", minWidth: 200, textAlign: "center" }}>
+                  <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1a1f2b", minWidth: 200, textAlign: "center" }}>
                     {view === "week" ? weekRangeLabel() : `${monthNames[month]} ${year}`}
                   </h2>
                   <button onClick={view === "week" ? nextWeek : nextMonth} style={navBtn}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="#6b7384" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </button>
                   <button onClick={goToday} style={todayBtn}>
                     {t("calendar.today")}
@@ -323,8 +323,8 @@ export default function CalendarPage({ profile, org }: Props) {
 
                 {/* Right: view toggle */}
                 <div style={{
-                  display: "inline-flex", background: "#f4f4f4", borderRadius: 0, padding: 2,
-                  border: "1px solid #e0e0e0",
+                  display: "inline-flex", background: "#f5f7fa", borderRadius: 10, padding: 2,
+                  border: "1px solid #e3e7ee",
                 }}>
                   {(["month", "week", "list"] as CalendarView[]).map((v) => (
                     <button
@@ -332,9 +332,9 @@ export default function CalendarPage({ profile, org }: Props) {
                       onClick={() => setView(v)}
                       style={{
                         padding: "5px 14px", fontSize: 12, fontWeight: 500, border: "none",
-                        borderRadius: 0, cursor: "pointer", transition: "all 0.15s",
+                        borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
                         background: view === v ? "#FFFFFF" : "transparent",
-                        color: view === v ? "#161616" : "#8d8d8d",
+                        color: view === v ? "#1a1f2b" : "#9ba3b4",
                         boxShadow: view === v ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
                       }}
                     >
@@ -347,22 +347,22 @@ export default function CalendarPage({ profile, org }: Props) {
               {/* ═══ Filters ═══ */}
               <div style={{
                 padding: "12px 24px",
-                borderBottom: "1px solid #f4f4f4",
+                borderBottom: "1px solid #f5f7fa",
                 display: "flex", alignItems: "center", gap: 6,
               }}>
                 {(["all", "meetings", "workplan"] as EventFilter[]).map((f) => {
                   const active = filter === f;
-                  const dotColor = f === "meetings" ? "#0f62fe" : f === "workplan" ? WORK_PLAN_COLOR : undefined;
+                  const dotColor = f === "meetings" ? "#3557d6" : f === "workplan" ? WORK_PLAN_COLOR : undefined;
                   return (
                     <button
                       key={f}
                       onClick={() => setFilter(f)}
                       style={{
                         padding: "5px 14px", fontSize: 12, fontWeight: 500,
-                        borderRadius: 0, border: "1px solid",
-                        borderColor: active ? "#0f62fe" : "#e0e0e0",
-                        background: active ? "#edf5ff" : "#FFFFFF",
-                        color: active ? "#0f62fe" : "#525252",
+                        borderRadius: 8, border: "1px solid",
+                        borderColor: active ? "#3557d6" : "#e3e7ee",
+                        background: active ? "#e9edfb" : "#FFFFFF",
+                        color: active ? "#3557d6" : "#6b7384",
                         cursor: "pointer", transition: "all 0.15s",
                         display: "flex", alignItems: "center", gap: 5,
                       }}
@@ -377,7 +377,7 @@ export default function CalendarPage({ profile, org }: Props) {
               {/* ═══ Calendar Body ═══ */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 320px" }}>
                 {/* Main calendar area */}
-                <div style={{ borderRight: "1px solid #f4f4f4" }}>
+                <div style={{ borderRight: "1px solid #f5f7fa" }}>
 
                   {/* ── MONTH VIEW ── */}
                   {view === "month" && (
@@ -387,10 +387,10 @@ export default function CalendarPage({ profile, org }: Props) {
                         {weekdays.map((wd, idx) => (
                           <div key={wd} style={{
                             padding: "10px 8px", textAlign: "center",
-                            fontSize: 11, fontWeight: 600, color: "#8d8d8d",
-                            background: "#f4f4f4",
-                            borderBottom: "1px solid #f4f4f4",
-                            borderRight: idx < 6 ? "1px solid #f4f4f4" : "none",
+                            fontSize: 11, fontWeight: 600, color: "#9ba3b4",
+                            background: "#f5f7fa",
+                            borderBottom: "1px solid #f5f7fa",
+                            borderRight: idx < 6 ? "1px solid #f5f7fa" : "none",
                           }}>
                             {wd}
                           </div>
@@ -416,13 +416,13 @@ export default function CalendarPage({ profile, org }: Props) {
                               style={{
                                 minHeight: 110,
                                 padding: "4px 5px",
-                                borderRight: (i + 1) % 7 !== 0 ? "1px solid #f4f4f4" : "none",
-                                borderBottom: "1px solid #f4f4f4",
+                                borderRight: (i + 1) % 7 !== 0 ? "1px solid #f5f7fa" : "none",
+                                borderBottom: "1px solid #f5f7fa",
                                 cursor: "pointer",
                                 transition: "background 0.15s",
                                 background: hasMeeting && isCurrentMonth
-                                  ? "#edf5ff"
-                                  : isSelected ? "#f4f4f4" : "transparent",
+                                  ? "#e9edfb"
+                                  : isSelected ? "#f5f7fa" : "transparent",
                                 opacity: isCurrentMonth ? 1 : 0.3,
                               }}
                             >
@@ -432,8 +432,8 @@ export default function CalendarPage({ profile, org }: Props) {
                                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                                   width: isToday ? 28 : "auto", height: isToday ? 28 : "auto",
                                   borderRadius: isToday ? "50%" : 0,
-                                  background: isToday ? "#0f62fe" : "transparent",
-                                  color: isToday ? "#FFFFFF" : hasMeeting ? "#0043ce" : isSelected ? "#161616" : "#525252",
+                                  background: isToday ? "#3557d6" : "transparent",
+                                  color: isToday ? "#FFFFFF" : hasMeeting ? "#2c48b8" : isSelected ? "#1a1f2b" : "#6b7384",
                                   fontSize: 13, fontWeight: isToday || isSelected || hasMeeting ? 700 : 400,
                                   padding: isToday ? 0 : "2px 4px",
                                 }}>
@@ -447,8 +447,8 @@ export default function CalendarPage({ profile, org }: Props) {
                                   onClick={(e) => { e.stopPropagation(); handleEventClick(realMeetings[0], e); }}
                                   style={{
                                     padding: "5px 8px", marginBottom: 3,
-                                    borderRadius: 0,
-                                    background: "#0f62fe",
+                                    borderRadius: 8,
+                                    background: "#3557d6",
                                     cursor: "pointer",
                                   }}
                                 >
@@ -456,7 +456,7 @@ export default function CalendarPage({ profile, org }: Props) {
                                     {t("calendar.meetingNS")}
                                   </div>
                                   {realMeetings.length > 1 && (
-                                    <div style={{ fontSize: 10, color: "#d0e2ff", marginTop: 1 }}>
+                                    <div style={{ fontSize: 10, color: "#d3dbf7", marginTop: 1 }}>
                                       +{realMeetings.length - 1} {t("calendar.more")}
                                     </div>
                                   )}
@@ -467,7 +467,7 @@ export default function CalendarPage({ profile, org }: Props) {
                               {planMeetings.slice(0, hasMeeting ? 1 : 2).map((m) => renderEventPill(m, true))}
                               {planMeetings.length > (hasMeeting ? 1 : 2) && (
                                 <div style={{
-                                  fontSize: 10, color: "#8d8d8d", fontWeight: 500,
+                                  fontSize: 10, color: "#9ba3b4", fontWeight: 500,
                                   textAlign: "center", padding: "2px 0",
                                 }}>
                                   +{planMeetings.length - (hasMeeting ? 1 : 2)} {t("calendar.more")}
@@ -497,24 +497,24 @@ export default function CalendarPage({ profile, org }: Props) {
                               onClick={() => handleDateClick(key)}
                               style={{
                                 minHeight: 320,
-                                borderRight: idx < 6 ? "1px solid #f4f4f4" : "none",
+                                borderRight: idx < 6 ? "1px solid #f5f7fa" : "none",
                                 cursor: "pointer",
-                                background: isSelected ? "#f4f4f4" : "transparent",
+                                background: isSelected ? "#f5f7fa" : "transparent",
                               }}
                             >
                               {/* Header */}
                               <div style={{
                                 padding: "12px 8px 8px", textAlign: "center",
-                                borderBottom: "1px solid #f4f4f4",
+                                borderBottom: "1px solid #f5f7fa",
                               }}>
-                                <div style={{ fontSize: 11, fontWeight: 600, color: "#8d8d8d", marginBottom: 4 }}>
+                                <div style={{ fontSize: 11, fontWeight: 600, color: "#9ba3b4", marginBottom: 4 }}>
                                   {wdLabel}
                                 </div>
                                 <span style={{
                                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                                   width: 32, height: 32, borderRadius: "50%",
-                                  background: isToday ? "#0f62fe" : "transparent",
-                                  color: isToday ? "#FFFFFF" : "#161616",
+                                  background: isToday ? "#3557d6" : "transparent",
+                                  color: isToday ? "#FFFFFF" : "#1a1f2b",
                                   fontSize: 16, fontWeight: 600,
                                 }}>
                                   {day.getDate()}
@@ -524,7 +524,7 @@ export default function CalendarPage({ profile, org }: Props) {
                               <div style={{ padding: "6px 4px" }}>
                                 {dayMeetings.map((m) => renderEventPill(m))}
                                 {dayMeetings.length === 0 && (
-                                  <div style={{ fontSize: 11, color: "#c6c6c6", textAlign: "center", padding: "20px 0" }}>—</div>
+                                  <div style={{ fontSize: 11, color: "#cfd5df", textAlign: "center", padding: "20px 0" }}>—</div>
                                 )}
                               </div>
                             </div>
@@ -538,7 +538,7 @@ export default function CalendarPage({ profile, org }: Props) {
                   {view === "list" && (
                     <div style={{ padding: "16px 20px" }}>
                       {listEvents().length === 0 && (
-                        <div style={{ textAlign: "center", color: "#8d8d8d", padding: 40, fontSize: 14 }}>
+                        <div style={{ textAlign: "center", color: "#9ba3b4", padding: 40, fontSize: 14 }}>
                           {t("calendar.noEvents")}
                         </div>
                       )}
@@ -549,14 +549,14 @@ export default function CalendarPage({ profile, org }: Props) {
                         return (
                           <div key={key} style={{ marginBottom: 16 }}>
                             <div style={{
-                              fontSize: 13, fontWeight: 600, color: isToday ? "#0f62fe" : "#525252",
+                              fontSize: 13, fontWeight: 600, color: isToday ? "#3557d6" : "#6b7384",
                               marginBottom: 8, display: "flex", alignItems: "center", gap: 8,
                             }}>
                               {d.toLocaleDateString(getIntlLocale(), { weekday: "short", day: "numeric", month: "long" })}
                               {isToday && (
                                 <span style={{
-                                  fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 0,
-                                  background: "#edf5ff", color: "#0f62fe",
+                                  fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 8,
+                                  background: "#e9edfb", color: "#3557d6",
                                 }}>{t("calendar.today")}</span>
                               )}
                             </div>
@@ -571,24 +571,24 @@ export default function CalendarPage({ profile, org }: Props) {
                                   style={{
                                     display: "flex", alignItems: "center", gap: 12,
                                     padding: "10px 14px", marginBottom: 4,
-                                    borderRadius: 0, border: "1px solid #f4f4f4",
+                                    borderRadius: 10, border: "1px solid #f5f7fa",
                                     cursor: "pointer", transition: "all 0.15s",
                                     background: selectedEvent?.id === m.id ? color + "08" : "#FFFFFF",
                                     borderLeft: `3px solid ${color}`,
                                   }}
                                 >
                                   <div style={{
-                                    width: 44, height: 44, borderRadius: 0, flexShrink: 0,
+                                    width: 44, height: 44, borderRadius: 10, flexShrink: 0,
                                     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                                     background: color + "10", color,
                                   }}>
                                     <span style={{ fontSize: 12, fontWeight: 700, lineHeight: 1 }}>{formatTime(m.start_at)}</span>
                                   </div>
                                   <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontSize: 13, fontWeight: 600, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1f2b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                       {isWorkPlan && ""}{title}
                                     </div>
-                                    <div style={{ fontSize: 11, color: "#8d8d8d", marginTop: 2 }}>
+                                    <div style={{ fontSize: 11, color: "#9ba3b4", marginTop: 2 }}>
                                       {statusLabel(m.status)}
                                     </div>
                                   </div>
@@ -607,19 +607,19 @@ export default function CalendarPage({ profile, org }: Props) {
                   {/* ═══ Legend ═══ */}
                   <div style={{
                     padding: "14px 24px",
-                    borderTop: "1px solid #f4f4f4",
+                    borderTop: "1px solid #f5f7fa",
                     display: "flex", gap: 4, flexWrap: "wrap",
                   }}>
                     {[
-                      { color: "#8d8d8d", label: t("meetingStatus.draft") },
-                      { color: "#0f62fe", label: t("meetingStatus.scheduled") },
-                      { color: "#24a148", label: t("meetingStatus.completed") },
+                      { color: "#9ba3b4", label: t("meetingStatus.draft") },
+                      { color: "#3557d6", label: t("meetingStatus.scheduled") },
+                      { color: "#2e9e5b", label: t("meetingStatus.completed") },
                       { color: WORK_PLAN_COLOR, label: t("calendar.planNS") },
                     ].map(({ color, label }) => (
                       <span key={label} style={{
                         display: "inline-flex", alignItems: "center", gap: 6,
-                        padding: "4px 10px", borderRadius: 0,
-                        background: color + "08", fontSize: 11, fontWeight: 500, color: "#525252",
+                        padding: "4px 10px", borderRadius: 8,
+                        background: color + "08", fontSize: 11, fontWeight: 500, color: "#6b7384",
                       }}>
                         <span style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
                         {label}
@@ -629,17 +629,17 @@ export default function CalendarPage({ profile, org }: Props) {
                 </div>
 
                 {/* ═══ Right Details Panel ═══ */}
-                <div style={{ padding: "20px 20px", minHeight: 500, background: "#f4f4f4" }}>
+                <div style={{ padding: "20px 20px", minHeight: 500, background: "#f5f7fa" }}>
                   {/* Date header */}
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: "#8d8d8d", marginBottom: 4 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: "#9ba3b4", marginBottom: 4 }}>
                       {selectedDateObj.toLocaleDateString(getIntlLocale(), { weekday: "long" })}
                     </div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: "#161616" }}>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: "#1a1f2b" }}>
                       {selectedDateObj.toLocaleDateString(getIntlLocale(), { day: "numeric", month: "long", year: "numeric" })}
                     </div>
                     {selectedDateEvents.length > 0 && (
-                      <div style={{ fontSize: 12, color: "#8d8d8d", marginTop: 4 }}>
+                      <div style={{ fontSize: 12, color: "#9ba3b4", marginTop: 4 }}>
                         {selectedDateEvents.length} {t("calendar.eventsCount")}
                       </div>
                     )}
@@ -652,14 +652,14 @@ export default function CalendarPage({ profile, org }: Props) {
                     const isWorkPlan = selectedEvent.source === "work_plan";
                     return (
                       <div style={{
-                        background: "#FFFFFF", borderRadius: 0, padding: 16,
-                        border: "1px solid #e0e0e0",
+                        background: "#FFFFFF", borderRadius: 14, boxShadow: "var(--shadow-card)", padding: 16,
+                        border: "1px solid #e3e7ee",
                         }}>
                         {/* Status badge */}
                         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: 5,
-                            padding: "3px 10px", borderRadius: 0,
+                            padding: "3px 10px", borderRadius: 8,
                             background: color + "14", color, fontSize: 11, fontWeight: 600,
                           }}>
                             <span style={{ width: 6, height: 6, borderRadius: "50%", background: color }} />
@@ -667,7 +667,7 @@ export default function CalendarPage({ profile, org }: Props) {
                           </span>
                           {isWorkPlan && (
                             <span style={{
-                              padding: "3px 10px", borderRadius: 0,
+                              padding: "3px 10px", borderRadius: 8,
                               background: WORK_PLAN_COLOR + "14", color: WORK_PLAN_COLOR,
                               fontSize: 11, fontWeight: 600,
                             }}>
@@ -677,19 +677,19 @@ export default function CalendarPage({ profile, org }: Props) {
                         </div>
 
                         {/* Title */}
-                        <h3 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 600, color: "#161616", lineHeight: 1.4 }}>
+                        <h3 style={{ margin: "0 0 12px", fontSize: 15, fontWeight: 600, color: "#1a1f2b", lineHeight: 1.4 }}>
                           {title}
                         </h3>
 
                         {/* Info rows */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#8d8d8d" strokeWidth="1.5"/><path d="M8 5v3.5l2.5 1.5" stroke="#8d8d8d" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                            <span style={{ fontSize: 13, color: "#525252" }}>{formatTime(selectedEvent.start_at)}</span>
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#9ba3b4" strokeWidth="1.5"/><path d="M8 5v3.5l2.5 1.5" stroke="#9ba3b4" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                            <span style={{ fontSize: 13, color: "#6b7384" }}>{formatTime(selectedEvent.start_at)}</span>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="#8d8d8d" strokeWidth="1.5"/><path d="M2 7h12M5 1v4M11 1v4" stroke="#8d8d8d" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                            <span style={{ fontSize: 13, color: "#525252" }}>
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="2" stroke="#9ba3b4" strokeWidth="1.5"/><path d="M2 7h12M5 1v4M11 1v4" stroke="#9ba3b4" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                            <span style={{ fontSize: 13, color: "#6b7384" }}>
                               {new Date(selectedEvent.start_at).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "long", year: "numeric" })}
                             </span>
                           </div>
@@ -701,8 +701,8 @@ export default function CalendarPage({ profile, org }: Props) {
                             to={isWorkPlan ? "/calendar?tab=workplan" : `/ns-meetings/${selectedEvent.id}`}
                             style={{
                               flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                              padding: "9px 16px", borderRadius: 0,
-                              background: "#161616", color: "#FFFFFF",
+                              padding: "9px 16px", borderRadius: 8,
+                              background: "#1a1f2b", color: "#FFFFFF",
                               fontSize: 12, fontWeight: 600, textDecoration: "none",
                               transition: "opacity 0.15s",
                             }}
@@ -717,7 +717,7 @@ export default function CalendarPage({ profile, org }: Props) {
                       {/* Events list for selected date */}
                       {selectedDateEvents.length === 0 ? (
                         <div style={{
-                          textAlign: "center", padding: "40px 0", color: "#c6c6c6",
+                          textAlign: "center", padding: "40px 0", color: "#cfd5df",
                         }}>
                           <div style={{ fontSize: 36, marginBottom: 8, opacity: 0.5 }}></div>
                           <div style={{ fontSize: 13, fontWeight: 500 }}>{t("calendar.noEventsOnDate")}</div>
@@ -732,8 +732,8 @@ export default function CalendarPage({ profile, org }: Props) {
                                 key={m.id}
                                 onClick={(e) => handleEventClick(m, e)}
                                 style={{
-                                  padding: "12px 14px", borderRadius: 0,
-                                  background: "#FFFFFF", border: "1px solid #e0e0e0",
+                                  padding: "12px 14px", borderRadius: 10,
+                                  background: "#FFFFFF", border: "1px solid #e3e7ee",
                                   borderLeft: `3px solid ${color}`,
                                   cursor: "pointer", transition: "all 0.15s",
                                 }}
@@ -741,10 +741,10 @@ export default function CalendarPage({ profile, org }: Props) {
                                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                                   <span style={{ fontSize: 12, fontWeight: 700, color }}>{formatTime(m.start_at)}</span>
                                 </div>
-                                <div style={{ fontSize: 13, fontWeight: 500, color: "#161616", lineHeight: 1.4 }}>
+                                <div style={{ fontSize: 13, fontWeight: 500, color: "#1a1f2b", lineHeight: 1.4 }}>
                                   {title}
                                 </div>
-                                <div style={{ fontSize: 11, color: "#8d8d8d", marginTop: 4 }}>
+                                <div style={{ fontSize: 11, color: "#9ba3b4", marginTop: 4 }}>
                                   {statusLabel(m.status)}
                                 </div>
                               </div>
@@ -771,14 +771,14 @@ export default function CalendarPage({ profile, org }: Props) {
 const navBtn: React.CSSProperties = {
   width: 34, height: 34,
   display: "flex", alignItems: "center", justifyContent: "center",
-  borderRadius: 0, border: "1px solid #e0e0e0",
+  borderRadius: 10, border: "1px solid #e3e7ee",
   background: "#FFFFFF", cursor: "pointer",
   transition: "all 0.15s",
 };
 
 const todayBtn: React.CSSProperties = {
   padding: "6px 16px", fontSize: 12, fontWeight: 600,
-  borderRadius: 0, border: "1px solid #e0e0e0",
-  background: "#FFFFFF", color: "#0f62fe",
+  borderRadius: 8, border: "1px solid #e3e7ee",
+  background: "#FFFFFF", color: "#3557d6",
   cursor: "pointer", transition: "all 0.15s",
 };

@@ -25,15 +25,15 @@ interface Props {
 const KIND_ORDER: RegKind[] = ["internal", "external", "reports"];
 
 const KIND_COLOR: Record<RegKind, string> = {
-  internal: "#0f62fe",
-  external: "#24a148",
-  reports:  "#525252",
+  internal: "#3557d6",
+  external: "#2e9e5b",
+  reports:  "#6b7384",
 };
 
 const KIND_BG: Record<RegKind, string> = {
-  internal: "#edf5ff",
-  external: "#defbe6",
-  reports:  "#f4f4f4",
+  internal: "#e9edfb",
+  external: "#e7f6ec",
+  reports:  "#f5f7fa",
 };
 
 function getFileTypeLabel(mime: string): string {
@@ -46,11 +46,11 @@ function getFileTypeLabel(mime: string): string {
 
 function getFileTypeColor(mime: string): string {
   const label = getFileTypeLabel(mime);
-  if (label === "PDF")   return "#da1e28";
-  if (label === "Word")  return "#0f62fe";
-  if (label === "Excel") return "#24a148";
-  if (label === "PPT")   return "#684e00";
-  return "#525252";
+  if (label === "PDF")   return "#d14343";
+  if (label === "Word")  return "#3557d6";
+  if (label === "Excel") return "#2e9e5b";
+  if (label === "PPT")   return "#7a5410";
+  return "#6b7384";
 }
 
 function formatBytes(bytes: number): string {
@@ -224,7 +224,7 @@ export default function RegulationsPage({ profile, org }: Props) {
     : documents;
 
   if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#8d8d8d" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#9ba3b4" }}>
       {t("common.loading")}
     </div>
   );
@@ -234,13 +234,13 @@ export default function RegulationsPage({ profile, org }: Props) {
 
       {/* ── Left panel: category tree ── */}
       <div style={{
-        width: 260, flexShrink: 0, borderRight: "1px solid #e0e0e0",
-        overflowY: "auto", background: "#f4f4f4", display: "flex", flexDirection: "column",
+        width: 260, flexShrink: 0, borderRight: "1px solid #e3e7ee",
+        overflowY: "auto", background: "#f5f7fa", display: "flex", flexDirection: "column",
       }}>
         {/* Header */}
-        <div style={{ padding: "18px 16px 12px", borderBottom: "1px solid #e0e0e0" }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#161616" }}>{t("regs.title")}</div>
-          <div style={{ fontSize: 12, color: "#525252", marginTop: 3 }}>{t("regs.subtitle")}</div>
+        <div style={{ padding: "18px 16px 12px", borderBottom: "1px solid #e3e7ee" }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1f2b" }}>{t("regs.title")}</div>
+          <div style={{ fontSize: 12, color: "#6b7384", marginTop: 3 }}>{t("regs.subtitle")}</div>
         </div>
 
         {/* Category groups */}
@@ -269,7 +269,7 @@ export default function RegulationsPage({ profile, org }: Props) {
                   <span style={{ fontSize: 11, fontWeight: 700, color, }}>
                     {t(`regs.${kind}`)}
                   </span>
-                  <span style={{ marginLeft: "auto", fontSize: 11, color: "#8d8d8d" }}>{cats.length}</span>
+                  <span style={{ marginLeft: "auto", fontSize: 11, color: "#9ba3b4" }}>{cats.length}</span>
                 </button>
 
                 {/* Categories */}
@@ -287,7 +287,7 @@ export default function RegulationsPage({ profile, org }: Props) {
                           flex: 1, background: isSelected ? KIND_BG[kind] : "none",
                           border: "none", borderLeft: isSelected ? `3px solid ${color}` : "3px solid transparent",
                           cursor: "pointer", padding: "7px 16px 7px 13px",
-                          textAlign: "left", fontSize: 13, color: isSelected ? color : "#393939",
+                          textAlign: "left", fontSize: 13, color: isSelected ? color : "#2a3040",
                           fontWeight: isSelected ? 600 : 400,
                         }}
                       >
@@ -299,11 +299,11 @@ export default function RegulationsPage({ profile, org }: Props) {
                           title={t("common.delete")}
                           style={{
                             background: "none", border: "none", cursor: "pointer",
-                            padding: "4px 6px", color: "#c6c6c6", fontSize: 13,
+                            padding: "4px 6px", color: "#cfd5df", fontSize: 13,
                             flexShrink: 0,
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = "#da1e28")}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = "#c6c6c6")}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = "#d14343")}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = "#cfd5df")}
                         >
                                                   </button>
                       )}
@@ -317,11 +317,11 @@ export default function RegulationsPage({ profile, org }: Props) {
                     onClick={() => { setShowAddCat(true); setAddCatKind(kind); }}
                     style={{
                       width: "100%", background: "none", border: "none", cursor: "pointer",
-                      padding: "5px 16px", textAlign: "left", fontSize: 12, color: "#8d8d8d",
+                      padding: "5px 16px", textAlign: "left", fontSize: 12, color: "#9ba3b4",
                       display: "flex", alignItems: "center", gap: 4,
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = color)}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#8d8d8d")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#9ba3b4")}
                   >
                     + {t("regs.addCategory")}
                   </button>
@@ -337,30 +337,30 @@ export default function RegulationsPage({ profile, org }: Props) {
 
         {!selectedCategory ? (
           /* Empty state — no selection */
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, color: "#8d8d8d", gap: 12 }}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#c6c6c6" strokeWidth="1.5">
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, color: "#9ba3b4", gap: 12 }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cfd5df" strokeWidth="1.5">
               <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.753 0-3.332.477-4.5 1.253" />
             </svg>
-            <div style={{ fontSize: 15, fontWeight: 600, color: "#525252" }}>{t("regs.selectCategory")}</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#6b7384" }}>{t("regs.selectCategory")}</div>
             <div style={{ fontSize: 13 }}>{t("regs.selectCategoryHint")}</div>
           </div>
         ) : (
           <>
             {/* Toolbar */}
             <div style={{
-              padding: "16px 24px", borderBottom: "1px solid #e0e0e0",
+              padding: "16px 24px", borderBottom: "1px solid #e3e7ee",
               display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
               background: "#fff", position: "sticky", top: 0, zIndex: 10,
             }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 17, fontWeight: 700, color: "#161616" }}>
+                <div style={{ fontSize: 17, fontWeight: 700, color: "#1a1f2b" }}>
                   {getLocalizedField(selectedCategory as unknown as Record<string, unknown>, "name")}
                 </div>
-                <div style={{ fontSize: 12, color: "#8d8d8d", marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: "#9ba3b4", marginTop: 2 }}>
                   <span style={{
                     background: KIND_BG[selectedCategory.kind],
                     color: KIND_COLOR[selectedCategory.kind],
-                    padding: "1px 8px", borderRadius: 0, fontWeight: 600, fontSize: 11,
+                    padding: "1px 8px", borderRadius: 8, fontWeight: 600, fontSize: 11,
                   }}>
                     {t(`regs.${selectedCategory.kind}`)}
                   </span>
@@ -373,13 +373,13 @@ export default function RegulationsPage({ profile, org }: Props) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
-                  padding: "7px 12px", fontSize: 13, border: "1px solid #c6c6c6",
-                  borderRadius: 0, outline: "none", width: 200, background: "#f4f4f4",
+                  padding: "7px 12px", fontSize: 13, border: "1px solid #cfd5df",
+                  borderRadius: 10, outline: "none", width: 200, background: "#f5f7fa",
                 }}
               />
 
               {/* Show archived toggle */}
-              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#525252", cursor: "pointer", whiteSpace: "nowrap" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6b7384", cursor: "pointer", whiteSpace: "nowrap" }}>
                 <input type="checkbox" checked={showArchived} onChange={toggleArchived} style={{ cursor: "pointer" }} />
                 {t("regs.showArchived")}
               </label>
@@ -390,8 +390,8 @@ export default function RegulationsPage({ profile, org }: Props) {
                   onClick={() => { setShowUpload(!showUpload); resetUploadForm(); }}
                   style={{
                     padding: "8px 18px", fontSize: 13, fontWeight: 600,
-                    background: showUpload ? "#0050e6" : KIND_COLOR[selectedCategory.kind],
-                    color: "#fff", border: "none", borderRadius: 0, cursor: "pointer",
+                    background: showUpload ? "#2c48b8" : KIND_COLOR[selectedCategory.kind],
+                    color: "#fff", border: "none", borderRadius: 10, cursor: "pointer",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -403,9 +403,9 @@ export default function RegulationsPage({ profile, org }: Props) {
             {/* Upload form */}
             {showUpload && isAdmin && (
               <div style={{
-                margin: "16px 24px 0", background: "#fff", border: "1px solid #e0e0e0",
-                borderRadius: 0, padding: "20px 24px", }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#161616", marginBottom: 14 }}>
+                margin: "16px 24px 0", background: "#fff", border: "1px solid #e3e7ee",
+                borderRadius: 14, boxShadow: "var(--shadow-card)", padding: "20px 24px", }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#1a1f2b", marginBottom: 14 }}>
                   {t("regs.uploadDocument")}
                 </div>
 
@@ -413,20 +413,20 @@ export default function RegulationsPage({ profile, org }: Props) {
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   style={{
-                    border: `2px dashed ${uploadFile ? KIND_COLOR[selectedCategory.kind] : "#c6c6c6"}`,
-                    borderRadius: 0, padding: "14px 20px", cursor: "pointer", marginBottom: 14,
-                    background: uploadFile ? KIND_BG[selectedCategory.kind] : "#f4f4f4",
+                    border: `2px dashed ${uploadFile ? KIND_COLOR[selectedCategory.kind] : "#cfd5df"}`,
+                    borderRadius: 10, padding: "14px 20px", cursor: "pointer", marginBottom: 14,
+                    background: uploadFile ? KIND_BG[selectedCategory.kind] : "#f5f7fa",
                     display: "flex", alignItems: "center", gap: 10,
                   }}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={uploadFile ? KIND_COLOR[selectedCategory.kind] : "#8d8d8d"} strokeWidth="2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={uploadFile ? KIND_COLOR[selectedCategory.kind] : "#9ba3b4"} strokeWidth="2">
                     <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
-                  <span style={{ fontSize: 13, color: uploadFile ? KIND_COLOR[selectedCategory.kind] : "#525252" }}>
+                  <span style={{ fontSize: 13, color: uploadFile ? KIND_COLOR[selectedCategory.kind] : "#6b7384" }}>
                     {uploadFile ? uploadFile.name : t("regs.chooseFile")}
                   </span>
                   {uploadFile && (
-                    <span style={{ fontSize: 12, color: "#8d8d8d", marginLeft: "auto" }}>
+                    <span style={{ fontSize: 12, color: "#9ba3b4", marginLeft: "auto" }}>
                       {formatBytes(uploadFile.size)}
                     </span>
                   )}
@@ -486,7 +486,7 @@ export default function RegulationsPage({ profile, org }: Props) {
                 </div>
 
                 {uploadError && (
-                  <div style={{ marginTop: 10, fontSize: 13, color: "#da1e28" }}>{uploadError}</div>
+                  <div style={{ marginTop: 10, fontSize: 13, color: "#d14343" }}>{uploadError}</div>
                 )}
 
                 <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
@@ -496,7 +496,7 @@ export default function RegulationsPage({ profile, org }: Props) {
                     style={{
                       padding: "9px 22px", fontSize: 13, fontWeight: 600,
                       background: KIND_COLOR[selectedCategory.kind], color: "#fff",
-                      border: "none", borderRadius: 0, cursor: "pointer",
+                      border: "none", borderRadius: 10, cursor: "pointer",
                       opacity: uploading || !uploadFile || !uploadTitle.trim() ? 0.5 : 1,
                     }}
                   >
@@ -504,7 +504,7 @@ export default function RegulationsPage({ profile, org }: Props) {
                   </button>
                   <button
                     onClick={() => { setShowUpload(false); resetUploadForm(); }}
-                    style={{ padding: "9px 18px", fontSize: 13, background: "none", border: "1px solid #c6c6c6", borderRadius: 0, cursor: "pointer", color: "#393939" }}
+                    style={{ padding: "9px 18px", fontSize: 13, background: "none", border: "1px solid #cfd5df", borderRadius: 10, cursor: "pointer", color: "#2a3040" }}
                   >
                     {t("common.cancel")}
                   </button>
@@ -515,16 +515,16 @@ export default function RegulationsPage({ profile, org }: Props) {
             {/* Document list */}
             <div style={{ padding: "16px 24px", flex: 1 }}>
               {docsLoading ? (
-                <div style={{ textAlign: "center", padding: 40, color: "#8d8d8d" }}>{t("common.loading")}</div>
+                <div style={{ textAlign: "center", padding: 40, color: "#9ba3b4" }}>{t("common.loading")}</div>
               ) : filteredDocs.length === 0 ? (
                 <div style={{
                   textAlign: "center", padding: "48px 32px",
-                  background: "#f4f4f4", borderRadius: 0, border: "1px dashed #c6c6c6",
+                  background: "#f5f7fa", borderRadius: 10, border: "1px dashed #cfd5df",
                 }}>
                   <div style={{ fontSize: 38, marginBottom: 10 }}></div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: "#393939" }}>{t("regs.noDocuments")}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#2a3040" }}>{t("regs.noDocuments")}</div>
                   {isAdmin && (
-                    <div style={{ fontSize: 13, color: "#8d8d8d", marginTop: 6 }}>
+                    <div style={{ fontSize: 13, color: "#9ba3b4", marginTop: 6 }}>
                       {t("regs.uploadHint")}
                     </div>
                   )}
@@ -560,14 +560,14 @@ export default function RegulationsPage({ profile, org }: Props) {
           onClick={(e) => { if (e.target === e.currentTarget) { setShowAddCat(false); } }}
         >
           <div style={{
-            background: "#fff", borderRadius: 0, padding: "28px 32px", width: 440,
+            background: "#fff", borderRadius: 14, padding: "28px 32px", width: 440,
             boxShadow: "var(--shadow-overlay)", }}>
-            <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: "#161616" }}>
+            <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 700, color: "#1a1f2b" }}>
               {t("regs.addCategory")}
             </h3>
 
             <div style={{ marginBottom: 12 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: "#525252", display: "block", marginBottom: 6 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "#6b7384", display: "block", marginBottom: 6 }}>
                 {t("regs.kind")}
               </label>
               <select
@@ -598,7 +598,7 @@ export default function RegulationsPage({ profile, org }: Props) {
                 style={{
                   padding: "9px 22px", fontSize: 13, fontWeight: 600,
                   background: KIND_COLOR[addCatKind], color: "#fff",
-                  border: "none", borderRadius: 0, cursor: "pointer",
+                  border: "none", borderRadius: 10, cursor: "pointer",
                   opacity: !addCatName.trim() ? 0.5 : 1,
                 }}
               >
@@ -606,7 +606,7 @@ export default function RegulationsPage({ profile, org }: Props) {
               </button>
               <button
                 onClick={() => setShowAddCat(false)}
-                style={{ padding: "9px 18px", fontSize: 13, background: "none", border: "1px solid #c6c6c6", borderRadius: 0, cursor: "pointer", color: "#393939" }}
+                style={{ padding: "9px 18px", fontSize: 13, background: "none", border: "1px solid #cfd5df", borderRadius: 10, cursor: "pointer", color: "#2a3040" }}
               >
                 {t("common.cancel")}
               </button>
@@ -644,9 +644,9 @@ function DocCard({ doc, lang, isAdmin, accentColor, onDownload, onArchive, onDel
   return (
     <div style={{
       background: "#fff",
-      border: `1px solid ${doc.is_archived ? "#f4f4f4" : "#e0e0e0"}`,
-      borderLeft: `4px solid ${doc.is_archived ? "#c6c6c6" : accentColor}`,
-      borderRadius: 0,
+      border: `1px solid ${doc.is_archived ? "#f5f7fa" : "#e3e7ee"}`,
+      borderLeft: `4px solid ${doc.is_archived ? "#cfd5df" : accentColor}`,
+      borderRadius: 10,
       padding: "12px 16px",
       display: "flex",
       alignItems: "flex-start",
@@ -658,7 +658,7 @@ function DocCard({ doc, lang, isAdmin, accentColor, onDownload, onArchive, onDel
         flexShrink: 0, width: 40, height: 46,
         background: `${ftColor}15`,
         border: `1px solid ${ftColor}30`,
-        borderRadius: 0,
+        borderRadius: 8,
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 10, fontWeight: 700, color: ftColor, }}>
         {ftLabel}
@@ -667,24 +667,24 @@ function DocCard({ doc, lang, isAdmin, accentColor, onDownload, onArchive, onDel
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: "#161616" }}>{title}</span>
-          <span style={{ fontSize: 11, color: "#8d8d8d", background: "#f4f4f4", padding: "1px 7px", borderRadius: 0 }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: "#1a1f2b" }}>{title}</span>
+          <span style={{ fontSize: 11, color: "#9ba3b4", background: "#f5f7fa", padding: "1px 7px", borderRadius: 8 }}>
             v{doc.version}
           </span>
           {doc.is_archived && (
-            <span style={{ fontSize: 11, color: "#8d8d8d", background: "#f4f4f4", padding: "1px 7px", borderRadius: 0 }}>
+            <span style={{ fontSize: 11, color: "#9ba3b4", background: "#f5f7fa", padding: "1px 7px", borderRadius: 8 }}>
               {t("regs.archived")}
             </span>
           )}
         </div>
 
         {desc && (
-          <div style={{ fontSize: 12, color: "#525252", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div style={{ fontSize: 12, color: "#6b7384", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {desc}
           </div>
         )}
 
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 5, fontSize: 12, color: "#8d8d8d" }}>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 5, fontSize: 12, color: "#9ba3b4" }}>
           {dateStr && <span>{dateStr}</span>}
           {doc.issuing_body && <span>{doc.issuing_body}</span>}
           <span>{doc.file_name} · {formatBytes(doc.file_size)}</span>
@@ -700,7 +700,7 @@ function DocCard({ doc, lang, isAdmin, accentColor, onDownload, onArchive, onDel
           <button
             onClick={() => window.open(`/reg-documents/${doc.id}/review`, "_blank", "noopener")}
             title={t("review.openHint")}
-            style={{ ...actionBtnStyle, color: "#0043ce" }}
+            style={{ ...actionBtnStyle, color: "#2c48b8" }}
           >
                       </button>
         )}
@@ -727,7 +727,7 @@ function DocCard({ doc, lang, isAdmin, accentColor, onDownload, onArchive, onDel
             <button
               onClick={onDelete}
               title={t("common.delete")}
-              style={{ ...actionBtnStyle, color: "#da1e28" }}
+              style={{ ...actionBtnStyle, color: "#d14343" }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -753,7 +753,7 @@ function LangInputs({ label, values, onChange }: {
         <div key={l} style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{
             width: 28, flexShrink: 0, fontSize: 11, fontWeight: 700,
-            color: "#525252", textAlign: "center",
+            color: "#6b7384", textAlign: "center",
           }}>
             {l === "uz" ? "UZ" : l.toUpperCase()}
           </span>
@@ -775,8 +775,8 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "8px 12px",
   fontSize: 13,
-  border: "1px solid #c6c6c6",
-  borderRadius: 0,
+  border: "1px solid #cfd5df",
+  borderRadius: 10,
   outline: "none",
   boxSizing: "border-box",
   background: "#fff",
@@ -784,11 +784,11 @@ const inputStyle: React.CSSProperties = {
 
 const actionBtnStyle: React.CSSProperties = {
   padding: "6px",
-  background: "#f4f4f4",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  background: "#f5f7fa",
+  border: "1px solid #e3e7ee",
+  borderRadius: 10,
   cursor: "pointer",
-  color: "#525252",
+  color: "#6b7384",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",

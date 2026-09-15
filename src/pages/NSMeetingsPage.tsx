@@ -152,7 +152,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
 
   if (loading) {
-    return <div style={{ color: "#8d8d8d", padding: "40px 0" }}>{t("common.loading")}</div>;
+    return <div style={{ color: "#9ba3b4", padding: "40px 0" }}>{t("common.loading")}</div>;
   }
 
   const readyMeetings = meetings.filter(m => m.status !== "completed" && m.materials_ready);
@@ -165,23 +165,23 @@ export default function NSMeetingsPage({ profile, org }: Props) {
       onClick={() => navigate(`/ns-meetings/${m.id}`)}
       style={{
         ...meetingCardStyle,
-        borderColor: green ? "#24a148" : "#e0e0e0",
-        background: green ? "#defbe6" : "#FFFFFF",
-        borderLeft: green ? "4px solid #24a148" : undefined,
-        boxShadow: green ? "0 0 0 1px #a7f0ba" : undefined,
+        borderColor: green ? "#2e9e5b" : "#e3e7ee",
+        background: green ? "#e7f6ec" : "#FFFFFF",
+        borderLeft: green ? "4px solid #2e9e5b" : undefined,
+        boxShadow: green ? "0 0 0 1px #cfead8" : undefined,
       }}
     >
-      <div style={{ fontWeight: 600, fontSize: 14, color: "#161616", marginBottom: 4 }}>
+      <div style={{ fontWeight: 600, fontSize: 14, color: "#1a1f2b", marginBottom: 4 }}>
         {getLocalizedField(m as unknown as Record<string, unknown>, "title")}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontSize: 13, color: "#525252" }}>
+        <span style={{ fontSize: 13, color: "#6b7384" }}>
           {new Date(m.start_at).toLocaleDateString(getIntlLocale(), {
             day: "2-digit", month: "2-digit", year: "numeric",
           })}
         </span>
         {green && (
-          <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 0, background: "#defbe6", color: "#0e6027" }}>
+          <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 8, background: "#e7f6ec", color: "#1b6b3a" }}>
             {t("nsMeetings.statusScheduled")}
           </span>
         )}
@@ -192,7 +192,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
   return (
     <div>
       <h1 style={{ marginBottom: 4 }}>{t("nsMeetings.title")}</h1>
-      <p style={{ color: "#525252", fontSize: 14, marginBottom: 24 }}>
+      <p style={{ color: "#6b7384", fontSize: 14, marginBottom: 24 }}>
         {t("nsMeetings.subtitle")}
       </p>
 
@@ -211,7 +211,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
             {readyMeetings.length === 0 && (
-              <p style={{ color: "#8d8d8d", fontSize: 14, padding: "8px 0" }}>
+              <p style={{ color: "#9ba3b4", fontSize: 14, padding: "8px 0" }}>
                 {t("nsMeetings.noActiveMeetings")}
               </p>
             )}
@@ -241,7 +241,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
         {/* ── Завершённые заседания ── */}
         {completedMeetings.length > 0 && (
-          <div style={{ marginTop: 24, borderTop: "1px solid #e0e0e0", paddingTop: 20 }}>
+          <div style={{ marginTop: 24, borderTop: "1px solid #e3e7ee", paddingTop: 20 }}>
             <div style={sectionHeaderStyle}>
               <span>{t("nsMeetings.sectionCompleted")}</span>
               <button
@@ -258,18 +258,18 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                   <button
                     key={m.id}
                     onClick={() => navigate(`/ns-meetings/${m.id}`)}
-                    style={{ ...meetingCardStyle, background: "#f4f4f4", borderColor: "#e0e0e0" }}
+                    style={{ ...meetingCardStyle, background: "#f5f7fa", borderColor: "#e3e7ee" }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 14, color: "#525252", marginBottom: 4 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "#6b7384", marginBottom: 4 }}>
                       {getLocalizedField(m as unknown as Record<string, unknown>, "title")}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 13, color: "#8d8d8d" }}>
+                      <span style={{ fontSize: 13, color: "#9ba3b4" }}>
                         {new Date(m.start_at).toLocaleDateString(getIntlLocale(), {
                           day: "2-digit", month: "2-digit", year: "numeric",
                         })}
                       </span>
-                      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 0, background: "#defbe6", color: "#0e6027" }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 8, background: "#e7f6ec", color: "#1b6b3a" }}>
                         {t("nsMeetings.statusCompleted")}
                       </span>
                     </div>
@@ -312,7 +312,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
               <div>
                 <label style={labelStyle}>{t("nsMeetings.meetingTitle")}</label>
-                <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #e0e0e0", marginBottom: 8 }}>
+                <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #e3e7ee", marginBottom: 8 }}>
                   {(["ru", "uz", "en"] as SupportedLang[]).map((lang) => {
                     const status = lang === "ru" ? formStatusRu : lang === "uz" ? formStatusUz : formStatusEn;
                     const isSource = lang === formSourceLang;
@@ -325,15 +325,15 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                         onClick={() => setFormLangTab(lang)}
                         style={{
                           padding: "6px 16px", fontSize: 13, cursor: "pointer",
-                          borderBottom: isActive ? "2px solid #0f62fe" : "2px solid transparent",
+                          borderBottom: isActive ? "2px solid #3557d6" : "2px solid transparent",
                           background: "none", fontWeight: isActive ? 600 : 400,
-                          color: isActive ? "#0f62fe" : "#525252",
+                          color: isActive ? "#3557d6" : "#6b7384",
                           display: "flex", alignItems: "center", gap: 6,
                         }}
                       >
                         {lang.toUpperCase()}
-                        {isSource && <span style={{ fontSize: 10, background: "#defbe6", color: "#0e6027", borderRadius: 0, padding: "1px 5px" }}>src</span>}
-                        {!isSource && isEmpty && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#c6c6c6", display: "inline-block" }} />}
+                        {isSource && <span style={{ fontSize: 10, background: "#e7f6ec", color: "#1b6b3a", borderRadius: 8, padding: "1px 5px" }}>src</span>}
+                        {!isSource && isEmpty && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#cfd5df", display: "inline-block" }} />}
                         {!isSource && !isEmpty && <span style={getStatusBadgeStyle(status)}>{status === "auto_translated" ? "" : ""}</span>}
                       </button>
                     );
@@ -365,12 +365,12 @@ export default function NSMeetingsPage({ profile, org }: Props) {
                 {translating ? t("nsMeetings.generating") : t("nsMeetings.generateTranslations")}
               </button>
               {!translating && !translationError && (
-                <p style={{ fontSize: 11, color: "#525252", margin: "-4px 0 0" }}>
+                <p style={{ fontSize: 11, color: "#6b7384", margin: "-4px 0 0" }}>
                   {t("nsMeetings.translationProviderNote")}
                 </p>
               )}
               {translationError && (
-                <p style={{ fontSize: 12, color: "#da1e28", margin: "-4px 0 0", background: "#fff1f1", padding: "6px 10px", borderRadius: 0 }}>
+                <p style={{ fontSize: 12, color: "#d14343", margin: "-4px 0 0", background: "#fdeaea", padding: "6px 10px", borderRadius: 8 }}>
                   {translationError}
                 </p>
               )}
@@ -390,7 +390,7 @@ export default function NSMeetingsPage({ profile, org }: Props) {
               </div>
 
               {saveError && (
-                <p style={{ fontSize: 12, color: "#da1e28", margin: 0, background: "#fff1f1", padding: "6px 10px", borderRadius: 0 }}>
+                <p style={{ fontSize: 12, color: "#d14343", margin: 0, background: "#fdeaea", padding: "6px 10px", borderRadius: 8 }}>
                   {saveError}
                 </p>
               )}
@@ -419,8 +419,8 @@ export default function NSMeetingsPage({ profile, org }: Props) {
 
 const panelStyle: React.CSSProperties = {
   background: "#FFFFFF",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  border: "1px solid #e3e7ee",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
   padding: 24,
   maxWidth: 560,
 };
@@ -428,8 +428,8 @@ const panelStyle: React.CSSProperties = {
 const meetingCardStyle: React.CSSProperties = {
   textAlign: "left",
   padding: "14px 16px",
-  borderRadius: 0,
-  border: "2px solid #e0e0e0",
+  borderRadius: 10,
+  border: "2px solid #e3e7ee",
   background: "#FFFFFF",
   cursor: "pointer",
   transition: "all 0.15s",
@@ -442,9 +442,9 @@ const primaryBtnStyle: React.CSSProperties = {
   padding: "10px 20px",
   fontSize: 14,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#0f62fe",
+  background: "#3557d6",
   color: "#FFFFFF",
   cursor: "pointer",
 };
@@ -453,10 +453,10 @@ const smallBtnStyle: React.CSSProperties = {
   padding: "6px 14px",
   fontSize: 13,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #c6c6c6",
+  borderRadius: 10,
+  border: "1px solid #cfd5df",
   background: "#FFFFFF",
-  color: "#393939",
+  color: "#2a3040",
   cursor: "pointer",
 };
 
@@ -464,8 +464,8 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "8px 12px",
   fontSize: 14,
-  border: "1px solid #c6c6c6",
-  borderRadius: 0,
+  border: "1px solid #cfd5df",
+  borderRadius: 10,
   outline: "none",
   boxSizing: "border-box",
   fontFamily: "inherit",
@@ -473,7 +473,7 @@ const inputStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   fontSize: 13,
-  color: "#525252",
+  color: "#6b7384",
   fontWeight: 500,
   display: "block",
   marginBottom: 4,
@@ -491,7 +491,7 @@ const overlayStyle: React.CSSProperties = {
 
 const modalStyle: React.CSSProperties = {
   background: "#FFFFFF",
-  borderRadius: 0,
+  borderRadius: 14,
   padding: 28,
   width: 440,
   maxWidth: "90vw",
@@ -503,7 +503,7 @@ const sectionHeaderStyle: React.CSSProperties = {
   alignItems: "center",
   fontSize: 13,
   fontWeight: 700,
-  color: "#525252",
+  color: "#6b7384",
   };
 
 const toggleBtnStyle: React.CSSProperties = {
@@ -512,9 +512,9 @@ const toggleBtnStyle: React.CSSProperties = {
   padding: "4px 10px",
   fontSize: 12,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #e0e0e0",
-  background: "#f4f4f4",
-  color: "#525252",
+  borderRadius: 8,
+  border: "1px solid #e3e7ee",
+  background: "#f5f7fa",
+  color: "#6b7384",
   cursor: "pointer",
 };

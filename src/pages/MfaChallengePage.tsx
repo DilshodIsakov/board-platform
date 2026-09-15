@@ -36,7 +36,7 @@ export default function MfaChallengePage({ onVerified, onCancel }: Props) {
     <div style={{ maxWidth: 360, margin: "80px auto" }}>
       <h1>Board Platform</h1>
       <h2 style={{ fontSize: 18, marginBottom: 4 }}>{t("mfa.challengeTitle")}</h2>
-      <p style={{ color: "#525252", fontSize: 14, marginBottom: 16 }}>{t("mfa.challengeHint")}</p>
+      <p style={{ color: "#6b7384", fontSize: 14, marginBottom: 16 }}>{t("mfa.challengeHint")}</p>
 
       <form onSubmit={handleSubmit}>
         <input
@@ -52,18 +52,18 @@ export default function MfaChallengePage({ onVerified, onCancel }: Props) {
           style={{
             display: "block", width: "100%", padding: "10px 12px", marginBottom: 12,
             fontSize: 18, letterSpacing: "0.3em", textAlign: "center",
-            border: "1px solid #c6c6c6", borderRadius: 0, boxSizing: "border-box",
+            border: "1px solid #cfd5df", borderRadius: 10, boxSizing: "border-box",
           }}
         />
 
-        {error && <p style={{ color: "#da1e28", fontSize: 14 }}>{error}</p>}
+        {error && <p style={{ color: "#d14343", fontSize: 14 }}>{error}</p>}
 
         <button
           type="submit"
           disabled={loading || code.length < 6}
           style={{
             display: "block", width: "100%", padding: 10, marginBottom: 8, fontSize: 15,
-            borderRadius: 0, border: "none", cursor: "pointer", background: "#0f62fe", color: "#fff",
+            borderRadius: 10, border: "none", cursor: "pointer", background: "#3557d6", color: "#fff",
           }}
         >
           {loading ? "..." : t("mfa.confirm")}
@@ -74,7 +74,7 @@ export default function MfaChallengePage({ onVerified, onCancel }: Props) {
         type="button"
         onClick={onCancel}
         style={{
-          background: "none", border: "none", color: "#0f62fe", fontSize: 14,
+          background: "none", border: "none", color: "#3557d6", fontSize: 14,
           cursor: "pointer", padding: "8px 0", textDecoration: "underline",
         }}
       >

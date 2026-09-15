@@ -35,28 +35,28 @@ export default function SetPasswordPage() {
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f4f4f4" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f5f7fa" }}>
       <div style={{
         background: "#fff",
-        borderRadius: 0,
+        borderRadius: 10,
         padding: 40,
         maxWidth: 400,
         width: "100%",
         boxShadow: "var(--shadow-overlay)", }}>
-        <h1 style={{ fontSize: 22, margin: "0 0 24px", color: "#161616", textAlign: "center" }}>
+        <h1 style={{ fontSize: 22, margin: "0 0 24px", color: "#1a1f2b", textAlign: "center" }}>
           {t("setPassword.title")}
         </h1>
 
         {success ? (
           <div style={{
-            background: "#defbe6", border: "1px solid #a7f0ba",
-            borderRadius: 0, padding: 16, color: "#24a148", fontSize: 14, textAlign: "center",
+            background: "#e7f6ec", border: "1px solid #cfead8",
+            borderRadius: 14, boxShadow: "var(--shadow-card)", padding: 16, color: "#2e9e5b", fontSize: 14, textAlign: "center",
           }}>
             {t("setPassword.success")}
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <label style={{ display: "block", fontSize: 14, fontWeight: 500, color: "#393939", marginBottom: 6 }}>
+            <label style={{ display: "block", fontSize: 14, fontWeight: 500, color: "#2a3040", marginBottom: 6 }}>
               {t("setPassword.newPassword")}
             </label>
             <input
@@ -64,12 +64,12 @@ export default function SetPasswordPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={{
-                width: "100%", padding: 10, fontSize: 14, borderRadius: 0,
-                border: "1px solid #c6c6c6", marginBottom: 16, boxSizing: "border-box",
+                width: "100%", padding: 10, fontSize: 14, borderRadius: 10,
+                border: "1px solid #cfd5df", marginBottom: 16, boxSizing: "border-box",
               }}
             />
 
-            <label style={{ display: "block", fontSize: 14, fontWeight: 500, color: "#393939", marginBottom: 6 }}>
+            <label style={{ display: "block", fontSize: 14, fontWeight: 500, color: "#2a3040", marginBottom: 6 }}>
               {t("setPassword.confirmPassword")}
             </label>
             <input
@@ -77,13 +77,13 @@ export default function SetPasswordPage() {
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               style={{
-                width: "100%", padding: 10, fontSize: 14, borderRadius: 0,
-                border: "1px solid #c6c6c6", marginBottom: 16, boxSizing: "border-box",
+                width: "100%", padding: 10, fontSize: 14, borderRadius: 10,
+                border: "1px solid #cfd5df", marginBottom: 16, boxSizing: "border-box",
               }}
             />
 
             {error && (
-              <div style={{ color: "#da1e28", fontSize: 13, marginBottom: 12, background: "#fff1f1", padding: "8px 12px", borderRadius: 0 }}>
+              <div style={{ color: "#d14343", fontSize: 13, marginBottom: 12, background: "#fdeaea", padding: "8px 12px", borderRadius: 10 }}>
                 {error}
               </div>
             )}
@@ -92,8 +92,8 @@ export default function SetPasswordPage() {
               type="submit"
               disabled={saving}
               style={{
-                width: "100%", padding: 10, fontSize: 14, borderRadius: 0,
-                border: "none", background: "#0f62fe", color: "#fff",
+                width: "100%", padding: 10, fontSize: 14, borderRadius: 10,
+                border: "none", background: "#3557d6", color: "#fff",
                 cursor: saving ? "not-allowed" : "pointer", fontWeight: 500,
                 opacity: saving ? 0.7 : 1,
               }}

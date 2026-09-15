@@ -281,7 +281,7 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
         }
         .dc-review button:focus-visible,
         .dc-review select:focus-visible,
-        .dc-review textarea:focus-visible { outline: 2px solid #0f62fe; outline-offset: 2px; }
+        .dc-review textarea:focus-visible { outline: 2px solid #3557d6; outline-offset: 2px; }
       `}</style>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
@@ -331,20 +331,20 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
       </div>
 
       {error && (
-        <div style={{ padding: "8px 14px", background: "#fff1f1", border: "1px solid #ffd7d9", borderRadius: 0, color: "#da1e28", fontSize: 13, marginBottom: 10 }}>
+        <div style={{ padding: "8px 14px", background: "#fdeaea", border: "1px solid #f5c9c9", borderRadius: 10, color: "#d14343", fontSize: 13, marginBottom: 10 }}>
           {error}
         </div>
       )}
 
       {selectedVersion !== latestVersionNo && (
-        <div style={{ padding: "8px 14px", background: "#fcf4d6", border: "1px solid #f1c21b", borderRadius: 0, color: "#684e00", fontSize: 13, marginBottom: 10 }}>
+        <div style={{ padding: "8px 14px", background: "#fff5dd", border: "1px solid #e0a520", borderRadius: 10, color: "#7a5410", fontSize: 13, marginBottom: 10 }}>
           {t("review.viewingOldVersion")}
         </div>
       )}
 
       <div className="dc-review-body">
         {/* Document */}
-        <div className="dc-review-doc" style={{ border: "1px solid #e0e0e0", borderRadius: 0, padding: 24, background: "#fff" }}>
+        <div className="dc-review-doc" style={{ border: "1px solid #e3e7ee", borderRadius: 14, boxShadow: "var(--shadow-card)", padding: 24, background: "#fff" }}>
           {kind === "other" ? (
             <EmptyState icon="" title={t("review.unsupported")} description={t("review.unsupportedDesc")} />
           ) : rendering ? (
@@ -367,7 +367,7 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
         <div className="dc-review-panel">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <h3 style={{ margin: 0, fontSize: 15 }}>{t("review.commentsTitle")}</h3>
-            <span style={{ fontSize: 12, color: "#8d8d8d" }}>{t("review.openCount", { count: openCount })}</span>
+            <span style={{ fontSize: 12, color: "#9ba3b4" }}>{t("review.openCount", { count: openCount })}</span>
             <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)} style={{ ...selectStyle, marginLeft: "auto" }}>
               <option value="all">{t("review.filterAll")}</option>
               <option value="open">{t("review.filterOpen")}</option>
@@ -377,14 +377,14 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
 
           {/* Composer для нового комментария */}
           {pendingAnchor && (
-            <div style={{ border: "1px solid #0f62fe", borderRadius: 0, padding: 12, marginBottom: 12, background: "#edf5ff" }}>
-              <div style={{ fontSize: 12, color: "#0043ce", marginBottom: 6 }}>
+            <div style={{ border: "1px solid #3557d6", borderRadius: 10, padding: 12, marginBottom: 12, background: "#e9edfb" }}>
+              <div style={{ fontSize: 12, color: "#2c48b8", marginBottom: 6 }}>
                 {pendingAnchor.anchor.type === "xlsx"
                   ? t("review.commentingCell", { cell: pendingAnchor.quoted })
                   : t("review.commentingFragment")}
               </div>
               {pendingAnchor.quoted && pendingAnchor.anchor.type === "docx" && (
-                <div style={{ fontSize: 12, fontStyle: "italic", color: "#525252", marginBottom: 6 }}>«{pendingAnchor.quoted}»</div>
+                <div style={{ fontSize: 12, fontStyle: "italic", color: "#6b7384", marginBottom: 6 }}>«{pendingAnchor.quoted}»</div>
               )}
               <textarea
                 autoFocus
@@ -392,7 +392,7 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
                 onChange={(e) => setComposerText(e.target.value)}
                 placeholder={t("review.commentPlaceholder")}
                 rows={3}
-                style={{ width: "100%", boxSizing: "border-box", fontSize: 13, padding: 8, border: "1px solid #c6c6c6", borderRadius: 0, resize: "vertical" }}
+                style={{ width: "100%", boxSizing: "border-box", fontSize: 13, padding: 8, border: "1px solid #cfd5df", borderRadius: 10, resize: "vertical" }}
               />
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 6, marginTop: 6 }}>
                 <button onClick={() => setPendingAnchor(null)} style={secondaryBtn}>{t("common.cancel")}</button>
@@ -435,8 +435,8 @@ export default function DocumentReviewPage({ profile, source = "document" }: Pro
   );
 }
 
-const backBtn: React.CSSProperties = { padding: "9px 14px", minHeight: 40, fontSize: 13, border: "1px solid #c6c6c6", borderRadius: 0, background: "#fff", cursor: "pointer" };
-const secondaryBtn: React.CSSProperties = { padding: "9px 14px", minHeight: 40, fontSize: 13, border: "1px solid #c6c6c6", borderRadius: 0, background: "#fff", cursor: "pointer", whiteSpace: "nowrap" };
-const primaryBtn: React.CSSProperties = { padding: "9px 16px", minHeight: 40, fontSize: 13, border: "none", borderRadius: 0, background: "#0f62fe", color: "#fff", cursor: "pointer", fontWeight: 500, whiteSpace: "nowrap" };
-const selectStyle: React.CSSProperties = { padding: "8px 10px", minHeight: 40, fontSize: 13, border: "1px solid #c6c6c6", borderRadius: 0, background: "#fff", cursor: "pointer" };
+const backBtn: React.CSSProperties = { padding: "9px 14px", minHeight: 40, fontSize: 13, border: "1px solid #cfd5df", borderRadius: 10, background: "#fff", cursor: "pointer" };
+const secondaryBtn: React.CSSProperties = { padding: "9px 14px", minHeight: 40, fontSize: 13, border: "1px solid #cfd5df", borderRadius: 10, background: "#fff", cursor: "pointer", whiteSpace: "nowrap" };
+const primaryBtn: React.CSSProperties = { padding: "9px 16px", minHeight: 40, fontSize: 13, border: "none", borderRadius: 10, background: "#3557d6", color: "#fff", cursor: "pointer", fontWeight: 500, whiteSpace: "nowrap" };
+const selectStyle: React.CSSProperties = { padding: "8px 10px", minHeight: 40, fontSize: 13, border: "1px solid #cfd5df", borderRadius: 10, background: "#fff", cursor: "pointer" };
 const fullShell: React.CSSProperties = { height: "100vh", padding: 16, background: "#fff", boxSizing: "border-box", display: "flex", flexDirection: "column", overflow: "hidden" };

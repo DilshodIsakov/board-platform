@@ -27,13 +27,13 @@ export default function ProtocolsPage({ profile }: Props) {
   }, [profile?.id]);
 
   if (loading) {
-    return <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>;
+    return <div style={{ color: "#9ba3b4" }}>{t("common.loading")}</div>;
   }
 
   return (
     <div>
       <h1 style={{ marginBottom: 4 }}>{t("protocols.title")}</h1>
-      <p style={{ color: "#525252", fontSize: 14, marginBottom: 24 }}>
+      <p style={{ color: "#6b7384", fontSize: 14, marginBottom: 24 }}>
         {t("protocols.subtitle")}
       </p>
 
@@ -41,11 +41,11 @@ export default function ProtocolsPage({ profile }: Props) {
         {/* Left panel — meeting selection */}
         <div style={panelStyle}>
           <h3 style={{ marginBottom: 12 }}>{t("protocols.createProtocol")}</h3>
-          <p style={{ fontSize: 13, color: "#525252", marginBottom: 16 }}>
+          <p style={{ fontSize: 13, color: "#6b7384", marginBottom: 16 }}>
             {t("protocols.selectMeeting")}
           </p>
 
-          <label style={{ fontSize: 13, color: "#525252", fontWeight: 500, display: "block", marginBottom: 4 }}>
+          <label style={{ fontSize: 13, color: "#6b7384", fontWeight: 500, display: "block", marginBottom: 4 }}>
             {t("protocols.selectMeetingPlaceholder")}
           </label>
           <select
@@ -64,8 +64,8 @@ export default function ProtocolsPage({ profile }: Props) {
             disabled={!selectedId}
             style={{
               ...btnStyle,
-              background: selectedId ? "#0f62fe" : "#c6c6c6",
-              color: selectedId ? "#FFFFFF" : "#8d8d8d",
+              background: selectedId ? "#3557d6" : "#cfd5df",
+              color: selectedId ? "#FFFFFF" : "#9ba3b4",
               marginTop: 16,
               width: "100%",
             }}
@@ -84,7 +84,7 @@ export default function ProtocolsPage({ profile }: Props) {
                     style={recentItemStyle}
                   >
                     <div style={{ fontWeight: 500, fontSize: 14 }}>{m.title}</div>
-                    <div style={{ fontSize: 12, color: "#8d8d8d" }}>
+                    <div style={{ fontSize: 12, color: "#9ba3b4" }}>
                       {new Date(m.start_at).toLocaleDateString(getIntlLocale())}
                     </div>
                   </button>
@@ -102,10 +102,10 @@ export default function ProtocolsPage({ profile }: Props) {
           alignItems: "center",
           justifyContent: "center",
           minHeight: 300,
-          color: "#8d8d8d",
+          color: "#9ba3b4",
         }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}></div>
-          <div style={{ fontSize: 15, fontWeight: 500, color: "#393939", marginBottom: 4 }}>
+          <div style={{ fontSize: 15, fontWeight: 500, color: "#2a3040", marginBottom: 4 }}>
             {t("protocols.preview")}
           </div>
           <p style={{ fontSize: 13, textAlign: "center", maxWidth: 320 }}>
@@ -119,8 +119,8 @@ export default function ProtocolsPage({ profile }: Props) {
 
 const panelStyle: React.CSSProperties = {
   background: "#FFFFFF",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  border: "1px solid #e3e7ee",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
   padding: 24,
 };
 
@@ -128,8 +128,8 @@ const selectStyle: React.CSSProperties = {
   width: "100%",
   padding: "8px 12px",
   fontSize: 14,
-  border: "1px solid #c6c6c6",
-  borderRadius: 0,
+  border: "1px solid #cfd5df",
+  borderRadius: 10,
   outline: "none",
   boxSizing: "border-box",
 };
@@ -138,7 +138,7 @@ const btnStyle: React.CSSProperties = {
   padding: "10px 20px",
   fontSize: 14,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
   cursor: "pointer",
 };
@@ -146,8 +146,8 @@ const btnStyle: React.CSSProperties = {
 const recentItemStyle: React.CSSProperties = {
   textAlign: "left",
   padding: "10px 12px",
-  borderRadius: 0,
-  border: "1px solid #f4f4f4",
+  borderRadius: 10,
+  border: "1px solid #f5f7fa",
   background: "transparent",
   cursor: "pointer",
   transition: "background 0.1s",

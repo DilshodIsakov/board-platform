@@ -15,8 +15,8 @@ function getInitials(name: string): string {
 function FieldRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ marginBottom: 8 }}>
-      <span style={{ fontSize: 13, color: "#525252" }}>{label}: </span>
-      <span style={{ fontSize: 14, color: "#161616" }}>{value}</span>
+      <span style={{ fontSize: 13, color: "#6b7384" }}>{label}: </span>
+      <span style={{ fontSize: 14, color: "#1a1f2b" }}>{value}</span>
     </div>
   );
 }
@@ -24,7 +24,7 @@ function FieldRow({ label, value }: { label: string; value: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={sectionStyle}>
-      <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 600, color: "#161616" }}>{title}</h3>
+      <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 600, color: "#1a1f2b" }}>{title}</h3>
       {children}
     </div>
   );
@@ -32,7 +32,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function EmptyState() {
   const { t } = useTranslation();
-  return <div style={{ color: "#8d8d8d", fontSize: 14, fontStyle: "italic" }}>{t("profile.noData")}</div>;
+  return <div style={{ color: "#9ba3b4", fontSize: 14, fontStyle: "italic" }}>{t("profile.noData")}</div>;
 }
 
 
@@ -69,8 +69,8 @@ export default function UserProfilePage({ currentProfile }: Props) {
     })();
   }, [id]);
 
-  if (loading) return <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>;
-  if (notFound || !profile) return <div style={{ color: "#8d8d8d" }}>{t("common.loadError")}</div>;
+  if (loading) return <div style={{ color: "#9ba3b4" }}>{t("common.loading")}</div>;
+  if (notFound || !profile) return <div style={{ color: "#9ba3b4" }}>{t("common.loadError")}</div>;
 
   const displayName = getLocalizedName(profile, lang);
   const displayRole = getLocalizedRoleDetails(profile, lang);
@@ -100,17 +100,17 @@ export default function UserProfilePage({ currentProfile }: Props) {
           {avatarUrl ? (
             <img src={avatarUrl} alt="" style={avatarLargeStyle} />
           ) : (
-            <div style={{ ...avatarLargeStyle, background: "#0f62fe", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 700 }}>
+            <div style={{ ...avatarLargeStyle, background: "#3557d6", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 700 }}>
               {getInitials(displayName)}
             </div>
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: "#161616" }}>{displayName}</div>
-          <div style={{ fontSize: 14, color: "#525252", marginTop: 2 }}>{t(`roles.${profile.role}`)}</div>
-          {displayRole && <div style={{ fontSize: 14, fontWeight: 500, color: "#393939", marginTop: 4 }}>{displayRole}</div>}
-          {position && <div style={{ fontSize: 13, color: "#525252", marginTop: 4 }}>{position}</div>}
-          {company && <div style={{ fontSize: 13, color: "#8d8d8d", marginTop: 2 }}>{company}</div>}
+          <div style={{ fontSize: 24, fontWeight: 700, color: "#1a1f2b" }}>{displayName}</div>
+          <div style={{ fontSize: 14, color: "#6b7384", marginTop: 2 }}>{t(`roles.${profile.role}`)}</div>
+          {displayRole && <div style={{ fontSize: 14, fontWeight: 500, color: "#2a3040", marginTop: 4 }}>{displayRole}</div>}
+          {position && <div style={{ fontSize: 13, color: "#6b7384", marginTop: 4 }}>{position}</div>}
+          {company && <div style={{ fontSize: 13, color: "#9ba3b4", marginTop: 2 }}>{company}</div>}
         </div>
       </div>
 
@@ -128,7 +128,7 @@ export default function UserProfilePage({ currentProfile }: Props) {
       {/* Biography */}
       {shortBio && (
         <Section title={t("profile.biography")}>
-          <div style={{ fontSize: 14, color: "#393939", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{shortBio}</div>
+          <div style={{ fontSize: 14, color: "#2a3040", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{shortBio}</div>
         </Section>
       )}
 
@@ -138,7 +138,7 @@ export default function UserProfilePage({ currentProfile }: Props) {
           {eduEntries.length > 0 ? (
             <EducationCards entries={eduEntries} lang={lang} />
           ) : (
-            <div style={{ fontSize: 14, color: "#393939", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{education}</div>
+            <div style={{ fontSize: 14, color: "#2a3040", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{education}</div>
           )}
         </Section>
       )}
@@ -146,7 +146,7 @@ export default function UserProfilePage({ currentProfile }: Props) {
       {/* Work experience */}
       {workExp && (
         <Section title={t("profile.workExperience")}>
-          <div style={{ fontSize: 14, color: "#393939", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{workExp}</div>
+          <div style={{ fontSize: 14, color: "#2a3040", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{workExp}</div>
         </Section>
       )}
 
@@ -179,11 +179,11 @@ function EducationCards({ entries, lang }: { entries: EducationEntry[]; lang: st
         const institution = getLoc(entry, "institution");
         const years = [entry.year_start, entry.year_end].filter(Boolean).join(" – ");
         return (
-          <div key={idx} style={{ padding: "12px 16px", border: "1px solid #f4f4f4", borderRadius: 0, background: "#f4f4f4" }}>
-            {degree && <div style={{ fontSize: 14, fontWeight: 600, color: "#161616" }}>{degree}</div>}
-            {specialty && <div style={{ fontSize: 13, color: "#393939", marginTop: 2 }}>{specialty}</div>}
-            {institution && <div style={{ fontSize: 13, color: "#525252", marginTop: 4 }}>{institution}</div>}
-            {years && <div style={{ fontSize: 12, color: "#8d8d8d", marginTop: 4 }}>{years}</div>}
+          <div key={idx} style={{ padding: "12px 16px", border: "1px solid #f5f7fa", borderRadius: 10, background: "#f5f7fa" }}>
+            {degree && <div style={{ fontSize: 14, fontWeight: 600, color: "#1a1f2b" }}>{degree}</div>}
+            {specialty && <div style={{ fontSize: 13, color: "#2a3040", marginTop: 2 }}>{specialty}</div>}
+            {institution && <div style={{ fontSize: 13, color: "#6b7384", marginTop: 4 }}>{institution}</div>}
+            {years && <div style={{ fontSize: 12, color: "#9ba3b4", marginTop: 4 }}>{years}</div>}
           </div>
         );
       })}
@@ -193,7 +193,7 @@ function EducationCards({ entries, lang }: { entries: EducationEntry[]; lang: st
 
 const headerCardStyle: React.CSSProperties = {
   display: "flex", gap: 24, alignItems: "flex-start", padding: 24,
-  background: "#fff", border: "1px solid #e0e0e0", borderRadius: 0, marginBottom: 24,
+  background: "#fff", border: "1px solid #e3e7ee", borderRadius: 14, boxShadow: "var(--shadow-card)", marginBottom: 24,
 };
 
 const avatarLargeStyle: React.CSSProperties = {
@@ -201,11 +201,11 @@ const avatarLargeStyle: React.CSSProperties = {
 };
 
 const sectionStyle: React.CSSProperties = {
-  padding: 24, background: "#fff", border: "1px solid #e0e0e0", borderRadius: 0, marginBottom: 16,
+  padding: 24, background: "#fff", border: "1px solid #e3e7ee", borderRadius: 14, boxShadow: "var(--shadow-card)", marginBottom: 16,
 };
 
 const backBtnStyle: React.CSSProperties = {
   background: "none", border: "none", cursor: "pointer",
-  fontSize: 14, color: "#525252", padding: "0 0 16px",
+  fontSize: 14, color: "#6b7384", padding: "0 0 16px",
   display: "flex", alignItems: "center", gap: 4,
 };

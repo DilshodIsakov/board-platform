@@ -85,25 +85,25 @@ export default function VideoConferencePage({ profile, org }: Props) {
     });
 
   if (loading) {
-    return <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>;
+    return <div style={{ color: "#9ba3b4" }}>{t("common.loading")}</div>;
   }
 
   return (
     <div>
       <h1 style={{ marginBottom: 4 }}>{t("video.title")}</h1>
-      <p style={{ color: "#525252", fontSize: 14, marginBottom: 32 }}>
+      <p style={{ color: "#6b7384", fontSize: 14, marginBottom: 32 }}>
         {t("video.subtitle")}
       </p>
 
       {/* Hero card */}
       <div style={heroCardStyle}>
         <div style={heroIconStyle}>
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0f62fe" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3557d6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
         </div>
         <h2 style={{ marginBottom: 4, marginTop: 16 }}>{t("video.readyToStart")}</h2>
-        <p style={{ color: "#525252", fontSize: 14, marginBottom: 20 }}>
+        <p style={{ color: "#6b7384", fontSize: 14, marginBottom: 20 }}>
           {t("video.connectDescription")}
         </p>
         <button onClick={() => setShowForm(true)} style={startBtnStyle}>
@@ -168,14 +168,14 @@ export default function VideoConferencePage({ profile, org }: Props) {
       {/* ===== Upcoming Video Conferences ===== */}
       <h2 style={{ marginTop: 32, marginBottom: 16 }}>{t("video.upcomingConferences")}</h2>
       {upcomingConferences.length === 0 ? (
-        <p style={{ color: "#8d8d8d", fontSize: 13 }}>{t("video.noUpcomingConferences")}</p>
+        <p style={{ color: "#9ba3b4", fontSize: 13 }}>{t("video.noUpcomingConferences")}</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {upcomingConferences.map((vc) => (
             <div key={vc.id} style={vcRowStyle}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 500, fontSize: 14, color: "#161616" }}>{vc.title}</div>
-                <div style={{ fontSize: 12, color: "#8d8d8d" }}>{formatDt(vc.scheduled_at)}</div>
+                <div style={{ fontWeight: 500, fontSize: 14, color: "#1a1f2b" }}>{vc.title}</div>
+                <div style={{ fontSize: 12, color: "#9ba3b4" }}>{formatDt(vc.scheduled_at)}</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {vc.meeting_url ? (
@@ -189,7 +189,7 @@ export default function VideoConferencePage({ profile, org }: Props) {
                     {t("video.join")}
                   </a>
                 ) : (
-                  <span style={{ fontSize: 12, color: "#8d8d8d" }}>{t("video.noUrlAdded")}</span>
+                  <span style={{ fontSize: 12, color: "#9ba3b4" }}>{t("video.noUrlAdded")}</span>
                 )}
                 {canDelete(vc) && (
                   <button onClick={() => handleDelete(vc.id)} style={deleteBtnStyle} title={t("video.delete")}>
@@ -204,15 +204,15 @@ export default function VideoConferencePage({ profile, org }: Props) {
       {/* ===== Past Conferences (collapsed) ===== */}
       {pastConferences.length > 0 && (
         <>
-          <h3 style={{ marginTop: 28, marginBottom: 12, color: "#525252", fontSize: 15 }}>
+          <h3 style={{ marginTop: 28, marginBottom: 12, color: "#6b7384", fontSize: 15 }}>
             {t("video.pastConferences")} ({pastConferences.length})
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {pastConferences.slice(0, 10).map((vc) => (
               <div key={vc.id} style={{ ...vcRowStyle, opacity: 0.7 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 500, fontSize: 14, color: "#161616" }}>{vc.title}</div>
-                  <div style={{ fontSize: 12, color: "#8d8d8d" }}>{formatDt(vc.scheduled_at)}</div>
+                  <div style={{ fontWeight: 500, fontSize: 14, color: "#1a1f2b" }}>{vc.title}</div>
+                  <div style={{ fontSize: 12, color: "#9ba3b4" }}>{formatDt(vc.scheduled_at)}</div>
                 </div>
                 {canDelete(vc) && (
                   <button onClick={() => handleDelete(vc.id)} style={deleteBtnStyle} title={t("video.delete")}>
@@ -227,19 +227,19 @@ export default function VideoConferencePage({ profile, org }: Props) {
       {/* ===== NS Meetings with video links ===== */}
       <h2 style={{ marginTop: 32, marginBottom: 16 }}>{t("video.upcomingMeetings")}</h2>
       {scheduledMeetings.length === 0 ? (
-        <p style={{ color: "#8d8d8d", fontSize: 13 }}>{t("video.noScheduledMeetings")}</p>
+        <p style={{ color: "#9ba3b4", fontSize: 13 }}>{t("video.noScheduledMeetings")}</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {scheduledMeetings.map((m) => (
             <Link key={m.id} to={`/ns-meetings/${m.id}`} style={meetingRowStyle}>
               <div>
-                <div style={{ fontWeight: 500, fontSize: 14, color: "#161616" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title") || m.title}</div>
-                <div style={{ fontSize: 12, color: "#8d8d8d" }}>{formatDt(m.start_at)}</div>
+                <div style={{ fontWeight: 500, fontSize: 14, color: "#1a1f2b" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title") || m.title}</div>
+                <div style={{ fontSize: 12, color: "#9ba3b4" }}>{formatDt(m.start_at)}</div>
               </div>
               {m.meet_url ? (
-                <span style={{ fontSize: 12, color: "#24a148", fontWeight: 500 }}>{t("video.linkAdded")}</span>
+                <span style={{ fontSize: 12, color: "#2e9e5b", fontWeight: 500 }}>{t("video.linkAdded")}</span>
               ) : (
-                <span style={{ fontSize: 12, color: "#8d8d8d" }}>{t("video.noLink")}</span>
+                <span style={{ fontSize: 12, color: "#9ba3b4" }}>{t("video.noLink")}</span>
               )}
             </Link>
           ))}
@@ -254,9 +254,9 @@ export default function VideoConferencePage({ profile, org }: Props) {
 // ============================================================
 
 const heroCardStyle: React.CSSProperties = {
-  background: "#f4f4f4",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  background: "#f5f7fa",
+  border: "1px solid #e3e7ee",
+  borderRadius: 10,
   padding: "48px 32px",
   textAlign: "center",
   display: "flex",
@@ -268,7 +268,7 @@ const heroIconStyle: React.CSSProperties = {
   width: 80,
   height: 80,
   borderRadius: "50%",
-  background: "#edf5ff",
+  background: "#e9edfb",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -281,9 +281,9 @@ const startBtnStyle: React.CSSProperties = {
   padding: "12px 28px",
   fontSize: 15,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#161616",
+  background: "#1a1f2b",
   color: "#FFFFFF",
   cursor: "pointer",
 };
@@ -300,7 +300,7 @@ const overlayStyle: React.CSSProperties = {
 
 const modalStyle: React.CSSProperties = {
   background: "#FFFFFF",
-  borderRadius: 0,
+  borderRadius: 14,
   padding: 28,
   width: 460,
   maxWidth: "90vw",
@@ -308,7 +308,7 @@ const modalStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   fontSize: 13,
-  color: "#525252",
+  color: "#6b7384",
   fontWeight: 500,
   display: "block",
   marginBottom: 4,
@@ -318,8 +318,8 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "8px 12px",
   fontSize: 14,
-  border: "1px solid #c6c6c6",
-  borderRadius: 0,
+  border: "1px solid #cfd5df",
+  borderRadius: 10,
   outline: "none",
   boxSizing: "border-box",
   fontFamily: "inherit",
@@ -329,9 +329,9 @@ const primaryBtnStyle: React.CSSProperties = {
   padding: "10px 24px",
   fontSize: 14,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#0f62fe",
+  background: "#3557d6",
   color: "#FFFFFF",
   cursor: "pointer",
 };
@@ -340,10 +340,10 @@ const cancelBtnStyle: React.CSSProperties = {
   padding: "10px 20px",
   fontSize: 14,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #c6c6c6",
+  borderRadius: 10,
+  border: "1px solid #cfd5df",
   background: "#FFFFFF",
-  color: "#393939",
+  color: "#2a3040",
   cursor: "pointer",
 };
 
@@ -353,8 +353,8 @@ const vcRowStyle: React.CSSProperties = {
   alignItems: "center",
   padding: "14px 16px",
   background: "#FFFFFF",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  border: "1px solid #e3e7ee",
+  borderRadius: 10,
 };
 
 const joinBtnStyle: React.CSSProperties = {
@@ -364,9 +364,9 @@ const joinBtnStyle: React.CSSProperties = {
   padding: "6px 16px",
   fontSize: 13,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#24a148",
+  background: "#2e9e5b",
   color: "#FFFFFF",
   cursor: "pointer",
   textDecoration: "none",
@@ -375,10 +375,10 @@ const joinBtnStyle: React.CSSProperties = {
 const deleteBtnStyle: React.CSSProperties = {
   width: 28,
   height: 28,
-  borderRadius: 0,
-  border: "1px solid #ffd7d9",
-  background: "#fff1f1",
-  color: "#da1e28",
+  borderRadius: 10,
+  border: "1px solid #f5c9c9",
+  background: "#fdeaea",
+  color: "#d14343",
   cursor: "pointer",
   fontSize: 14,
   display: "flex",
@@ -393,8 +393,8 @@ const meetingRowStyle: React.CSSProperties = {
   alignItems: "center",
   padding: "14px 16px",
   background: "#FFFFFF",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  border: "1px solid #e3e7ee",
+  borderRadius: 10,
   textDecoration: "none",
   color: "inherit",
 };

@@ -165,20 +165,20 @@ export default function DocumentViewer({
   return (
     <div style={{ position: "relative" }}>
       <style>{`
-        .dc-highlight { background: #fcf4d6; border-bottom: 2px solid #f1c21b; cursor: pointer; }
-        .dc-highlight-resolved { background: #e0e0e0; border-bottom-color: #8d8d8d; }
-        .dc-highlight.dc-active { background: #f1c21b; box-shadow: 0 0 0 2px #f1c21b; }
-        .dc-docx-host .docx-wrapper { background: #f4f4f4; padding: 16px; }
-        .dc-xtable td { border: 1px solid #e0e0e0; padding: 4px 8px; font-size: 13px; white-space: nowrap; user-select: none; cursor: cell; }
-        .dc-xtable td.dc-rownum, .dc-xtable th { background: #f4f4f4; color: #525252; font-weight: 600; text-align: center; position: sticky; top: 0; }
-        .dc-xtable td.dc-sel { background: #d0e2ff !important; }
-        .dc-xtable td.dc-commented { background: #fcf4d6; cursor: pointer; }
+        .dc-highlight { background: #fff5dd; border-bottom: 2px solid #e0a520; cursor: pointer; }
+        .dc-highlight-resolved { background: #e3e7ee; border-bottom-color: #9ba3b4; }
+        .dc-highlight.dc-active { background: #e0a520; box-shadow: 0 0 0 2px #e0a520; }
+        .dc-docx-host .docx-wrapper { background: #f5f7fa; padding: 16px; }
+        .dc-xtable td { border: 1px solid #e3e7ee; padding: 4px 8px; font-size: 13px; white-space: nowrap; user-select: none; cursor: cell; }
+        .dc-xtable td.dc-rownum, .dc-xtable th { background: #f5f7fa; color: #6b7384; font-weight: 600; text-align: center; position: sticky; top: 0; }
+        .dc-xtable td.dc-sel { background: #d3dbf7 !important; }
+        .dc-xtable td.dc-commented { background: #fff5dd; cursor: pointer; }
       `}</style>
 
       {kind === "docx" && (
         <>
           {docxRendering && (
-            <div style={{ color: "#8d8d8d", fontSize: 13, padding: 12 }}>{t("review.rendering")}</div>
+            <div style={{ color: "#9ba3b4", fontSize: 13, padding: 12 }}>{t("review.rendering")}</div>
           )}
           <div
             ref={docxRef}
@@ -198,10 +198,10 @@ export default function DocumentViewer({
                   key={s.name + i}
                   onClick={() => { setActiveSheet(i); setDragStart(null); setDragEnd(null); }}
                   style={{
-                    padding: "5px 12px", fontSize: 13, borderRadius: 0, cursor: "pointer",
-                    border: "1px solid " + (i === activeSheet ? "#0f62fe" : "#c6c6c6"),
-                    background: i === activeSheet ? "#edf5ff" : "#fff",
-                    color: i === activeSheet ? "#0f62fe" : "#393939", fontWeight: 500,
+                    padding: "5px 12px", fontSize: 13, borderRadius: 8, cursor: "pointer",
+                    border: "1px solid " + (i === activeSheet ? "#3557d6" : "#cfd5df"),
+                    background: i === activeSheet ? "#e9edfb" : "#fff",
+                    color: i === activeSheet ? "#3557d6" : "#2a3040", fontWeight: 500,
                   }}
                 >
                   {s.name}
@@ -209,7 +209,7 @@ export default function DocumentViewer({
               ))}
             </div>
           )}
-          <div style={{ overflow: "auto", maxHeight: "70vh", border: "1px solid #e0e0e0", borderRadius: 0 }}>
+          <div style={{ overflow: "auto", maxHeight: "70vh", border: "1px solid #e3e7ee", borderRadius: 10 }}>
             <table className="dc-xtable" style={{ borderCollapse: "collapse" }}>
               <thead>
                 <tr>
@@ -258,7 +258,7 @@ export default function DocumentViewer({
             </table>
           </div>
           {sheet.truncated && (
-            <p style={{ fontSize: 12, color: "#8d8d8d", marginTop: 6 }}>{t("review.sheetTruncated")}</p>
+            <p style={{ fontSize: 12, color: "#9ba3b4", marginTop: 6 }}>{t("review.sheetTruncated")}</p>
           )}
         </div>
       )}
@@ -275,10 +275,10 @@ export default function DocumentViewer({
             transform: "translateX(-50%)",
             zIndex: 1500,
             padding: "7px 14px",
-            background: "#0f62fe",
+            background: "#3557d6",
             color: "#fff",
             border: "none",
-            borderRadius: 0,
+            borderRadius: 10,
             fontSize: 13,
             fontWeight: 600,
             cursor: "pointer",

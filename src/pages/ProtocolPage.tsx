@@ -72,14 +72,14 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
 
   if (loading) {
     return (
-      <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>
+      <div style={{ color: "#9ba3b4" }}>{t("common.loading")}</div>
     );
   }
 
   if (!protocolData) {
     return (
       <div>
-        <p style={{ color: "#da1e28" }}>{t("protocol.meetingNotFound")}</p>
+        <p style={{ color: "#d14343" }}>{t("protocol.meetingNotFound")}</p>
       </div>
     );
   }
@@ -98,7 +98,7 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
         </div>
       </div>
 
-      <p style={{ color: "#525252", fontSize: 14, margin: "4px 0 20px" }}>
+      <p style={{ color: "#6b7384", fontSize: 14, margin: "4px 0 20px" }}>
         {protocolData.meeting.title}
       </p>
 
@@ -108,8 +108,8 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
           onClick={handleGenerateTemplate}
           style={{
             ...modeTabStyle,
-            background: mode === "template" ? "#0f62fe" : "transparent",
-            color: mode === "template" ? "#fff" : "#393939",
+            background: mode === "template" ? "#3557d6" : "transparent",
+            color: mode === "template" ? "#fff" : "#2a3040",
           }}
         >
           {t("protocol.template")}
@@ -119,13 +119,13 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
           disabled={generatingAI}
           style={{
             ...modeTabStyle,
-            background: mode === "ai" ? "#525252" : "transparent",
-            color: mode === "ai" ? "#fff" : "#393939",
+            background: mode === "ai" ? "#6b7384" : "transparent",
+            color: mode === "ai" ? "#fff" : "#2a3040",
           }}
         >
           {generatingAI ? t("protocol.generating") : t("protocol.aiGenerate")}
         </button>
-        <span style={{ fontSize: 12, color: "#8d8d8d", marginLeft: 8 }}>
+        <span style={{ fontSize: 12, color: "#9ba3b4", marginLeft: 8 }}>
           {mode === "ai"
             ? t("protocol.aiNote")
             : t("protocol.templateGeneration")}
@@ -146,7 +146,7 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
         <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.5 }}>
           {t("protocol.aiDescription")}
         </p>
-        <p style={{ margin: "8px 0 0", fontSize: 13, color: "#525252" }}>
+        <p style={{ margin: "8px 0 0", fontSize: 13, color: "#6b7384" }}>
           {t("protocol.aiArchitecture")}
         </p>
       </div>
@@ -159,8 +159,8 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
 const btnOutlineStyle: React.CSSProperties = {
   padding: "8px 16px",
   fontSize: 13,
-  borderRadius: 0,
-  border: "1px solid #c6c6c6",
+  borderRadius: 10,
+  border: "1px solid #cfd5df",
   background: "transparent",
   cursor: "pointer",
 };
@@ -171,8 +171,8 @@ const modeBarStyle: React.CSSProperties = {
   gap: 4,
   marginBottom: 12,
   padding: 4,
-  background: "#f4f4f4",
-  borderRadius: 0,
+  background: "#f5f7fa",
+  borderRadius: 10,
   width: "fit-content",
 };
 
@@ -180,7 +180,7 @@ const modeTabStyle: React.CSSProperties = {
   padding: "6px 16px",
   fontSize: 13,
   fontWeight: 500,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
   cursor: "pointer",
   transition: "all 0.15s",
@@ -192,8 +192,8 @@ const textareaStyle: React.CSSProperties = {
   fontSize: 13,
   lineHeight: 1.6,
   padding: 16,
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  border: "1px solid #e3e7ee",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
   resize: "vertical",
   boxSizing: "border-box",
 };
@@ -201,9 +201,9 @@ const textareaStyle: React.CSSProperties = {
 const aiInfoStyle: React.CSSProperties = {
   marginTop: 20,
   padding: 16,
-  background: "#f4f4f4",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  background: "#f5f7fa",
+  border: "1px solid #e3e7ee",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
   fontSize: 14,
-  color: "#393939",
+  color: "#2a3040",
 };

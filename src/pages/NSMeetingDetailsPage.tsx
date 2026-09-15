@@ -963,26 +963,26 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
   };
 
   const statusColor = (s: string) => {
-    if (s === "completed") return { bg: "#defbe6", color: "#0e6027" };
-    if (s === "scheduled") return { bg: "#d0e2ff", color: "#0043ce" };
-    return { bg: "#f4f4f4", color: "#525252" };
+    if (s === "completed") return { bg: "#e7f6ec", color: "#1b6b3a" };
+    if (s === "scheduled") return { bg: "#d3dbf7", color: "#2c48b8" };
+    return { bg: "#f5f7fa", color: "#6b7384" };
   };
 
   const fileTypeIcon = (mime: string, fileName?: string) => {
     const label = getFileTypeLabel(mime, fileName);
-    const colors: Record<string, string> = { PDF: "#da1e28", Word: "#0f62fe", Excel: "#24a148", PowerPoint: "#EA580C", ZIP: "#525252", RAR: "#525252", "7Z": "#525252" };
-    return { label, color: colors[label] || "#525252" };
+    const colors: Record<string, string> = { PDF: "#d14343", Word: "#3557d6", Excel: "#2e9e5b", PowerPoint: "#EA580C", ZIP: "#6b7384", RAR: "#6b7384", "7Z": "#6b7384" };
+    return { label, color: colors[label] || "#6b7384" };
   };
 
   if (loading) {
-    return <div style={{ color: "#8d8d8d", padding: "40px 0" }}>{t("common.loading")}</div>;
+    return <div style={{ color: "#9ba3b4", padding: "40px 0" }}>{t("common.loading")}</div>;
   }
 
   if (!meeting) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, color: "#8d8d8d" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, color: "#9ba3b4" }}>
         <div style={{ fontSize: 48, marginBottom: 12 }}></div>
-        <div style={{ fontSize: 15, fontWeight: 500, color: "#393939", marginBottom: 8 }}>
+        <div style={{ fontSize: 15, fontWeight: 500, color: "#2a3040", marginBottom: 8 }}>
           {t("nsMeetings.noMeetingSelected")}
         </div>
         <button onClick={() => navigate("/ns-meetings")} style={smallBtnStyle}>
@@ -1008,7 +1008,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - var(--header-height))" }}>
         {/* Header */}
         <div style={{
-          background: "#FFFFFF", borderBottom: "1px solid #e0e0e0",
+          background: "#FFFFFF", borderBottom: "1px solid #e3e7ee",
           padding: "16px 32px", flexShrink: 0,
         }}>
           <button
@@ -1018,21 +1018,21 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
             {"\u2190"} {t("nsMeetings.backToMeeting") || meetingTitle}
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: "#161616" }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "#1a1f2b" }}>
               {t("nsMeetings.discussion")}
             </div>
             {commentCount > 0 && (
               <span style={{
-                background: "#edf5ff", color: "#0f62fe", fontSize: 13, fontWeight: 600,
-                borderRadius: 0, padding: "2px 10px",
+                background: "#e9edfb", color: "#3557d6", fontSize: 13, fontWeight: 600,
+                borderRadius: 8, padding: "2px 10px",
               }}>{commentCount}</span>
             )}
           </div>
-          <div style={{ fontSize: 14, color: "#525252", marginTop: 4 }}>{dTitle}</div>
+          <div style={{ fontSize: 14, color: "#6b7384", marginTop: 4 }}>{dTitle}</div>
           {isMeetingCompleted && (
             <div style={{
-              marginTop: 8, padding: "6px 14px", background: "#fcf4d6", borderRadius: 0,
-              fontSize: 13, color: "#684e00", display: "inline-block",
+              marginTop: 8, padding: "6px 14px", background: "#fff5dd", borderRadius: 10,
+              fontSize: 13, color: "#7a5410", display: "inline-block",
             }}>
               {t("nsMeetings.discussionClosed")}
             </div>
@@ -1042,11 +1042,11 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         {/* Comments list — scrollable */}
         <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>
           {rootComments.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "60px 0", color: "#8d8d8d" }}>
+            <div style={{ textAlign: "center", padding: "60px 0", color: "#9ba3b4" }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>{"\uD83D\uDCAC"}</div>
-              <div style={{ fontSize: 15, fontWeight: 500, color: "#525252" }}>{t("nsMeetings.noComments")}</div>
+              <div style={{ fontSize: 15, fontWeight: 500, color: "#6b7384" }}>{t("nsMeetings.noComments")}</div>
               {canWriteComment && !isMeetingCompleted && (
-                <div style={{ fontSize: 13, color: "#8d8d8d", marginTop: 4 }}>{t("nsMeetings.addComment")}</div>
+                <div style={{ fontSize: 13, color: "#9ba3b4", marginTop: 4 }}>{t("nsMeetings.addComment")}</div>
               )}
             </div>
           ) : (
@@ -1054,12 +1054,12 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
               {rootComments.map((comment) => (
                 <div key={comment.id} style={{ marginBottom: 20 }}>
                   {comment.is_deleted ? (
-                    <div style={{ fontSize: 13, color: "#8d8d8d", fontStyle: "italic", padding: "8px 0" }}>
+                    <div style={{ fontSize: 13, color: "#9ba3b4", fontStyle: "italic", padding: "8px 0" }}>
                       {t("nsMeetings.commentDeleted")}
                     </div>
                   ) : (
                     <div style={{
-                      background: "#FFFFFF", border: "1px solid #e0e0e0", borderRadius: 0,
+                      background: "#FFFFFF", border: "1px solid #e3e7ee", borderRadius: 14, boxShadow: "var(--shadow-card)",
                       padding: "16px 20px", }}>
                       {/* Comment header */}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
@@ -1071,7 +1071,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           ) : (
                             <div style={{
                               width: 36, height: 36, borderRadius: "50%",
-                              background: comment.user_role === "admin" ? "#0f62fe" : comment.user_role === "chairman" ? "#684e00" : comment.user_role === "corp_secretary" ? "#525252" : "#0f62fe",
+                              background: comment.user_role === "admin" ? "#3557d6" : comment.user_role === "chairman" ? "#7a5410" : comment.user_role === "corp_secretary" ? "#6b7384" : "#3557d6",
                               color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center",
                               fontSize: 14, fontWeight: 700, flexShrink: 0,
                             }}>
@@ -1080,17 +1080,17 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           )}
                           <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <span style={{ fontWeight: 600, fontSize: 14, color: "#161616" }}>{comment.user_name}</span>
+                              <span style={{ fontWeight: 600, fontSize: 14, color: "#1a1f2b" }}>{comment.user_name}</span>
                               <span style={{
-                                fontSize: 11, padding: "1px 8px", borderRadius: 0,
-                                background: comment.user_role === "admin" ? "#d0e2ff" : comment.user_role === "chairman" ? "#fcf4d6" : comment.user_role === "corp_secretary" ? "#f4f4f4" : "#d0e2ff",
-                                color: comment.user_role === "admin" ? "#0043ce" : comment.user_role === "chairman" ? "#684e00" : comment.user_role === "corp_secretary" ? "#393939" : "#002d9c",
+                                fontSize: 11, padding: "1px 8px", borderRadius: 8,
+                                background: comment.user_role === "admin" ? "#d3dbf7" : comment.user_role === "chairman" ? "#fff5dd" : comment.user_role === "corp_secretary" ? "#f5f7fa" : "#d3dbf7",
+                                color: comment.user_role === "admin" ? "#2c48b8" : comment.user_role === "chairman" ? "#7a5410" : comment.user_role === "corp_secretary" ? "#2a3040" : "#1f3590",
                                 fontWeight: 500,
                               }}>
                                 {t(`roles.${comment.user_role}`, comment.user_role)}
                               </span>
                             </div>
-                            <div style={{ fontSize: 12, color: "#8d8d8d", marginTop: 1 }}>
+                            <div style={{ fontSize: 12, color: "#9ba3b4", marginTop: 1 }}>
                               {new Date(comment.created_at).toLocaleString(getIntlLocale(), {
                                 day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
                               })}
@@ -1101,7 +1101,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           {!isMeetingCompleted && canWriteComment && (
                             <button
                               onClick={() => setReplyTo((p) => ({ ...p, [discussionAgendaId]: comment.id }))}
-                              style={{ fontSize: 13, color: "#0f62fe", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
+                              style={{ fontSize: 13, color: "#3557d6", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
                             >
                               {t("nsMeetings.reply")}
                             </button>
@@ -1109,7 +1109,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           {comment.user_id === profile?.id && !isMeetingCompleted && (
                             <button
                               onClick={() => { setEditingCommentId(comment.id); setEditingCommentText(comment.content); }}
-                              style={{ fontSize: 13, color: "#684e00", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
+                              style={{ fontSize: 13, color: "#7a5410", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
                             >
                               {t("nsMeetings.editComment")}
                             </button>
@@ -1117,7 +1117,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           {(comment.user_id === profile?.id || profile?.role === "admin") && !isMeetingCompleted && (
                             <button
                               onClick={() => handleDeleteComment(discussionAgendaId, comment.id)}
-                              style={{ fontSize: 13, color: "#da1e28", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
+                              style={{ fontSize: 13, color: "#d14343", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
                             >
                               {t("nsMeetings.deleteComment")}
                             </button>
@@ -1133,20 +1133,20 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             rows={4}
                             autoFocus
                             style={{
-                              width: "100%", padding: "10px 14px", fontSize: 15, border: "1px solid #c6c6c6",
-                              borderRadius: 0, resize: "vertical", fontFamily: "inherit", outline: "none",
+                              width: "100%", padding: "10px 14px", fontSize: 15, border: "1px solid #cfd5df",
+                              borderRadius: 10, resize: "vertical", fontFamily: "inherit", outline: "none",
                               boxSizing: "border-box",
                             }}
-                            onFocus={(e) => { e.currentTarget.style.borderColor = "#0f62fe"; e.currentTarget.style.boxShadow = "none"; }}
-                            onBlur={(e) => { e.currentTarget.style.borderColor = "#c6c6c6"; e.currentTarget.style.boxShadow = "none"; }}
+                            onFocus={(e) => { e.currentTarget.style.borderColor = "#3557d6"; e.currentTarget.style.boxShadow = "none"; }}
+                            onBlur={(e) => { e.currentTarget.style.borderColor = "#cfd5df"; e.currentTarget.style.boxShadow = "none"; }}
                           />
                           <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                             <button
                               onClick={() => handleEditComment(discussionAgendaId, comment.id)}
                               disabled={!editingCommentText.trim()}
                               style={{
-                                padding: "7px 18px", fontSize: 13, fontWeight: 500, borderRadius: 0, border: "none",
-                                background: editingCommentText.trim() ? "#0f62fe" : "#c6c6c6", color: "#FFF",
+                                padding: "7px 18px", fontSize: 13, fontWeight: 500, borderRadius: 10, border: "none",
+                                background: editingCommentText.trim() ? "#3557d6" : "#cfd5df", color: "#FFF",
                                 cursor: editingCommentText.trim() ? "pointer" : "default",
                               }}
                             >
@@ -1154,7 +1154,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             </button>
                             <button
                               onClick={() => { setEditingCommentId(null); setEditingCommentText(""); }}
-                              style={{ padding: "7px 18px", fontSize: 13, color: "#525252", background: "none", border: "1px solid #e0e0e0", borderRadius: 0, cursor: "pointer" }}
+                              style={{ padding: "7px 18px", fontSize: 13, color: "#6b7384", background: "none", border: "1px solid #e3e7ee", borderRadius: 10, cursor: "pointer" }}
                             >
                               {t("common.cancel") || "Отмена"}
                             </button>
@@ -1162,11 +1162,11 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         </div>
                       ) : (
                         <div style={{ paddingLeft: 46 }}>
-                          <div style={{ fontSize: 15, color: "#393939", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                          <div style={{ fontSize: 15, color: "#2a3040", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
                             {comment.content}
                           </div>
                           {isEdited(comment) && (
-                            <span style={{ fontSize: 11, color: "#8d8d8d", fontStyle: "italic" }}>
+                            <span style={{ fontSize: 11, color: "#9ba3b4", fontStyle: "italic" }}>
                               {t("nsMeetings.edited")}
                             </span>
                           )}
@@ -1179,12 +1179,12 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                   {repliesOf(comment.id).map((reply) => (
                     <div key={reply.id} style={{ marginLeft: 46, marginTop: 10 }}>
                       {reply.is_deleted ? (
-                        <div style={{ fontSize: 13, color: "#8d8d8d", fontStyle: "italic", padding: "6px 0" }}>
+                        <div style={{ fontSize: 13, color: "#9ba3b4", fontStyle: "italic", padding: "6px 0" }}>
                           {t("nsMeetings.commentDeleted")}
                         </div>
                       ) : (
                         <div style={{
-                          background: "#f4f4f4", border: "1px solid #f4f4f4", borderRadius: 0,
+                          background: "#f5f7fa", border: "1px solid #f5f7fa", borderRadius: 10,
                           padding: "12px 16px",
                         }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -1196,15 +1196,15 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                               ) : (
                                 <div style={{
                                   width: 28, height: 28, borderRadius: "50%",
-                                  background: reply.user_role === "admin" ? "#0f62fe" : "#525252",
+                                  background: reply.user_role === "admin" ? "#3557d6" : "#6b7384",
                                   color: "#FFF", display: "flex", alignItems: "center", justifyContent: "center",
                                   fontSize: 11, fontWeight: 700, flexShrink: 0,
                                 }}>
                                   {(reply.user_name || "?").charAt(0).toUpperCase()}
                                 </div>
                               )}
-                              <span style={{ fontWeight: 600, fontSize: 13, color: "#161616" }}>{reply.user_name}</span>
-                              <span style={{ fontSize: 12, color: "#8d8d8d" }}>
+                              <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1f2b" }}>{reply.user_name}</span>
+                              <span style={{ fontSize: 12, color: "#9ba3b4" }}>
                                 {new Date(reply.created_at).toLocaleString(getIntlLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                               </span>
                             </div>
@@ -1212,7 +1212,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                               {reply.user_id === profile?.id && !isMeetingCompleted && (
                                 <button
                                   onClick={() => { setEditingCommentId(reply.id); setEditingCommentText(reply.content); }}
-                                  style={{ fontSize: 11, color: "#684e00", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
+                                  style={{ fontSize: 11, color: "#7a5410", cursor: "pointer", background: "none", border: "none", fontWeight: 500 }}
                                 >
                                   {t("nsMeetings.editComment")}
                                 </button>
@@ -1220,7 +1220,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                               {(reply.user_id === profile?.id || profile?.role === "admin") && !isMeetingCompleted && (
                                 <button
                                   onClick={() => handleDeleteComment(discussionAgendaId, reply.id)}
-                                  style={{ fontSize: 11, color: "#da1e28", cursor: "pointer", background: "none", border: "none" }}
+                                  style={{ fontSize: 11, color: "#d14343", cursor: "pointer", background: "none", border: "none" }}
                                 >
                                   {t("nsMeetings.deleteComment")}
                                 </button>
@@ -1235,8 +1235,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                                 rows={3}
                                 autoFocus
                                 style={{
-                                  width: "100%", padding: "8px 12px", fontSize: 14, border: "1px solid #c6c6c6",
-                                  borderRadius: 0, resize: "vertical", fontFamily: "inherit", outline: "none",
+                                  width: "100%", padding: "8px 12px", fontSize: 14, border: "1px solid #cfd5df",
+                                  borderRadius: 10, resize: "vertical", fontFamily: "inherit", outline: "none",
                                   boxSizing: "border-box",
                                 }}
                               />
@@ -1245,8 +1245,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                                   onClick={() => handleEditComment(discussionAgendaId, reply.id)}
                                   disabled={!editingCommentText.trim()}
                                   style={{
-                                    padding: "5px 14px", fontSize: 12, fontWeight: 500, borderRadius: 0, border: "none",
-                                    background: editingCommentText.trim() ? "#0f62fe" : "#c6c6c6", color: "#FFF",
+                                    padding: "5px 14px", fontSize: 12, fontWeight: 500, borderRadius: 8, border: "none",
+                                    background: editingCommentText.trim() ? "#3557d6" : "#cfd5df", color: "#FFF",
                                     cursor: editingCommentText.trim() ? "pointer" : "default",
                                   }}
                                 >
@@ -1254,7 +1254,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                                 </button>
                                 <button
                                   onClick={() => { setEditingCommentId(null); setEditingCommentText(""); }}
-                                  style={{ padding: "5px 14px", fontSize: 12, color: "#525252", background: "none", border: "1px solid #e0e0e0", borderRadius: 0, cursor: "pointer" }}
+                                  style={{ padding: "5px 14px", fontSize: 12, color: "#6b7384", background: "none", border: "1px solid #e3e7ee", borderRadius: 8, cursor: "pointer" }}
                                 >
                                   {t("common.cancel") || "Отмена"}
                                 </button>
@@ -1262,11 +1262,11 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             </div>
                           ) : (
                             <div style={{ paddingLeft: 36 }}>
-                              <div style={{ fontSize: 14, color: "#393939", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                              <div style={{ fontSize: 14, color: "#2a3040", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
                                 {reply.content}
                               </div>
                               {isEdited(reply) && (
-                                <span style={{ fontSize: 11, color: "#8d8d8d", fontStyle: "italic" }}>
+                                <span style={{ fontSize: 11, color: "#9ba3b4", fontStyle: "italic" }}>
                                   {t("nsMeetings.edited")}
                                 </span>
                               )}
@@ -1287,19 +1287,19 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         rows={3}
                         autoFocus
                         style={{
-                          flex: 1, padding: "10px 14px", fontSize: 14, border: "1px solid #c6c6c6",
-                          borderRadius: 0, resize: "vertical", fontFamily: "inherit", outline: "none",
+                          flex: 1, padding: "10px 14px", fontSize: 14, border: "1px solid #cfd5df",
+                          borderRadius: 10, resize: "vertical", fontFamily: "inherit", outline: "none",
                         }}
-                        onFocus={(e) => { e.currentTarget.style.borderColor = "#0f62fe"; e.currentTarget.style.boxShadow = "none"; }}
-                        onBlur={(e) => { e.currentTarget.style.borderColor = "#c6c6c6"; e.currentTarget.style.boxShadow = "none"; }}
+                        onFocus={(e) => { e.currentTarget.style.borderColor = "#3557d6"; e.currentTarget.style.boxShadow = "none"; }}
+                        onBlur={(e) => { e.currentTarget.style.borderColor = "#cfd5df"; e.currentTarget.style.boxShadow = "none"; }}
                       />
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                         <button
                           onClick={() => handleAddComment(discussionAgendaId, comment.id)}
                           disabled={commentSending[discussionAgendaId] || !(replyText[discussionAgendaId] || "").trim()}
                           style={{
-                            padding: "8px 16px", fontSize: 13, fontWeight: 500, borderRadius: 0, border: "none",
-                            background: (replyText[discussionAgendaId] || "").trim() ? "#0f62fe" : "#c6c6c6",
+                            padding: "8px 16px", fontSize: 13, fontWeight: 500, borderRadius: 10, border: "none",
+                            background: (replyText[discussionAgendaId] || "").trim() ? "#3557d6" : "#cfd5df",
                             color: "#FFF", cursor: (replyText[discussionAgendaId] || "").trim() ? "pointer" : "default",
                           }}
                         >
@@ -1307,7 +1307,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         </button>
                         <button
                           onClick={() => setReplyTo((p) => ({ ...p, [discussionAgendaId]: null }))}
-                          style={{ padding: "6px 12px", fontSize: 12, color: "#525252", background: "none", border: "1px solid #e0e0e0", borderRadius: 0, cursor: "pointer" }}
+                          style={{ padding: "6px 12px", fontSize: 12, color: "#6b7384", background: "none", border: "1px solid #e3e7ee", borderRadius: 8, cursor: "pointer" }}
                         >
                           {t("common.cancel") || "Отмена"}
                         </button>
@@ -1323,7 +1323,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         {/* Input area — fixed at bottom */}
         {!isMeetingCompleted && canWriteComment && (
           <div style={{
-            padding: "16px 32px", borderTop: "1px solid #e0e0e0", background: "#FFFFFF", flexShrink: 0,
+            padding: "16px 32px", borderTop: "1px solid #e3e7ee", background: "#FFFFFF", flexShrink: 0,
           }}>
             <div style={{ display: "flex", gap: 12, maxWidth: 800, alignItems: "flex-end" }}>
               <textarea
@@ -1332,12 +1332,12 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 placeholder={t("nsMeetings.commentPlaceholder")}
                 rows={3}
                 style={{
-                  flex: 1, padding: "12px 16px", fontSize: 15, border: "1px solid #c6c6c6",
-                  borderRadius: 0, resize: "vertical", fontFamily: "inherit", outline: "none",
+                  flex: 1, padding: "12px 16px", fontSize: 15, border: "1px solid #cfd5df",
+                  borderRadius: 10, resize: "vertical", fontFamily: "inherit", outline: "none",
                   minHeight: 60,
                 }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "#0f62fe"; e.currentTarget.style.boxShadow = "none"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#c6c6c6"; e.currentTarget.style.boxShadow = "none"; }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "#3557d6"; e.currentTarget.style.boxShadow = "none"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "#cfd5df"; e.currentTarget.style.boxShadow = "none"; }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                     e.preventDefault();
@@ -1349,8 +1349,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 onClick={() => handleAddComment(discussionAgendaId)}
                 disabled={commentSending[discussionAgendaId] || !(commentText[discussionAgendaId] || "").trim()}
                 style={{
-                  padding: "12px 28px", fontSize: 15, fontWeight: 600, borderRadius: 0, border: "none",
-                  background: (commentText[discussionAgendaId] || "").trim() ? "#0f62fe" : "#c6c6c6",
+                  padding: "12px 28px", fontSize: 15, fontWeight: 600, borderRadius: 10, border: "none",
+                  background: (commentText[discussionAgendaId] || "").trim() ? "#3557d6" : "#cfd5df",
                   color: "#FFF", cursor: (commentText[discussionAgendaId] || "").trim() ? "pointer" : "default",
                   whiteSpace: "nowrap", height: 48,
                 }}
@@ -1358,13 +1358,13 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 {commentSending[discussionAgendaId] ? "..." : t("nsMeetings.send")}
               </button>
             </div>
-            <div style={{ fontSize: 12, color: "#8d8d8d", marginTop: 6 }}>Ctrl+Enter</div>
+            <div style={{ fontSize: 12, color: "#9ba3b4", marginTop: 6 }}>Ctrl+Enter</div>
           </div>
         )}
 
         {!canWriteComment && !isMeetingCompleted && (
-          <div style={{ padding: "14px 32px", borderTop: "1px solid #e0e0e0", background: "#f4f4f4", flexShrink: 0 }}>
-            <div style={{ fontSize: 13, color: "#8d8d8d", fontStyle: "italic" }}>
+          <div style={{ padding: "14px 32px", borderTop: "1px solid #e3e7ee", background: "#f5f7fa", flexShrink: 0 }}>
+            <div style={{ fontSize: 13, color: "#9ba3b4", fontStyle: "italic" }}>
               {t("nsMeetings.noWriteAccess")}
             </div>
           </div>
@@ -1391,13 +1391,13 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
               {getLocalizedField(meeting as unknown as Record<string, unknown>, "title")}
             </h2>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
-              <span style={{ fontSize: 14, color: "#525252" }}>
+              <span style={{ fontSize: 14, color: "#6b7384" }}>
                 {new Date(meeting.start_at).toLocaleDateString(getIntlLocale(), {
                   day: "numeric", month: "long", year: "numeric",
                 })}
               </span>
               {(() => { const sc = statusColor(meeting.status); return (
-                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 0, background: sc.bg, color: sc.color }}>
+                <span style={{ fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 8, background: sc.bg, color: sc.color }}>
                   {statusLabel(meeting.status)}
                 </span>
               ); })()}
@@ -1408,7 +1408,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
               <button onClick={openEditForm} style={smallBtnStyle}>
                 {t("nsMeetings.editMeeting")}
               </button>
-              <button onClick={handleDeleteMeeting} style={{ ...smallBtnStyle, color: "#da1e28", borderColor: "#ffd7d9" }}>
+              <button onClick={handleDeleteMeeting} style={{ ...smallBtnStyle, color: "#d14343", borderColor: "#f5c9c9" }}>
                 {t("nsMeetings.deleteMeeting")}
               </button>
             </div>
@@ -1416,9 +1416,9 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         </div>
 
         {/* Protocol Draft */}
-        <div style={{ borderTop: "1px solid #e0e0e0", paddingTop: 16, marginBottom: 4 }}>
+        <div style={{ borderTop: "1px solid #e3e7ee", paddingTop: 16, marginBottom: 4 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "#393939" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#2a3040" }}>
               {t("nsMeetings.protocolDraft")}
             </span>
             {isAdmin && !protocolDoc && (
@@ -1442,7 +1442,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           </div>
 
           {!protocolDoc && (
-            <p style={{ color: "#c6c6c6", fontSize: 13, margin: 0 }}>
+            <p style={{ color: "#cfd5df", fontSize: 13, margin: 0 }}>
               {t("nsMeetings.noProtocol")}
             </p>
           )}
@@ -1453,7 +1453,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
               <div style={materialCardStyle}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
                   <div style={{
-                    width: 36, height: 36, borderRadius: 0, display: "flex",
+                    width: 36, height: 36, borderRadius: 8, display: "flex",
                     alignItems: "center", justifyContent: "center",
                     background: ft.color + "18", color: ft.color,
                     fontSize: 11, fontWeight: 700, flexShrink: 0,
@@ -1461,10 +1461,10 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                     {ft.label}
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: "#1a1f2b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {protocolDoc.file_name}
                     </div>
-                    <div style={{ fontSize: 12, color: "#8d8d8d" }}>
+                    <div style={{ fontSize: 12, color: "#9ba3b4" }}>
                       {formatFileSize(protocolDoc.file_size)} · {new Date(protocolDoc.created_at).toLocaleDateString(getIntlLocale())}
                     </div>
                   </div>
@@ -1489,9 +1489,9 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         </div>
 
         {/* Agenda Document */}
-        <div style={{ borderTop: "1px solid #e0e0e0", paddingTop: 16, marginBottom: 4 }}>
+        <div style={{ borderTop: "1px solid #e3e7ee", paddingTop: 16, marginBottom: 4 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "#393939" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#2a3040" }}>
               {t("nsMeetings.agendaDocSection")}
             </span>
             {isAdmin && !agendaDoc && (
@@ -1515,7 +1515,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           </div>
 
           {!agendaDoc && (
-            <p style={{ color: "#c6c6c6", fontSize: 13, margin: 0 }}>
+            <p style={{ color: "#cfd5df", fontSize: 13, margin: 0 }}>
               {t("nsMeetings.noAgendaDoc")}
             </p>
           )}
@@ -1526,7 +1526,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
               <div style={materialCardStyle}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
                   <div style={{
-                    width: 36, height: 36, borderRadius: 0, display: "flex",
+                    width: 36, height: 36, borderRadius: 8, display: "flex",
                     alignItems: "center", justifyContent: "center",
                     background: ft.color + "18", color: ft.color,
                     fontSize: 11, fontWeight: 700, flexShrink: 0,
@@ -1534,10 +1534,10 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                     {ft.label}
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: "#1a1f2b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {agendaDoc.file_name}
                     </div>
-                    <div style={{ fontSize: 12, color: "#8d8d8d" }}>
+                    <div style={{ fontSize: 12, color: "#9ba3b4" }}>
                       {formatFileSize(agendaDoc.file_size)} · {new Date(agendaDoc.created_at).toLocaleDateString(getIntlLocale())}
                     </div>
                   </div>
@@ -1553,7 +1553,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                   </button>
                   {isAdmin && (
                     <>
-                      <button onClick={() => agendaDocInputRef.current?.click()} style={{ ...downloadBtnStyle, color: "#525252" }}
+                      <button onClick={() => agendaDocInputRef.current?.click()} style={{ ...downloadBtnStyle, color: "#6b7384" }}
                         title={t("nsMeetings.uploadAgendaDoc")}>
                         ↑
                       </button>
@@ -1579,10 +1579,10 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         </div>
 
         {/* ===== Video Conference Block ===== */}
-        <div style={{ borderTop: "1px solid #e0e0e0", paddingTop: 16, marginBottom: 4 }}>
+        <div style={{ borderTop: "1px solid #e3e7ee", paddingTop: 16, marginBottom: 4 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#393939" }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#2a3040" }}>
                 {t("nsVideoConf.title")}
               </span>
               {!meeting.video_conference_url && (
@@ -1595,7 +1595,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 <span style={getVcBadgeStyle("ready")}>{t("nsVideoConf.statusReady")}</span>
               )}
               {meeting.video_conference_url && meeting.video_conference_provider && (
-                <span style={{ fontSize: 12, color: "#8d8d8d" }}>
+                <span style={{ fontSize: 12, color: "#9ba3b4" }}>
                   {t(`nsVideoConf.provider_${meeting.video_conference_provider}`)}
                 </span>
               )}
@@ -1623,7 +1623,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                     <button onClick={openVcForm} style={smallBtnStyle}>
                       {t("nsVideoConf.edit")}
                     </button>
-                    <button onClick={handleDeactivateVc} style={{ ...smallBtnStyle, color: "#da1e28", borderColor: "#ffd7d9" }}>
+                    <button onClick={handleDeactivateVc} style={{ ...smallBtnStyle, color: "#d14343", borderColor: "#f5c9c9" }}>
                       {t("nsVideoConf.deactivate")}
                     </button>
                   </>
@@ -1633,7 +1633,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           </div>
 
           {showVcForm && isAdmin && (
-            <div style={{ background: "#f4f4f4", borderRadius: 0, border: "1px solid #e0e0e0", padding: 16, marginBottom: 12 }}>
+            <div style={{ background: "#f5f7fa", borderRadius: 14, boxShadow: "var(--shadow-card)", border: "1px solid #e3e7ee", padding: 16, marginBottom: 12 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <div>
                   <label style={labelStyle}>{t("nsVideoConf.urlLabel")}</label>
@@ -1675,7 +1675,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                   />
                 </div>
                 {vcError && (
-                  <p style={{ fontSize: 12, color: "#da1e28", margin: 0 }}>{vcError}</p>
+                  <p style={{ fontSize: 12, color: "#d14343", margin: 0 }}>{vcError}</p>
                 )}
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
@@ -1694,7 +1694,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           )}
 
           {meeting.video_conference_notes && !showVcForm && (
-            <p style={{ fontSize: 13, color: "#525252", margin: "0 0 10px", fontStyle: "italic" }}>
+            <p style={{ fontSize: 13, color: "#6b7384", margin: "0 0 10px", fontStyle: "italic" }}>
               {meeting.video_conference_notes}
             </p>
           )}
@@ -1710,7 +1710,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 {t("nsVideoConf.join")}
               </a>
               {meeting.video_conference_started_at && (
-                <div style={{ fontSize: 12, color: "#525252", marginTop: 6 }}>
+                <div style={{ fontSize: 12, color: "#6b7384", marginTop: 6 }}>
                   {t("nsVideoConf.startedAt")}: {new Date(meeting.video_conference_started_at).toLocaleString(getIntlLocale(), {
                     day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
                   })}
@@ -1727,7 +1727,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
         </div>
 
         {/* Agenda Section */}
-        <div style={{ borderTop: "1px solid #e0e0e0", paddingTop: 20 }}>
+        <div style={{ borderTop: "1px solid #e3e7ee", paddingTop: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
             <h3 style={{ margin: 0, fontSize: 16 }}>{t("nsMeetings.agenda")}</h3>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -1748,7 +1748,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
           </div>
 
           {agendaItems.length === 0 && (
-            <p style={{ color: "#8d8d8d", fontSize: 14 }}>{t("nsMeetings.noAgenda")}</p>
+            <p style={{ color: "#9ba3b4", fontSize: 14 }}>{t("nsMeetings.noAgenda")}</p>
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1758,11 +1758,11 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 <div key={item.id} style={agendaItemStyle}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 15, color: "#161616" }}>
+                      <div style={{ fontWeight: 600, fontSize: 15, color: "#1a1f2b" }}>
                         {idx + 1}. {getLocalizedField(item as unknown as Record<string, unknown>, "title")}
                       </div>
                       {(item.presenter_ru || item.presenter) && (
-                        <div style={{ fontSize: 13, color: "#525252", marginTop: 4 }}>
+                        <div style={{ fontSize: 13, color: "#6b7384", marginTop: 4 }}>
                           <span style={{ fontWeight: 500 }}>{t("nsMeetings.speaker")}:</span>{" "}
                           {getLocalizedField(item as unknown as Record<string, unknown>, "presenter")}
                         </div>
@@ -1790,7 +1790,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                   {/* Materials — only render if admin (can upload) or if there are actual files */}
                   {(isAdmin || mats.length > 0) && (
                   <div style={{ marginTop: 12 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#393939", display: "block", marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#2a3040", display: "block", marginBottom: 8 }}>
                       {t("nsMeetings.materials")}
                     </span>
 
@@ -1802,9 +1802,9 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                       const langLabel = lang === "ru" ? t("nsMeetings.matLangRu") : lang === "uz" ? t("nsMeetings.matLangUz") : t("nsMeetings.matLangEn");
 
                       return (
-                        <div key={lang} style={{ marginBottom: 10, padding: "8px 10px", background: "#f4f4f4", borderRadius: 0, border: "1px solid #f4f4f4" }}>
+                        <div key={lang} style={{ marginBottom: 10, padding: "8px 10px", background: "#f5f7fa", borderRadius: 10, border: "1px solid #f5f7fa" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: "#525252", }}>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7384", }}>
                               {langLabel}
                             </span>
                             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -1849,7 +1849,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           </div>
 
                           {langMats.length === 0 && isAdmin && (
-                            <p style={{ color: "#c6c6c6", fontSize: 12, margin: 0 }}>
+                            <p style={{ color: "#cfd5df", fontSize: 12, margin: 0 }}>
                               {t("nsMeetings.noMaterialsLang")}
                             </p>
                           )}
@@ -1860,7 +1860,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                               <div key={mat.id} style={materialCardStyle}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
                                   <div style={{
-                                    width: 36, height: 36, borderRadius: 0, display: "flex",
+                                    width: 36, height: 36, borderRadius: 8, display: "flex",
                                     alignItems: "center", justifyContent: "center",
                                     background: ft.color + "18", color: ft.color,
                                     fontSize: 11, fontWeight: 700, flexShrink: 0,
@@ -1868,10 +1868,10 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                                     {ft.label}
                                   </div>
                                   <div style={{ minWidth: 0, flex: 1 }}>
-                                    <div style={{ fontSize: 14, fontWeight: 500, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    <div style={{ fontSize: 14, fontWeight: 500, color: "#1a1f2b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                       {mat.file_name}
                                     </div>
-                                    <div style={{ fontSize: 12, color: "#8d8d8d" }}>
+                                    <div style={{ fontSize: 12, color: "#9ba3b4" }}>
                                       {formatFileSize(mat.file_size)} · {new Date(mat.created_at).toLocaleDateString(getIntlLocale())}
                                     </div>
                                   </div>
@@ -1899,8 +1899,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
 
                     {/* Legacy materials without language */}
                     {mats.filter((m) => !m.language).length > 0 && (
-                      <div style={{ marginBottom: 10, padding: "8px 10px", background: "#f4f4f4", borderRadius: 0, border: "1px solid #f4f4f4" }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: "#525252", marginBottom: 6, display: "block" }}>
+                      <div style={{ marginBottom: 10, padding: "8px 10px", background: "#f5f7fa", borderRadius: 10, border: "1px solid #f5f7fa" }}>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7384", marginBottom: 6, display: "block" }}>
                           {t("nsMeetings.matLangGeneral")}
                         </span>
                         {mats.filter((m) => !m.language).map((mat) => {
@@ -1909,7 +1909,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             <div key={mat.id} style={materialCardStyle}>
                               <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
                                 <div style={{
-                                  width: 36, height: 36, borderRadius: 0, display: "flex",
+                                  width: 36, height: 36, borderRadius: 8, display: "flex",
                                   alignItems: "center", justifyContent: "center",
                                   background: ft.color + "18", color: ft.color,
                                   fontSize: 11, fontWeight: 700, flexShrink: 0,
@@ -1917,10 +1917,10 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                                   {ft.label}
                                 </div>
                                 <div style={{ minWidth: 0, flex: 1 }}>
-                                  <div style={{ fontSize: 14, fontWeight: 500, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  <div style={{ fontSize: 14, fontWeight: 500, color: "#1a1f2b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {mat.file_name}
                                   </div>
-                                  <div style={{ fontSize: 12, color: "#8d8d8d" }}>
+                                  <div style={{ fontSize: 12, color: "#9ba3b4" }}>
                                     {formatFileSize(mat.file_size)} · {new Date(mat.created_at).toLocaleDateString(getIntlLocale())}
                                   </div>
                                 </div>
@@ -1962,7 +1962,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             <select
                               value={lang}
                               onChange={(e) => setBriefLang((prev) => ({ ...prev, [item.id]: e.target.value as BriefLang }))}
-                              style={{ fontSize: 13, padding: "4px 8px", borderRadius: 0, border: "1px solid #c6c6c6", background: "#fff" }}
+                              style={{ fontSize: 13, padding: "4px 8px", borderRadius: 8, border: "1px solid #cfd5df", background: "#fff" }}
                             >
                               {LANG_OPTIONS.map((o) => (
                                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -1985,7 +1985,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                             {brief && !isLoading && (
                               <button
                                 onClick={() => setBriefExpanded((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
-                                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: "#24a148", background: "none", border: "none", cursor: "pointer", padding: "4px 6px" }}
+                                style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: "#2e9e5b", background: "none", border: "none", cursor: "pointer", padding: "4px 6px" }}
                               >
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s" }} aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
                                 {isExpanded ? t("nsMeetings.briefCollapse") : t("nsMeetings.briefExpand")}
@@ -1994,13 +1994,13 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           </div>
 
                           {isLoading && (
-                            <div style={{ fontSize: 13, color: "#525252", padding: "8px 0" }}>
+                            <div style={{ fontSize: 13, color: "#6b7384", padding: "8px 0" }}>
                               {t("nsMeetings.briefLoading")}
                             </div>
                           )}
 
                           {error && (
-                            <div style={{ fontSize: 13, color: "#da1e28", padding: "4px 0" }}>
+                            <div style={{ fontSize: 13, color: "#d14343", padding: "4px 0" }}>
                               {error}
                             </div>
                           )}
@@ -2008,22 +2008,22 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           {brief && !isLoading && isExpanded && (
                             <div style={briefBlockStyle}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                                <span style={{ fontSize: 13, fontWeight: 600, color: "#525252" }}>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: "#6b7384" }}>
                                   {t("nsMeetings.aiBrief")} ({LANG_OPTIONS.find((o) => o.value === lang)?.label})
                                 </span>
                                 <div style={{ display: "flex", gap: 6 }}>
                                   <button onClick={() => handleCopyBrief(item.id)} style={briefActionBtnStyle}>
                                     {briefCopied[key] ? t("nsMeetings.briefCopied") : t("nsMeetings.copyBrief")}
                                   </button>
-                                  <button onClick={() => handleDownloadDocx(item.id)} style={{ ...briefActionBtnStyle, color: "#0f62fe" }}>
+                                  <button onClick={() => handleDownloadDocx(item.id)} style={{ ...briefActionBtnStyle, color: "#3557d6" }}>
                                     ↓ {t("nsMeetings.downloadDocx")}
                                   </button>
                                 </div>
                               </div>
-                              <div style={{ fontSize: 13, lineHeight: 1.6, color: "#393939", whiteSpace: "pre-wrap" }}>
+                              <div style={{ fontSize: 13, lineHeight: 1.6, color: "#2a3040", whiteSpace: "pre-wrap" }}>
                                 {brief.brief_text}
                               </div>
-                              <div style={{ fontSize: 11, color: "#8d8d8d", marginTop: 8 }}>
+                              <div style={{ fontSize: 11, color: "#9ba3b4", marginTop: 8 }}>
                                 {t("nsMeetings.briefFilesUsed")}: {brief.files_used}
                               </div>
                             </div>
@@ -2041,9 +2041,9 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                     const myVote = voting ? (myVotesMap[voting.id] ?? null) : null;
                     const tally = voting ? tallyBoardVotes(voting.votes || []) : null;
                     return (
-                      <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #f4f4f4" }}>
+                      <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #f5f7fa" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: "#393939" }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: "#2a3040" }}>
                             {t("nsVoting.title")}
                           </span>
                           {voting && (
@@ -2058,38 +2058,38 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         {isAdmin && isVotingOpen && (
                           <button
                             onClick={() => handleCloseVoting(voting!.id)}
-                            style={{ ...smallBtnStyle, fontSize: 12, padding: "3px 10px", color: "#da1e28", borderColor: "#ffd7d9" }}
+                            style={{ ...smallBtnStyle, fontSize: 12, padding: "3px 10px", color: "#d14343", borderColor: "#f5c9c9" }}
                           >
                             {t("nsVoting.closeVoting")}
                           </button>
                         )}
 
                         {!voting && !isAdmin && (
-                          <span style={{ fontSize: 13, color: "#8d8d8d" }}>{t("nsVoting.notStarted")}</span>
+                          <span style={{ fontSize: 13, color: "#9ba3b4" }}>{t("nsVoting.notStarted")}</span>
                         )}
 
                         {tally && (
                           <div style={{ display: "flex", gap: 16, fontSize: 13, marginTop: 6, marginBottom: 8 }}>
-                            <span style={{ color: "#24a148", fontWeight: 500 }}>{t("nsVoting.voteFor")}: {tally.forCount}</span>
-                            <span style={{ color: "#da1e28", fontWeight: 500 }}>{t("nsVoting.voteAgainst")}: {tally.againstCount}</span>
-                            <span style={{ color: "#8d8d8d", fontWeight: 500 }}>– {t("nsVoting.voteAbstain")}: {tally.abstainCount}</span>
+                            <span style={{ color: "#2e9e5b", fontWeight: 500 }}>{t("nsVoting.voteFor")}: {tally.forCount}</span>
+                            <span style={{ color: "#d14343", fontWeight: 500 }}>{t("nsVoting.voteAgainst")}: {tally.againstCount}</span>
+                            <span style={{ color: "#9ba3b4", fontWeight: 500 }}>– {t("nsVoting.voteAbstain")}: {tally.abstainCount}</span>
                           </div>
                         )}
 
                         {/* Individual votes list */}
                         {voting && (voting.votes || []).length > 0 && (
-                          <div style={{ marginTop: 4, marginBottom: 8, padding: "8px 12px", background: "#f4f4f4", borderRadius: 0, border: "1px solid #f4f4f4" }}>
+                          <div style={{ marginTop: 4, marginBottom: 8, padding: "8px 12px", background: "#f5f7fa", borderRadius: 10, border: "1px solid #f5f7fa" }}>
                             {(voting.votes || []).map((vote) => {
                               const vp = voterProfiles[vote.voter_id];
                               const name = vp ? getLocalizedName(vp, i18n.language) : vote.voter_id.slice(0, 8);
                               const choiceIcon = vote.choice === "for" ? "" : vote.choice === "against" ? "" : "–";
-                              const choiceColor = vote.choice === "for" ? "#24a148" : vote.choice === "against" ? "#da1e28" : "#8d8d8d";
+                              const choiceColor = vote.choice === "for" ? "#2e9e5b" : vote.choice === "against" ? "#d14343" : "#9ba3b4";
                               const choiceLabel = vote.choice === "for" ? t("nsVoting.voteFor")
                                 : vote.choice === "against" ? t("nsVoting.voteAgainst")
                                 : t("nsVoting.voteAbstain");
                               return (
                                 <div key={vote.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0", fontSize: 13 }}>
-                                  <span style={{ color: "#393939" }}>{name}</span>
+                                  <span style={{ color: "#2a3040" }}>{name}</span>
                                   <span style={{ color: choiceColor, fontWeight: 600 }}>{choiceIcon} {choiceLabel}</span>
                                 </div>
                               );
@@ -2101,7 +2101,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                           <div style={{ marginTop: 6 }}>
                             {myVote ? (
                               <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-                                <span style={{ fontSize: 13, color: "#525252" }}>{t("nsVoting.myVote")}:</span>
+                                <span style={{ fontSize: 13, color: "#6b7384" }}>{t("nsVoting.myVote")}:</span>
                                 {(["for", "against", "abstain"] as const).map((c) => (
                                   <button
                                     key={c}
@@ -2133,7 +2133,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         )}
 
                         {meetingSignature && myVote && (
-                          <div style={{ fontSize: 13, color: "#24a148", marginTop: 4 }}>
+                          <div style={{ fontSize: 13, color: "#2e9e5b", marginTop: 4 }}>
                             {t("nsVoting.myVote")}: {
                               myVote.choice === "for" ? t("nsVoting.voteFor")
                                 : myVote.choice === "against" ? t("nsVoting.voteAgainst")
@@ -2143,7 +2143,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         )}
 
                         {isVotingClosed && !meetingSignature && myVote && (
-                          <div style={{ fontSize: 13, color: "#525252", marginTop: 4 }}>
+                          <div style={{ fontSize: 13, color: "#6b7384", marginTop: 4 }}>
                             {t("nsVoting.myVote")}: {
                               myVote.choice === "for" ? t("nsVoting.voteFor")
                                 : myVote.choice === "against" ? t("nsVoting.voteAgainst")
@@ -2156,18 +2156,18 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                   })()}
 
                   {/* ── Discussion Button ── */}
-                  <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #f4f4f4" }}>
+                  <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #f5f7fa" }}>
                     <button
                       onClick={() => setDiscussionAgendaId(item.id)}
                       style={{
                         display: "inline-flex", alignItems: "center", gap: 8,
                         padding: "7px 16px", fontSize: 13, fontWeight: 500,
-                        background: "#f4f4f4", border: "1px solid #e0e0e0", borderRadius: 0,
-                        color: "#393939", cursor: "pointer",
+                        background: "#f5f7fa", border: "1px solid #e3e7ee", borderRadius: 10,
+                        color: "#2a3040", cursor: "pointer",
                         transition: "all 0.15s",
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "#f4f4f4"; e.currentTarget.style.borderColor = "#c6c6c6"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "#f4f4f4"; e.currentTarget.style.borderColor = "#e0e0e0"; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f7fa"; e.currentTarget.style.borderColor = "#cfd5df"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "#f5f7fa"; e.currentTarget.style.borderColor = "#e3e7ee"; }}
                     >
                       <span style={{ fontSize: 15 }}>{"\uD83D\uDCAC"}</span>
                       {t("nsMeetings.discussion")}
@@ -2175,8 +2175,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         const count = (commentsMap[item.id] || []).filter((c) => !c.is_deleted).length;
                         return count > 0 ? (
                           <span style={{
-                            background: "#0f62fe", color: "#FFF", fontSize: 11, fontWeight: 600,
-                            borderRadius: 0, padding: "1px 7px", minWidth: 18, textAlign: "center" as const,
+                            background: "#3557d6", color: "#FFF", fontSize: 11, fontWeight: 600,
+                            borderRadius: 8, padding: "1px 7px", minWidth: 18, textAlign: "center" as const,
                           }}>{count}</span>
                         ) : null;
                       })()}
@@ -2198,17 +2198,17 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
               <div style={{
                 marginTop: 24,
                 padding: "18px 20px",
-                background: meetingSignature ? "#defbe6" : "#f4f4f4",
-                borderRadius: 0,
-                border: `1px solid ${meetingSignature ? "#a7f0ba" : "#e0e0e0"}`,
+                background: meetingSignature ? "#e7f6ec" : "#f5f7fa",
+                borderRadius: 10,
+                border: `1px solid ${meetingSignature ? "#cfead8" : "#e3e7ee"}`,
               }}>
                 {meetingSignature ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: "#24a148" }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: "#2e9e5b" }}>
                         {t("nsVoting.signed")}
                       </div>
-                      <div style={{ fontSize: 13, color: "#525252" }}>
+                      <div style={{ fontSize: 13, color: "#6b7384" }}>
                         {t("nsVoting.signedAt")}: {new Date(meetingSignature.signed_at).toLocaleString(getIntlLocale(), {
                           day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
                         })}
@@ -2218,17 +2218,17 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 ) : (
                   <div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: "#393939" }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "#2a3040" }}>
                         {t("nsVoting.title")} — {votedCount}/{openVotings.length}
                       </span>
                       {allVoted && (
-                        <span style={{ fontSize: 13, color: "#24a148", fontWeight: 500 }}>
+                        <span style={{ fontSize: 13, color: "#2e9e5b", fontWeight: 500 }}>
                           {t("nsVoting.allVotedReady")}
                         </span>
                       )}
                     </div>
                     {signError && (
-                      <p style={{ color: "#da1e28", fontSize: 13, margin: "0 0 8px 0" }}>{signError}</p>
+                      <p style={{ color: "#d14343", fontSize: 13, margin: "0 0 8px 0" }}>{signError}</p>
                     )}
                     <button
                       onClick={handleSignVotes}
@@ -2237,10 +2237,10 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         padding: "11px 28px",
                         fontSize: 14,
                         fontWeight: 600,
-                        borderRadius: 0,
+                        borderRadius: 10,
                         border: "none",
-                        background: allVoted ? "#161616" : "#e0e0e0",
-                        color: allVoted ? "#FFFFFF" : "#8d8d8d",
+                        background: allVoted ? "#1a1f2b" : "#e3e7ee",
+                        color: allVoted ? "#FFFFFF" : "#9ba3b4",
                         cursor: allVoted && !signingInProgress ? "pointer" : "not-allowed",
                         transition: "all 0.2s",
                       }}
@@ -2248,7 +2248,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                       {signingInProgress ? "..." : t("nsVoting.signPackage")}
                     </button>
                     {!allVoted && openVotings.length > 0 && (
-                      <p style={{ fontSize: 13, color: "#8d8d8d", margin: "8px 0 0 0" }}>
+                      <p style={{ fontSize: 13, color: "#9ba3b4", margin: "8px 0 0 0" }}>
                         {t("nsVoting.notAllVoted")}
                       </p>
                     )}
@@ -2261,7 +2261,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
 
         {/* "Ready" button */}
         {isAdmin && (
-          <div style={{ borderTop: "1px solid #e0e0e0", paddingTop: 20, marginTop: 20, display: "flex", justifyContent: "center" }}>
+          <div style={{ borderTop: "1px solid #e3e7ee", paddingTop: 20, marginTop: 20, display: "flex", justifyContent: "center" }}>
             <button
               onClick={async () => {
                 const next = !meeting.materials_ready;
@@ -2272,10 +2272,10 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 padding: "12px 48px",
                 fontSize: 15,
                 fontWeight: 700,
-                borderRadius: 0,
-                border: meeting.materials_ready ? "2px solid #24a148" : "2px solid #c6c6c6",
-                background: meeting.materials_ready ? "#defbe6" : "#FFFFFF",
-                color: meeting.materials_ready ? "#24a148" : "#393939",
+                borderRadius: 10,
+                border: meeting.materials_ready ? "2px solid #2e9e5b" : "2px solid #cfd5df",
+                background: meeting.materials_ready ? "#e7f6ec" : "#FFFFFF",
+                color: meeting.materials_ready ? "#2e9e5b" : "#2a3040",
                 cursor: "pointer",
                 transition: "all 0.2s",
               }}
@@ -2315,7 +2315,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 </select>
               </div>
 
-              <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #e0e0e0" }}>
+              <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #e3e7ee" }}>
                 {(["ru", "uz", "en"] as SupportedLang[]).map((lang) => {
                   const status = lang === "ru" ? agendaStatusRu : lang === "uz" ? agendaStatusUz : agendaStatusEn;
                   const isSource = lang === agendaSourceLang;
@@ -2329,15 +2329,15 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                       onClick={() => setAgendaLangTab(lang)}
                       style={{
                         padding: "6px 16px", fontSize: 13, cursor: "pointer",
-                        borderBottom: isActive ? "2px solid #0f62fe" : "2px solid transparent",
+                        borderBottom: isActive ? "2px solid #3557d6" : "2px solid transparent",
                         background: "none", fontWeight: isActive ? 600 : 400,
-                        color: isActive ? "#0f62fe" : "#525252",
+                        color: isActive ? "#3557d6" : "#6b7384",
                         display: "flex", alignItems: "center", gap: 6,
                       }}
                     >
                       {lang.toUpperCase()}
-                      {isSource && <span style={{ fontSize: 10, background: "#defbe6", color: "#0e6027", borderRadius: 0, padding: "1px 5px" }}>src</span>}
-                      {!isSource && isEmpty && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#c6c6c6", display: "inline-block" }} />}
+                      {isSource && <span style={{ fontSize: 10, background: "#e7f6ec", color: "#1b6b3a", borderRadius: 8, padding: "1px 5px" }}>src</span>}
+                      {!isSource && isEmpty && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#cfd5df", display: "inline-block" }} />}
                       {!isSource && !isEmpty && <span style={getStatusBadgeStyle(status)}>{status === "auto_translated" ? "" : ""}</span>}
                     </button>
                   );
@@ -2387,42 +2387,42 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 {agendaTranslating ? t("nsMeetings.generating") : t("nsMeetings.generateTranslations")}
               </button>
               {!agendaTranslating && !agendaTranslationError && (
-                <p style={{ fontSize: 11, color: "#525252", margin: "-4px 0 0" }}>
+                <p style={{ fontSize: 11, color: "#6b7384", margin: "-4px 0 0" }}>
                   {t("nsMeetings.translationProviderNote")}
                 </p>
               )}
               {agendaTranslationError && (
-                <p style={{ fontSize: 12, color: "#da1e28", margin: "-4px 0 0", background: "#fff1f1", padding: "6px 10px", borderRadius: 0 }}>
+                <p style={{ fontSize: 12, color: "#d14343", margin: "-4px 0 0", background: "#fdeaea", padding: "6px 10px", borderRadius: 8 }}>
                   {agendaTranslationError}
                 </p>
               )}
 
               <div style={{
                 display: "flex", alignItems: "center", gap: 10,
-                padding: "10px 12px", borderRadius: 0,
-                background: agendaAiBriefEnabled ? "#defbe6" : "#fff1f1",
-                border: `1px solid ${agendaAiBriefEnabled ? "#a7f0ba" : "#ffd7d9"}`,
+                padding: "10px 12px", borderRadius: 10,
+                background: agendaAiBriefEnabled ? "#e7f6ec" : "#fdeaea",
+                border: `1px solid ${agendaAiBriefEnabled ? "#cfead8" : "#f5c9c9"}`,
               }}>
                 <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flex: 1 }}>
                   <input
                     type="checkbox"
                     checked={agendaAiBriefEnabled}
                     onChange={(e) => setAgendaAiBriefEnabled(e.target.checked)}
-                    style={{ width: 18, height: 18, accentColor: "#525252", cursor: "pointer" }}
+                    style={{ width: 18, height: 18, accentColor: "#6b7384", cursor: "pointer" }}
                   />
-                  <span style={{ fontSize: 14, fontWeight: 500, color: "#393939" }}>
+                  <span style={{ fontSize: 14, fontWeight: 500, color: "#2a3040" }}>
                     {t("nsMeetings.aiBriefEnabled")}
                   </span>
                 </label>
               </div>
               {!agendaAiBriefEnabled && (
-                <p style={{ fontSize: 12, color: "#684e00", margin: "-4px 0 0", background: "#fcf4d6", padding: "6px 10px", borderRadius: 0 }}>
+                <p style={{ fontSize: 12, color: "#7a5410", margin: "-4px 0 0", background: "#fff5dd", padding: "6px 10px", borderRadius: 8 }}>
                   {t("nsMeetings.aiBriefDisabledHint")}
                 </p>
               )}
 
               {agendaSaveError && (
-                <p style={{ fontSize: 12, color: "#da1e28", margin: 0, background: "#fff1f1", padding: "6px 10px", borderRadius: 0 }}>
+                <p style={{ fontSize: 12, color: "#d14343", margin: 0, background: "#fdeaea", padding: "6px 10px", borderRadius: 8 }}>
                   {agendaSaveError}
                 </p>
               )}
@@ -2475,7 +2475,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
 
               <div>
                 <label style={labelStyle}>{t("nsMeetings.meetingTitle")}</label>
-                <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #e0e0e0", marginBottom: 8 }}>
+                <div style={{ display: "flex", gap: 0, borderBottom: "1px solid #e3e7ee", marginBottom: 8 }}>
                   {(["ru", "uz", "en"] as SupportedLang[]).map((lang) => {
                     const status = lang === "ru" ? formStatusRu : lang === "uz" ? formStatusUz : formStatusEn;
                     const isSource = lang === formSourceLang;
@@ -2488,15 +2488,15 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                         onClick={() => setFormLangTab(lang)}
                         style={{
                           padding: "6px 16px", fontSize: 13, cursor: "pointer",
-                          borderBottom: isActive ? "2px solid #0f62fe" : "2px solid transparent",
+                          borderBottom: isActive ? "2px solid #3557d6" : "2px solid transparent",
                           background: "none", fontWeight: isActive ? 600 : 400,
-                          color: isActive ? "#0f62fe" : "#525252",
+                          color: isActive ? "#3557d6" : "#6b7384",
                           display: "flex", alignItems: "center", gap: 6,
                         }}
                       >
                         {lang.toUpperCase()}
-                        {isSource && <span style={{ fontSize: 10, background: "#defbe6", color: "#0e6027", borderRadius: 0, padding: "1px 5px" }}>src</span>}
-                        {!isSource && isEmpty && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#c6c6c6", display: "inline-block" }} />}
+                        {isSource && <span style={{ fontSize: 10, background: "#e7f6ec", color: "#1b6b3a", borderRadius: 8, padding: "1px 5px" }}>src</span>}
+                        {!isSource && isEmpty && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#cfd5df", display: "inline-block" }} />}
                         {!isSource && !isEmpty && <span style={getStatusBadgeStyle(status)}>{status === "auto_translated" ? "" : ""}</span>}
                       </button>
                     );
@@ -2516,7 +2516,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
               </div>
 
               {translationStale && (
-                <div style={{ background: "#fcf4d6", border: "1px solid #f1c21b", borderRadius: 0, padding: "10px 12px", fontSize: 13, color: "#684e00" }}>
+                <div style={{ background: "#fff5dd", border: "1px solid #e0a520", borderRadius: 10, padding: "10px 12px", fontSize: 13, color: "#7a5410" }}>
                   <div style={{ fontWeight: 600, marginBottom: 6 }}>{t("nsMeetings.translationStale")}</div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button type="button" onClick={handleGenerateTranslations} disabled={translating}
@@ -2544,12 +2544,12 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
                 {translating ? t("nsMeetings.generating") : t("nsMeetings.generateTranslations")}
               </button>
               {!translating && !translationError && (
-                <p style={{ fontSize: 11, color: "#525252", margin: "-4px 0 0" }}>
+                <p style={{ fontSize: 11, color: "#6b7384", margin: "-4px 0 0" }}>
                   {t("nsMeetings.translationProviderNote")}
                 </p>
               )}
               {translationError && (
-                <p style={{ fontSize: 12, color: "#da1e28", margin: "-4px 0 0", background: "#fff1f1", padding: "6px 10px", borderRadius: 0 }}>
+                <p style={{ fontSize: 12, color: "#d14343", margin: "-4px 0 0", background: "#fdeaea", padding: "6px 10px", borderRadius: 8 }}>
                   {translationError}
                 </p>
               )}
@@ -2569,7 +2569,7 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
               </div>
 
               {saveError && (
-                <p style={{ fontSize: 12, color: "#da1e28", margin: 0, background: "#fff1f1", padding: "6px 10px", borderRadius: 0 }}>
+                <p style={{ fontSize: 12, color: "#d14343", margin: 0, background: "#fdeaea", padding: "6px 10px", borderRadius: 8 }}>
                   {saveError}
                 </p>
               )}
@@ -2596,8 +2596,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
       {toastMsg && (
         <div style={{
           position: "fixed", bottom: 28, left: "50%", transform: "translateX(-50%)",
-          background: "#161616", color: "#FFFFFF",
-          padding: "10px 24px", borderRadius: 0, fontSize: 14, fontWeight: 500,
+          background: "#1a1f2b", color: "#FFFFFF",
+          padding: "10px 24px", borderRadius: 10, fontSize: 14, fontWeight: 500,
           zIndex: 9999, pointerEvents: "none",
         }}>
           {toastMsg}
@@ -2611,8 +2611,8 @@ export default function NSMeetingDetailsPage({ profile, org }: Props) {
 
 const panelStyle: React.CSSProperties = {
   background: "#FFFFFF",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  border: "1px solid #e3e7ee",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
   padding: 24,
 };
 
@@ -2621,9 +2621,9 @@ const primaryBtnStyle: React.CSSProperties = {
   padding: "10px 20px",
   fontSize: 14,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#0f62fe",
+  background: "#3557d6",
   color: "#FFFFFF",
   cursor: "pointer",
 };
@@ -2632,9 +2632,9 @@ const primaryBtnSmallStyle: React.CSSProperties = {
   padding: "6px 16px",
   fontSize: 13,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#0f62fe",
+  background: "#3557d6",
   color: "#FFFFFF",
   cursor: "pointer",
 };
@@ -2643,20 +2643,20 @@ const smallBtnStyle: React.CSSProperties = {
   padding: "6px 14px",
   fontSize: 13,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #c6c6c6",
+  borderRadius: 10,
+  border: "1px solid #cfd5df",
   background: "#FFFFFF",
-  color: "#393939",
+  color: "#2a3040",
   cursor: "pointer",
 };
 
 const deleteBtnStyle: React.CSSProperties = {
   width: 28,
   height: 28,
-  borderRadius: 0,
-  border: "1px solid #ffd7d9",
-  background: "#fff1f1",
-  color: "#da1e28",
+  borderRadius: 10,
+  border: "1px solid #f5c9c9",
+  background: "#fdeaea",
+  color: "#d14343",
   cursor: "pointer",
   fontSize: 14,
   display: "flex",
@@ -2669,10 +2669,10 @@ const uploadBtnStyle: React.CSSProperties = {
   padding: "4px 12px",
   fontSize: 12,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #c6c6c6",
-  background: "#f4f4f4",
-  color: "#393939",
+  borderRadius: 8,
+  border: "1px solid #cfd5df",
+  background: "#f5f7fa",
+  color: "#2a3040",
   cursor: "pointer",
 };
 
@@ -2680,10 +2680,10 @@ const downloadBtnStyle: React.CSSProperties = {
   padding: "4px 12px",
   fontSize: 12,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #d0e2ff",
-  background: "#edf5ff",
-  color: "#0043ce",
+  borderRadius: 8,
+  border: "1px solid #d3dbf7",
+  background: "#e9edfb",
+  color: "#2c48b8",
   cursor: "pointer",
   whiteSpace: "nowrap",
 };
@@ -2692,19 +2692,19 @@ const reviewBtnStyle: React.CSSProperties = {
   padding: "4px 12px",
   fontSize: 12,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #d0e2ff",
-  background: "#edf5ff",
-  color: "#0043ce",
+  borderRadius: 8,
+  border: "1px solid #d3dbf7",
+  background: "#e9edfb",
+  color: "#2c48b8",
   cursor: "pointer",
   whiteSpace: "nowrap",
 };
 
 const agendaItemStyle: React.CSSProperties = {
   padding: 16,
-  background: "#f4f4f4",
-  borderRadius: 0,
-  border: "1px solid #f4f4f4",
+  background: "#f5f7fa",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
+  border: "1px solid #f5f7fa",
 };
 
 const materialCardStyle: React.CSSProperties = {
@@ -2713,8 +2713,8 @@ const materialCardStyle: React.CSSProperties = {
   alignItems: "center",
   gap: 12,
   padding: "10px 12px",
-  borderRadius: 0,
-  border: "1px solid #e0e0e0",
+  borderRadius: 10,
+  border: "1px solid #e3e7ee",
   background: "#FFFFFF",
   marginBottom: 6,
 };
@@ -2723,8 +2723,8 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "8px 12px",
   fontSize: 14,
-  border: "1px solid #c6c6c6",
-  borderRadius: 0,
+  border: "1px solid #cfd5df",
+  borderRadius: 10,
   outline: "none",
   boxSizing: "border-box",
   fontFamily: "inherit",
@@ -2732,7 +2732,7 @@ const inputStyle: React.CSSProperties = {
 
 const labelStyle: React.CSSProperties = {
   fontSize: 13,
-  color: "#525252",
+  color: "#6b7384",
   fontWeight: 500,
   display: "block",
   marginBottom: 4,
@@ -2750,7 +2750,7 @@ const overlayStyle: React.CSSProperties = {
 
 const modalStyle: React.CSSProperties = {
   background: "#FFFFFF",
-  borderRadius: 0,
+  borderRadius: 14,
   padding: 28,
   width: 440,
   maxWidth: "90vw",
@@ -2760,17 +2760,17 @@ const aiBriefBtnStyle: React.CSSProperties = {
   padding: "6px 16px",
   fontSize: 13,
   fontWeight: 600,
-  borderRadius: 0,
-  border: "1px solid #e0e0e0",
-  background: "#f4f4f4",
-  color: "#525252",
+  borderRadius: 10,
+  border: "1px solid #e3e7ee",
+  background: "#f5f7fa",
+  color: "#6b7384",
   cursor: "pointer",
 };
 
 const briefBlockStyle: React.CSSProperties = {
   padding: 16,
-  background: "#f4f4f4",
-  borderRadius: 0,
+  background: "#f5f7fa",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
   border: "1px solid #E9E5F5",
 };
 
@@ -2778,10 +2778,10 @@ const briefActionBtnStyle: React.CSSProperties = {
   padding: "3px 10px",
   fontSize: 11,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #e0e0e0",
+  borderRadius: 8,
+  border: "1px solid #e3e7ee",
   background: "#FFFFFF",
-  color: "#525252",
+  color: "#6b7384",
   cursor: "pointer",
 };
 
@@ -2789,18 +2789,18 @@ const activateVotingBtnStyle: React.CSSProperties = {
   padding: "4px 12px",
   fontSize: 12,
   fontWeight: 600,
-  borderRadius: 0,
-  border: "1px solid #d0e2ff",
-  background: "#edf5ff",
-  color: "#0050e6",
+  borderRadius: 8,
+  border: "1px solid #d3dbf7",
+  background: "#e9edfb",
+  color: "#2c48b8",
   cursor: "pointer",
   whiteSpace: "nowrap",
 };
 
 function getVotingStatusBadgeStyle(status: string): React.CSSProperties {
-  if (status === "open") return { padding: "2px 10px", borderRadius: 0, fontSize: 12, fontWeight: 600, background: "#defbe6", color: "#0e6027" };
-  if (status === "closed") return { padding: "2px 10px", borderRadius: 0, fontSize: 12, fontWeight: 600, background: "#f4f4f4", color: "#525252" };
-  return { padding: "2px 10px", borderRadius: 0, fontSize: 12, fontWeight: 600, background: "#fcf4d6", color: "#684e00" };
+  if (status === "open") return { padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "#e7f6ec", color: "#1b6b3a" };
+  if (status === "closed") return { padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "#f5f7fa", color: "#6b7384" };
+  return { padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "#fff5dd", color: "#7a5410" };
 }
 
 function getVoteButtonStyle(choice: "for" | "against" | "abstain", selected: boolean): React.CSSProperties {
@@ -2808,32 +2808,32 @@ function getVoteButtonStyle(choice: "for" | "against" | "abstain", selected: boo
     padding: "5px 14px",
     fontSize: 13,
     fontWeight: 500,
-    borderRadius: 0,
+    borderRadius: 8,
     cursor: "pointer",
     transition: "all 0.15s",
     whiteSpace: "nowrap",
   };
   if (selected) {
-    if (choice === "for") return { ...base, background: "#24a148", color: "#FFFFFF", border: "1px solid #24a148" };
-    if (choice === "against") return { ...base, background: "#da1e28", color: "#FFFFFF", border: "1px solid #da1e28" };
-    return { ...base, background: "#525252", color: "#FFFFFF", border: "1px solid #525252" };
+    if (choice === "for") return { ...base, background: "#2e9e5b", color: "#FFFFFF", border: "1px solid #2e9e5b" };
+    if (choice === "against") return { ...base, background: "#d14343", color: "#FFFFFF", border: "1px solid #d14343" };
+    return { ...base, background: "#6b7384", color: "#FFFFFF", border: "1px solid #6b7384" };
   }
-  return { ...base, background: "#FFFFFF", color: "#393939", border: "1px solid #c6c6c6" };
+  return { ...base, background: "#FFFFFF", color: "#2a3040", border: "1px solid #cfd5df" };
 }
 
 function getVcBadgeStyle(status: "none" | "ready" | "active"): React.CSSProperties {
-  if (status === "active") return { padding: "2px 10px", borderRadius: 0, fontSize: 12, fontWeight: 600, background: "#defbe6", color: "#0e6027" };
-  if (status === "ready") return { padding: "2px 10px", borderRadius: 0, fontSize: 12, fontWeight: 600, background: "#d0e2ff", color: "#0043ce" };
-  return { padding: "2px 10px", borderRadius: 0, fontSize: 12, fontWeight: 500, background: "#f4f4f4", color: "#8d8d8d" };
+  if (status === "active") return { padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "#e7f6ec", color: "#1b6b3a" };
+  if (status === "ready") return { padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "#d3dbf7", color: "#2c48b8" };
+  return { padding: "2px 10px", borderRadius: 8, fontSize: 12, fontWeight: 500, background: "#f5f7fa", color: "#9ba3b4" };
 }
 
 const vcActivateBtnStyle: React.CSSProperties = {
   padding: "6px 14px",
   fontSize: 13,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#24a148",
+  background: "#2e9e5b",
   color: "#FFFFFF",
   cursor: "pointer",
 };
@@ -2843,9 +2843,9 @@ const vcJoinBtnStyle: React.CSSProperties = {
   padding: "9px 22px",
   fontSize: 14,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#24a148",
+  background: "#2e9e5b",
   color: "#FFFFFF",
   cursor: "pointer",
   textDecoration: "none",
@@ -2855,10 +2855,10 @@ const vcDisabledBtnStyle: React.CSSProperties = {
   padding: "9px 22px",
   fontSize: 14,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #e0e0e0",
-  background: "#f4f4f4",
-  color: "#8d8d8d",
+  borderRadius: 10,
+  border: "1px solid #e3e7ee",
+  background: "#f5f7fa",
+  color: "#9ba3b4",
   cursor: "not-allowed",
 };
 

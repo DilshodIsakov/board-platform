@@ -199,13 +199,13 @@ export default function DocumentsPage({ profile, org }: Props) {
   };
 
   if (loading) {
-    return <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>;
+    return <div style={{ color: "#9ba3b4" }}>{t("common.loading")}</div>;
   }
 
   return (
     <div>
       <h1 style={{ marginBottom: 4 }}>{t("documents.title")}</h1>
-      <p style={{ color: "#525252", fontSize: 14, margin: "0 0 20px" }}>
+      <p style={{ color: "#6b7384", fontSize: 14, margin: "0 0 20px" }}>
         {t("documents.subtitle")}
       </p>
 
@@ -232,7 +232,7 @@ export default function DocumentsPage({ profile, org }: Props) {
 
       {/* Links list */}
       {links.length === 0 ? (
-        <p style={{ color: "#8d8d8d", marginTop: 20 }}>{t("documents.noDocuments")}</p>
+        <p style={{ color: "#9ba3b4", marginTop: 20 }}>{t("documents.noDocuments")}</p>
       ) : (
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
           {links.map((link) => (
@@ -247,7 +247,7 @@ export default function DocumentsPage({ profile, org }: Props) {
             >
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f62fe" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3557d6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                     <line x1="16" y1="13" x2="8" y2="13" />
@@ -260,7 +260,7 @@ export default function DocumentsPage({ profile, org }: Props) {
                   )}
                 </div>
                 {(link.description || link.description_en || link.description_uz) && (
-                  <p style={{ color: "#525252", fontSize: 13, margin: "4px 0 0 26px" }}>
+                  <p style={{ color: "#6b7384", fontSize: 13, margin: "4px 0 0 26px" }}>
                     {getLocalizedField(link as unknown as Record<string, unknown>, "description") || link.description}
                   </p>
                 )}
@@ -281,7 +281,7 @@ export default function DocumentsPage({ profile, org }: Props) {
                     </button>
                     <button
                       onClick={() => handleDelete(link)}
-                      style={{ ...btnSmallStyle, color: "#da1e28", borderColor: "#ffd7d9" }}
+                      style={{ ...btnSmallStyle, color: "#d14343", borderColor: "#f5c9c9" }}
                     >
                       {t("common.delete")}
                     </button>
@@ -333,7 +333,7 @@ export default function DocumentsPage({ profile, org }: Props) {
                   disabled={translating || !formTitle.trim()}
                   style={{
                     ...btnPrimaryStyle,
-                    background: translating ? "#8d8d8d" : "#525252",
+                    background: translating ? "#9ba3b4" : "#6b7384",
                     width: "100%",
                   }}
                 >
@@ -343,8 +343,8 @@ export default function DocumentsPage({ profile, org }: Props) {
 
               {/* Translation fields (shown after translate) */}
               {translated && (
-                <div style={{ background: "#f4f4f4", border: "1px solid #e0e0e0", borderRadius: 0, padding: 12, marginBottom: 16 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#525252", marginBottom: 8 }}>Переводы</div>
+                <div style={{ background: "#f5f7fa", border: "1px solid #e3e7ee", borderRadius: 10, padding: 12, marginBottom: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#6b7384", marginBottom: 8 }}>Переводы</div>
                   <div style={{ marginBottom: 8 }}>
                     <label style={labelStyle}>Название (EN)</label>
                     <input type="text" value={formTitleEn} onChange={(e) => setFormTitleEn(e.target.value)} style={{ ...inputStyle, width: "100%" }} />
@@ -425,8 +425,8 @@ const cardStyle: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "space-between",
   padding: "14px 16px",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  border: "1px solid #e3e7ee",
+  borderRadius: 10,
   background: "#fff",
   gap: 12,
   transition: "box-shadow 0.15s",
@@ -435,9 +435,9 @@ const cardStyle: React.CSSProperties = {
 const btnPrimaryStyle: React.CSSProperties = {
   padding: "8px 20px",
   fontSize: 14,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#0f62fe",
+  background: "#3557d6",
   color: "#fff",
   cursor: "pointer",
   fontWeight: 500,
@@ -446,9 +446,9 @@ const btnPrimaryStyle: React.CSSProperties = {
 const btnOpenStyle: React.CSSProperties = {
   padding: "6px 14px",
   fontSize: 13,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#0f62fe",
+  background: "#3557d6",
   color: "#fff",
   cursor: "pointer",
   fontWeight: 500,
@@ -458,8 +458,8 @@ const btnOpenStyle: React.CSSProperties = {
 const btnSmallStyle: React.CSSProperties = {
   padding: "5px 10px",
   fontSize: 12,
-  borderRadius: 0,
-  border: "1px solid #c6c6c6",
+  borderRadius: 8,
+  border: "1px solid #cfd5df",
   background: "transparent",
   cursor: "pointer",
   whiteSpace: "nowrap",
@@ -468,8 +468,8 @@ const btnSmallStyle: React.CSSProperties = {
 const btnSecondaryStyle: React.CSSProperties = {
   padding: "8px 16px",
   fontSize: 14,
-  borderRadius: 0,
-  border: "1px solid #c6c6c6",
+  borderRadius: 10,
+  border: "1px solid #cfd5df",
   background: "transparent",
   cursor: "pointer",
 };
@@ -477,15 +477,15 @@ const btnSecondaryStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 13,
-  color: "#525252",
+  color: "#6b7384",
   marginBottom: 4,
 };
 
 const inputStyle: React.CSSProperties = {
   padding: "8px 12px",
   fontSize: 14,
-  border: "1px solid #c6c6c6",
-  borderRadius: 0,
+  border: "1px solid #cfd5df",
+  borderRadius: 10,
   boxSizing: "border-box",
 };
 
@@ -501,7 +501,7 @@ const overlayStyle: React.CSSProperties = {
 
 const modalStyle: React.CSSProperties = {
   background: "#fff",
-  borderRadius: 0,
+  borderRadius: 14,
   padding: 24,
   width: "100%",
   maxWidth: 560,
@@ -509,19 +509,19 @@ const modalStyle: React.CSSProperties = {
 
 const inactiveBadgeStyle: React.CSSProperties = {
   padding: "1px 8px",
-  borderRadius: 0,
+  borderRadius: 8,
   fontSize: 11,
   fontWeight: 600,
-  background: "#f4f4f4",
-  color: "#8d8d8d",
+  background: "#f5f7fa",
+  color: "#9ba3b4",
 };
 
 const errorBannerStyle: React.CSSProperties = {
   padding: "10px 16px",
-  background: "#fff1f1",
-  border: "1px solid #ffd7d9",
-  borderRadius: 0,
-  color: "#da1e28",
+  background: "#fdeaea",
+  border: "1px solid #f5c9c9",
+  borderRadius: 10,
+  color: "#d14343",
   fontSize: 14,
   marginBottom: 12,
   display: "flex",
@@ -531,10 +531,10 @@ const errorBannerStyle: React.CSSProperties = {
 
 const successBannerStyle: React.CSSProperties = {
   padding: "10px 16px",
-  background: "#defbe6",
-  border: "1px solid #a7f0ba",
-  borderRadius: 0,
-  color: "#24a148",
+  background: "#e7f6ec",
+  border: "1px solid #cfead8",
+  borderRadius: 10,
+  color: "#2e9e5b",
   fontSize: 14,
   marginBottom: 12,
   display: "flex",

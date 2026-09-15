@@ -30,9 +30,9 @@ interface Props {
 type TabKey = "upcoming" | "past";
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  scheduled: { bg: "#defbe6", color: "#0e6027" },
-  completed: { bg: "#d0e2ff", color: "#0043ce" },
-  cancelled: { bg: "#fff1f1", color: "#a2191f" },
+  scheduled: { bg: "#e7f6ec", color: "#1b6b3a" },
+  completed: { bg: "#d3dbf7", color: "#2c48b8" },
+  cancelled: { bg: "#fdeaea", color: "#a12b2b" },
 };
 
 const CAN_CREATE = ["admin", "corp_secretary"];
@@ -226,7 +226,7 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
   ];
 
   if (loading) {
-    return <div style={{ color: "#8d8d8d", padding: "40px 0" }}>{t("common.loading")}</div>;
+    return <div style={{ color: "#9ba3b4", padding: "40px 0" }}>{t("common.loading")}</div>;
   }
 
   return (
@@ -234,7 +234,7 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
         <div>
           <h1 style={{ marginBottom: 8 }}>{t("shareholder.title")}</h1>
-          <p style={{ color: "#525252", fontSize: 16, marginBottom: 28 }}>
+          <p style={{ color: "#6b7384", fontSize: 16, marginBottom: 28 }}>
             {t("shareholder.subtitle")}
           </p>
         </div>
@@ -254,7 +254,7 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
             width: 7,
             height: 7,
             borderRadius: "50%",
-            background: langHasTitle[lang] ? "#24a148" : "#da1e28",
+            background: langHasTitle[lang] ? "#2e9e5b" : "#d14343",
             marginLeft: 5,
             verticalAlign: "middle",
           }} />
@@ -264,14 +264,14 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div>
                 <h3 style={{ margin: 0 }}>{t("shareholder.createTitle")}</h3>
-                <p style={{ margin: "4px 0 0", fontSize: 13, color: "#525252" }}>{t("shareholder.allLangsNote")}</p>
+                <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6b7384" }}>{t("shareholder.allLangsNote")}</p>
               </div>
-              <button onClick={() => setShowForm(false)} style={{ color: "#8d8d8d", fontSize: 20, cursor: "pointer", background: "none", border: "none", padding: 4 }}>
+              <button onClick={() => setShowForm(false)} style={{ color: "#9ba3b4", fontSize: 20, cursor: "pointer", background: "none", border: "none", padding: 4 }}>
                               </button>
             </div>
 
             {/* Language tabs */}
-            <div style={{ display: "flex", borderBottom: "1px solid #e0e0e0", marginBottom: 20 }}>
+            <div style={{ display: "flex", borderBottom: "1px solid #e3e7ee", marginBottom: 20 }}>
               {(["ru", "uz", "en"] as const).map((lang) => (
                 <button
                   key={lang}
@@ -281,10 +281,10 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
                     padding: "8px 20px",
                     fontSize: 14,
                     fontWeight: formLangTab === lang ? 600 : 400,
-                    color: formLangTab === lang ? "#0f62fe" : "#525252",
+                    color: formLangTab === lang ? "#3557d6" : "#6b7384",
                     background: "none",
                     border: "none",
-                    borderBottom: formLangTab === lang ? "2px solid #0f62fe" : "2px solid transparent",
+                    borderBottom: formLangTab === lang ? "2px solid #3557d6" : "2px solid transparent",
                     cursor: "pointer",
                   }}
                 >
@@ -304,7 +304,7 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
                       value={formTitleRu}
                       onChange={(e) => setFormTitleRu(e.target.value)}
                       placeholder={t("shareholder.titleRuPlaceholder")}
-                      style={{ ...inputStyle, borderColor: formTitleRu.trim() ? "#c6c6c6" : "#ffb3b8" }}
+                      style={{ ...inputStyle, borderColor: formTitleRu.trim() ? "#cfd5df" : "#e89a9a" }}
                     />
                   </div>
                   <div>
@@ -328,7 +328,7 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
                       value={formTitleUz}
                       onChange={(e) => setFormTitleUz(e.target.value)}
                       placeholder={t("shareholder.titleUzPlaceholder")}
-                      style={{ ...inputStyle, borderColor: formTitleUz.trim() ? "#c6c6c6" : "#ffb3b8" }}
+                      style={{ ...inputStyle, borderColor: formTitleUz.trim() ? "#cfd5df" : "#e89a9a" }}
                     />
                   </div>
                   <div>
@@ -352,7 +352,7 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
                       value={formTitleEn}
                       onChange={(e) => setFormTitleEn(e.target.value)}
                       placeholder={t("shareholder.titleEnPlaceholder")}
-                      style={{ ...inputStyle, borderColor: formTitleEn.trim() ? "#c6c6c6" : "#ffb3b8" }}
+                      style={{ ...inputStyle, borderColor: formTitleEn.trim() ? "#cfd5df" : "#e89a9a" }}
                     />
                   </div>
                   <div>
@@ -420,7 +420,7 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
                   {t("common.cancel")}
                 </button>
               </div>
-              {formError && <p style={{ color: "#da1e28", fontSize: 14, margin: 0 }}>{formError}</p>}
+              {formError && <p style={{ color: "#d14343", fontSize: 14, margin: 0 }}>{formError}</p>}
             </form>
           </div>
         );
@@ -434,8 +434,8 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
             onClick={() => setActiveTab(tab.key)}
             style={{
               ...tabBtnStyle,
-              color: activeTab === tab.key ? "#0f62fe" : "#525252",
-              borderBottomColor: activeTab === tab.key ? "#0f62fe" : "transparent",
+              color: activeTab === tab.key ? "#3557d6" : "#6b7384",
+              borderBottomColor: activeTab === tab.key ? "#3557d6" : "transparent",
               fontWeight: activeTab === tab.key ? 600 : 400,
             }}
           >
@@ -446,7 +446,7 @@ export default function ShareholderMeetingPage({ profile, org }: Props) {
 
       {/* Meeting cards */}
       {currentMeetings.length === 0 ? (
-        <p style={{ color: "#8d8d8d", padding: "32px 0", fontSize: 15 }}>
+        <p style={{ color: "#9ba3b4", padding: "32px 0", fontSize: 15 }}>
           {activeTab === "upcoming" ? t("shareholder.noUpcoming") : t("shareholder.noPast")}
         </p>
       ) : (
@@ -539,8 +539,8 @@ function MeetingCard({
       </div>
 
       {/* Date */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#525252", fontSize: 15, marginBottom: 20 }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8d8d8d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#6b7384", fontSize: 15, marginBottom: 20 }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ba3b4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         {new Date(meeting.meeting_date).toLocaleDateString(getIntlLocale(), {
@@ -553,27 +553,27 @@ function MeetingCard({
       {/* Quorum section */}
       <div style={quorumSectionStyle}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7384" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          <span style={{ fontWeight: 600, fontSize: 15, color: "#161616" }}>
+          <span style={{ fontWeight: 600, fontSize: 15, color: "#1a1f2b" }}>
             {t("shareholder.quorum", { percent: quorumPercent })}
           </span>
         </div>
-        <div style={{ display: "flex", gap: 24, fontSize: 14, color: "#525252" }}>
+        <div style={{ display: "flex", gap: 24, fontSize: 14, color: "#6b7384" }}>
           <span>{t("shareholder.totalShares", { count: totalShares })}</span>
           <span>{t("shareholder.votedShares", { count: votedShares })}</span>
         </div>
       </div>
 
       {/* Divider */}
-      <div style={{ borderTop: "1px solid #e0e0e0", margin: "20px 0" }} />
+      <div style={{ borderTop: "1px solid #e3e7ee", margin: "20px 0" }} />
 
       {/* Agenda + Voting */}
       <div style={{ marginBottom: 24 }}>
         <h3 style={{ marginBottom: 16 }}>{t("shareholder.agendaTitle")}</h3>
         {agenda.length === 0 ? (
-          <p style={{ color: "#8d8d8d", fontSize: 15 }}>{t("shareholder.noAgenda")}</p>
+          <p style={{ color: "#9ba3b4", fontSize: 15 }}>{t("shareholder.noAgenda")}</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {agenda.map((item, idx) => {
@@ -585,10 +585,10 @@ function MeetingCard({
               return (
                 <div key={item.id} style={agendaVoteCardStyle}>
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12 }}>
-                    <span style={{ fontWeight: 600, color: "#525252", fontSize: 15, minWidth: 24 }}>
+                    <span style={{ fontWeight: 600, color: "#6b7384", fontSize: 15, minWidth: 24 }}>
                       {idx + 1}.
                     </span>
-                    <span style={{ fontSize: 15, color: "#393939", lineHeight: 1.5 }}>
+                    <span style={{ fontSize: 15, color: "#2a3040", lineHeight: 1.5 }}>
                       {getLocalizedField(item as unknown as Record<string, unknown>, "title")}
                     </span>
                   </div>
@@ -600,9 +600,9 @@ function MeetingCard({
                       disabled={!canVote}
                       style={{
                         ...voteBtnBase,
-                        background: myVote?.choice === "for" ? "#24a148" : "#defbe6",
-                        color: myVote?.choice === "for" ? "#FFFFFF" : "#24a148",
-                        border: `1px solid ${myVote?.choice === "for" ? "#24a148" : "#a7f0ba"}`,
+                        background: myVote?.choice === "for" ? "#2e9e5b" : "#e7f6ec",
+                        color: myVote?.choice === "for" ? "#FFFFFF" : "#2e9e5b",
+                        border: `1px solid ${myVote?.choice === "for" ? "#2e9e5b" : "#cfead8"}`,
                         opacity: canVote ? 1 : 0.5,
                         cursor: canVote ? "pointer" : "default",
                       }}
@@ -614,9 +614,9 @@ function MeetingCard({
                       disabled={!canVote}
                       style={{
                         ...voteBtnBase,
-                        background: myVote?.choice === "against" ? "#da1e28" : "#fff1f1",
-                        color: myVote?.choice === "against" ? "#FFFFFF" : "#da1e28",
-                        border: `1px solid ${myVote?.choice === "against" ? "#da1e28" : "#ffd7d9"}`,
+                        background: myVote?.choice === "against" ? "#d14343" : "#fdeaea",
+                        color: myVote?.choice === "against" ? "#FFFFFF" : "#d14343",
+                        border: `1px solid ${myVote?.choice === "against" ? "#d14343" : "#f5c9c9"}`,
                         opacity: canVote ? 1 : 0.5,
                         cursor: canVote ? "pointer" : "default",
                       }}
@@ -628,9 +628,9 @@ function MeetingCard({
                       disabled={!canVote}
                       style={{
                         ...voteBtnBase,
-                        background: myVote?.choice === "abstain" ? "#525252" : "#f4f4f4",
-                        color: myVote?.choice === "abstain" ? "#FFFFFF" : "#525252",
-                        border: `1px solid ${myVote?.choice === "abstain" ? "#525252" : "#c6c6c6"}`,
+                        background: myVote?.choice === "abstain" ? "#6b7384" : "#f5f7fa",
+                        color: myVote?.choice === "abstain" ? "#FFFFFF" : "#6b7384",
+                        border: `1px solid ${myVote?.choice === "abstain" ? "#6b7384" : "#cfd5df"}`,
                         opacity: canVote ? 1 : 0.5,
                         cursor: canVote ? "pointer" : "default",
                       }}
@@ -642,25 +642,25 @@ function MeetingCard({
                   {/* Vote tally */}
                   {tally.totalVoters > 0 && (
                     <div style={{ paddingLeft: 34 }}>
-                      <div style={{ display: "flex", gap: 4, height: 6, borderRadius: 0, overflow: "hidden", marginBottom: 6 }}>
+                      <div style={{ display: "flex", gap: 4, height: 6, borderRadius: 10, overflow: "hidden", marginBottom: 6 }}>
                         {tally.forShares > 0 && (
-                          <div style={{ flex: tally.forShares, background: "#24a148", borderRadius: 0 }} />
+                          <div style={{ flex: tally.forShares, background: "#2e9e5b", borderRadius: 10 }} />
                         )}
                         {tally.againstShares > 0 && (
-                          <div style={{ flex: tally.againstShares, background: "#da1e28", borderRadius: 0 }} />
+                          <div style={{ flex: tally.againstShares, background: "#d14343", borderRadius: 10 }} />
                         )}
                         {tally.abstainShares > 0 && (
-                          <div style={{ flex: tally.abstainShares, background: "#8d8d8d", borderRadius: 0 }} />
+                          <div style={{ flex: tally.abstainShares, background: "#9ba3b4", borderRadius: 10 }} />
                         )}
                       </div>
-                      <div style={{ display: "flex", gap: 16, fontSize: 13, color: "#525252" }}>
-                        <span style={{ color: "#24a148" }}>
+                      <div style={{ display: "flex", gap: 16, fontSize: 13, color: "#6b7384" }}>
+                        <span style={{ color: "#2e9e5b" }}>
                           {t("shareholder.forShares", { shares: tally.forShares.toLocaleString(getIntlLocale()), voters: tally.forVoters })}
                         </span>
-                        <span style={{ color: "#da1e28" }}>
+                        <span style={{ color: "#d14343" }}>
                           {t("shareholder.againstShares", { shares: tally.againstShares.toLocaleString(getIntlLocale()), voters: tally.againstVoters })}
                         </span>
-                        <span style={{ color: "#8d8d8d" }}>
+                        <span style={{ color: "#9ba3b4" }}>
                           {t("shareholder.abstainShares", { shares: tally.abstainShares.toLocaleString(getIntlLocale()), voters: tally.abstainVoters })}
                         </span>
                         <span>{t("shareholder.totalSharesVoted", { shares: tally.totalShares.toLocaleString(getIntlLocale()) })}</span>
@@ -675,13 +675,13 @@ function MeetingCard({
       </div>
 
       {/* Divider */}
-      <div style={{ borderTop: "1px solid #e0e0e0", margin: "20px 0" }} />
+      <div style={{ borderTop: "1px solid #e3e7ee", margin: "20px 0" }} />
 
       {/* Materials */}
       <div>
         <h3 style={{ marginBottom: 16 }}>{t("shareholder.materialsTitle")}</h3>
         {materials.length === 0 ? (
-          <p style={{ color: "#8d8d8d", fontSize: 15 }}>{t("shareholder.noMaterials")}</p>
+          <p style={{ color: "#9ba3b4", fontSize: 15 }}>{t("shareholder.noMaterials")}</p>
         ) : (
           <div style={materialsGridStyle}>
             {materials.map((mat) => (
@@ -696,7 +696,7 @@ function MeetingCard({
 
 // --- Material Card ---
 
-const MATERIAL_COLORS = ["#0f62fe", "#24a148", "#525252", "#f1c21b", "#da1e28"];
+const MATERIAL_COLORS = ["#3557d6", "#2e9e5b", "#6b7384", "#e0a520", "#d14343"];
 
 function MaterialCard({ material }: { material: ShareholderMaterial }) {
   const { t } = useTranslation();
@@ -708,11 +708,11 @@ function MaterialCard({ material }: { material: ShareholderMaterial }) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <span style={{ fontWeight: 500, fontSize: 15, color: "#161616" }}>{material.title}</span>
+        <span style={{ fontWeight: 500, fontSize: 15, color: "#1a1f2b" }}>{material.title}</span>
       </div>
       <div style={{
         fontSize: 13,
-        color: material.status === "available" ? "#24a148" : "#8d8d8d",
+        color: material.status === "available" ? "#2e9e5b" : "#9ba3b4",
         fontWeight: 500,
       }}>
         {material.status === "available" ? t("shareholder.materialsAvailable") : t("shareholder.materialsWaiting")}
@@ -726,7 +726,7 @@ function MaterialCard({ material }: { material: ShareholderMaterial }) {
 const tabBarStyle: React.CSSProperties = {
   display: "flex",
   gap: 0,
-  borderBottom: "1px solid #e0e0e0",
+  borderBottom: "1px solid #e3e7ee",
   marginBottom: 28,
 };
 
@@ -742,15 +742,15 @@ const tabBtnStyle: React.CSSProperties = {
 
 const cardStyle: React.CSSProperties = {
   background: "#FFFFFF",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  border: "1px solid #e3e7ee",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
   padding: "28px 32px",
 };
 
 const badgeStyle: React.CSSProperties = {
   display: "inline-block",
   padding: "4px 14px",
-  borderRadius: 0,
+  borderRadius: 8,
   fontSize: 13,
   fontWeight: 500,
 };
@@ -762,18 +762,18 @@ const viewMaterialsBtnStyle: React.CSSProperties = {
   padding: "10px 20px",
   fontSize: 14,
   fontWeight: 500,
-  color: "#393939",
+  color: "#2a3040",
   background: "#FFFFFF",
-  border: "1px solid #c6c6c6",
-  borderRadius: 0,
+  border: "1px solid #cfd5df",
+  borderRadius: 10,
   cursor: "pointer",
   transition: "background 0.15s",
 };
 
 const quorumSectionStyle: React.CSSProperties = {
   padding: "16px 20px",
-  background: "#f4f4f4",
-  borderRadius: 0,
+  background: "#f5f7fa",
+  borderRadius: 10,
 };
 
 const materialsGridStyle: React.CSSProperties = {
@@ -784,18 +784,18 @@ const materialsGridStyle: React.CSSProperties = {
 
 const materialCardStyle: React.CSSProperties = {
   padding: "20px",
-  background: "#f4f4f4",
-  border: "1px solid #e0e0e0",
-  borderRadius: 0,
+  background: "#f5f7fa",
+  border: "1px solid #e3e7ee",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
 };
 
 const createBtnStyle: React.CSSProperties = {
   padding: "11px 24px",
   fontSize: 15,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#0f62fe",
+  background: "#3557d6",
   color: "#FFFFFF",
   cursor: "pointer",
   whiteSpace: "nowrap",
@@ -804,7 +804,7 @@ const createBtnStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 14,
-  color: "#525252",
+  color: "#6b7384",
   marginBottom: 6,
   fontWeight: 500,
 };
@@ -813,8 +813,8 @@ const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 14px",
   fontSize: 15,
-  border: "1px solid #c6c6c6",
-  borderRadius: 0,
+  border: "1px solid #cfd5df",
+  borderRadius: 10,
   outline: "none",
   boxSizing: "border-box",
   fontFamily: "inherit",
@@ -824,9 +824,9 @@ const submitBtnStyle: React.CSSProperties = {
   padding: "11px 28px",
   fontSize: 15,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   border: "none",
-  background: "#0f62fe",
+  background: "#3557d6",
   color: "#FFFFFF",
   cursor: "pointer",
 };
@@ -835,10 +835,10 @@ const cancelBtnStyle: React.CSSProperties = {
   padding: "11px 24px",
   fontSize: 15,
   fontWeight: 500,
-  borderRadius: 0,
-  border: "1px solid #c6c6c6",
+  borderRadius: 10,
+  border: "1px solid #cfd5df",
   background: "#FFFFFF",
-  color: "#393939",
+  color: "#2a3040",
   cursor: "pointer",
 };
 
@@ -850,24 +850,24 @@ const completeBtnStyle: React.CSSProperties = {
   fontSize: 14,
   fontWeight: 600,
   color: "#FFFFFF",
-  background: "#24a148",
+  background: "#2e9e5b",
   border: "none",
-  borderRadius: 0,
+  borderRadius: 10,
   cursor: "pointer",
   transition: "background 0.15s",
 };
 
 const agendaVoteCardStyle: React.CSSProperties = {
   padding: "16px 20px",
-  background: "#f4f4f4",
-  borderRadius: 0,
-  border: "1px solid #e0e0e0",
+  background: "#f5f7fa",
+  borderRadius: 14, boxShadow: "var(--shadow-card)",
+  border: "1px solid #e3e7ee",
 };
 
 const voteBtnBase: React.CSSProperties = {
   padding: "6px 16px",
   fontSize: 13,
   fontWeight: 600,
-  borderRadius: 0,
+  borderRadius: 10,
   transition: "all 0.15s",
 };

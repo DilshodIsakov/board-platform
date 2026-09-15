@@ -1,6 +1,6 @@
-/* === Board Platform — Design System (Carbon-based, see DESIGN.md) === */
+/* === Board Platform — Design System (see DESIGN.md) === */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap');
 
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -16,66 +16,71 @@
 
 /* ── Design Tokens ────────────────────────────────────────── */
 :root {
-  --sidebar-width: 256px;
-  --header-height: 48px;
+  --sidebar-width: 248px;
+  --header-height: 60px;
 
-  /* Accent — the only chromatic colour in the system */
-  --color-primary:       #0f62fe;
-  --color-primary-hover: #0050e6;
-  --color-primary-active:#002d9c;
-  --color-primary-light: #edf5ff;
-  --color-primary-muted: #d0e2ff;
+  /* Accent — the only chromatic colour outside status semantics */
+  --color-primary:       #3557d6;
+  --color-primary-hover: #2c48b8;
+  --color-primary-active:#1f3590;
+  --color-primary-light: #e9edfb;
+  --color-primary-muted: #d3dbf7;
 
-  /* Status (Carbon semantic) */
-  --color-success:      #24a148;
-  --color-success-bg:   #defbe6;
-  --color-warning:      #684e00;
-  --color-warning-bg:   #fcf4d6;
-  --color-danger:       #da1e28;
-  --color-danger-bg:    #fff1f1;
-  --color-neutral:      #525252;
-  --color-neutral-bg:   #f4f4f4;
+  /* Status */
+  --color-success:      #1b6b3a;
+  --color-success-bg:   #e7f6ec;
+  --color-success-line: #cfead8;
+  --color-success-dot:  #2e9e5b;
+  --color-warning:      #7a5410;
+  --color-warning-bg:   #fff5dd;
+  --color-warning-line: #f4e2a8;
+  --color-warning-dot:  #e0a520;
+  --color-danger:       #a12b2b;
+  --color-danger-bg:    #fdeaea;
+  --color-danger-line:  #f5c9c9;
+  --color-danger-dot:   #d14343;
+  --color-neutral:      #6b7384;
+  --color-neutral-bg:   #f5f7fa;
 
   /* Surfaces */
-  --color-bg:           #f4f4f4;
+  --color-bg:           #f5f7fa;
   --color-surface:      #ffffff;
-  --color-surface-alt:  #f4f4f4;
-  --color-border:       #e0e0e0;
-  --color-border-strong:#161616;
+  --color-surface-alt:  #f5f7fa;
+  --color-border:       #e3e7ee;
+  --color-border-light: #eef1f6;
 
   /* Text */
-  --color-text:           #161616;
-  --color-text-secondary: #525252;
-  --color-text-muted:     #8c8c8c;
+  --color-text:           #1a1f2b;
+  --color-text-strong:    #2a3040;
+  --color-text-secondary: #6b7384;
+  --color-text-muted:     #9ba3b4;
 
   /* Shell */
-  --shell-header-bg:     #161616;
-  --shell-header-text:   #f4f4f4;
-  --shell-header-muted:  #c6c6c6;
-  --shell-header-hover:  #353535;
   --sidebar-bg:          #ffffff;
-  --sidebar-border:      #e0e0e0;
-  --sidebar-text:        #525252;
-  --sidebar-text-active: #161616;
-  --sidebar-hover:       #f4f4f4;
-  --sidebar-active:      #e5e5e5;
+  --sidebar-border:      #e3e7ee;
+  --sidebar-text:        #6b7384;
+  --sidebar-text-active: #3557d6;
+  --sidebar-hover:       #f5f7fa;
+  --sidebar-active:      #e9edfb;
 
-  /* Elevation: only overlays (menus, dialogs) may cast a shadow */
-  --shadow-overlay: 0 2px 6px rgba(0,0,0,0.20);
+  /* Elevation */
+  --shadow-card:    0 1px 2px rgba(26,31,43,.04), 0 6px 20px rgba(26,31,43,.05);
+  --shadow-leaf:    0 1px 2px rgba(26,31,43,.06);
+  --shadow-primary: 0 1px 2px rgba(53,87,214,.3);
+  --shadow-overlay: 0 12px 40px rgba(26,31,43,.14);
 
-  /* Radii: the system is square */
-  --radius-none: 0;
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
-  --radius-xl: 0;
+  /* Radii by role */
+  --radius-chip: 8px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
 
   /* Typography */
-  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Golos Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 14px;
-  line-height: 1.43;
+  line-height: 1.5;
   font-weight: 400;
-  letter-spacing: 0.16px;
   color: var(--color-text);
   background-color: var(--color-bg);
   font-synthesis: none;
@@ -88,35 +93,35 @@ body { margin: 0; min-height: 100vh; }
 #root { min-height: 100vh; }
 
 a { color: var(--color-primary); text-decoration: none; }
-a:hover { color: #0043ce; text-decoration: underline; }
+a:hover { color: var(--color-primary-hover); }
 
-/* Display type is light — the Carbon signature. Hierarchy by size, not weight. */
 h1, h2, h3, h4, h5, h6 {
   font-family: inherit;
   color: var(--color-text);
-  letter-spacing: 0;
 }
 h1 {
-  font-size: 32px;
-  font-weight: 300;
-  line-height: 1.25;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 h2 {
   font-size: 20px;
-  font-weight: 400;
-  line-height: 1.4;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 h3 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  line-height: 1.5;
+  line-height: 1.3;
 }
-p { font-size: 14px; line-height: 1.43; color: var(--color-text-secondary); }
+p { font-size: 14px; line-height: 1.5; color: var(--color-text-secondary); }
 
-button { font-family: inherit; cursor: pointer; border: none; background: none; letter-spacing: 0.16px; }
-input, select, textarea { font-family: inherit; font-size: 14px; letter-spacing: 0.16px; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, select, textarea { font-family: inherit; font-size: 14px; }
 
-/* ── Focus: 2px accent outline, no offset, square ─────────── */
+/* ── Focus ─────────────────────────────────────────────────── */
 a:focus-visible,
 button:focus-visible,
 select:focus-visible,
@@ -124,7 +129,8 @@ input:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
+  outline-offset: 2px;
+  border-radius: var(--radius-chip);
 }
 
 ::selection {
@@ -144,14 +150,14 @@ textarea:focus-visible,
 /* ── Sidebar nav (inline styles can't do :hover) ──────────── */
 .sidebar-nav-item:not(.active):hover {
   background: var(--sidebar-hover) !important;
-  color: var(--sidebar-text-active) !important;
+  color: var(--color-text) !important;
 }
 
 /* ── Scrollbar ────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #c6c6c6; }
-::-webkit-scrollbar-thumb:hover { background: #8c8c8c; }
+::-webkit-scrollbar-thumb { background: #cfd5df; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #9ba3b4; }
 
 /* ── Skeleton ─────────────────────────────────────────────── */
 @keyframes skeleton-pulse {
@@ -160,116 +166,123 @@ textarea:focus-visible,
 }
 
 .skeleton {
-  background: linear-gradient(90deg, #e8e8e8 25%, #f4f4f4 50%, #e8e8e8 75%);
+  background: linear-gradient(90deg, #eef1f6 25%, #f5f7fa 50%, #eef1f6 75%);
   background-size: 200% 100%;
   animation: skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
 }
 
-/* ── Tile: the one container. Hairline, no shadow, no lift. ── */
+/* ── Card: the container. Shadow lives here and nowhere inside it. ── */
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  padding: 16px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
 }
 .card-clickable {
   cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 .card-clickable:hover {
-  background: var(--color-surface-alt);
+  border-color: var(--color-primary-muted);
+  box-shadow: 0 1px 2px rgba(26,31,43,.05), 0 8px 24px rgba(26,31,43,.08);
 }
 
-/* ── Tags ─────────────────────────────────────────────────── */
+/* ── Chips ────────────────────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.33;
-  letter-spacing: 0.32px;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--color-border);
+  background: var(--color-neutral-bg);
+  color: var(--color-text);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.3;
   white-space: nowrap;
 }
-.badge-primary  { background: var(--color-primary-light); color: #0043ce; }
-.badge-success  { background: var(--color-success-bg);    color: #0e6027; }
-.badge-warning  { background: var(--color-warning-bg);    color: var(--color-warning); }
-.badge-danger   { background: var(--color-danger-bg);     color: #a2191f; }
-.badge-neutral  { background: var(--color-neutral-bg);    color: var(--color-neutral); }
-.badge-purple   { background: var(--color-neutral-bg);    color: var(--color-neutral); }
+.badge-primary  { background: var(--color-primary-light); border-color: var(--color-primary-muted); color: var(--color-primary); }
+.badge-success  { background: var(--color-success-bg);    border-color: var(--color-success-line); color: var(--color-success); }
+.badge-warning  { background: var(--color-warning-bg);    border-color: var(--color-warning-line); color: var(--color-warning); }
+.badge-danger   { background: var(--color-danger-bg);     border-color: var(--color-danger-line);  color: var(--color-danger);  }
+.badge-neutral  { background: var(--color-neutral-bg);    border-color: var(--color-border);       color: var(--color-neutral); }
+.badge-purple   { background: var(--color-neutral-bg);    border-color: var(--color-border);       color: var(--color-neutral); }
 
-/* ── Buttons (Carbon: 12px 16px, square, 14/400) ──────────── */
+/* ── Buttons ──────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 12px 16px;
+  padding: 10px 16px;
   font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0.16px;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   border: 1px solid transparent;
-  line-height: 1.29;
   white-space: nowrap;
-  transition: background-color 70ms cubic-bezier(0, 0, 0.38, 0.9);
+  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
+.btn:disabled { opacity: .55; cursor: default; }
 .btn-primary {
   background: var(--color-primary);
   color: #ffffff;
+  box-shadow: var(--shadow-primary);
 }
-.btn-primary:hover {
-  background: var(--color-primary-hover);
-}
-.btn-primary:active {
-  background: var(--color-primary-active);
-}
+.btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+.btn-primary:active:not(:disabled) { background: var(--color-primary-active); }
 .btn-secondary {
-  background: #393939;
-  color: #ffffff;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
 }
-.btn-secondary:hover {
-  background: #4c4c4c;
-}
+.btn-secondary:hover:not(:disabled) { border-color: #cfd5df; background: var(--color-surface-alt); }
 .btn-ghost {
   background: transparent;
   color: var(--color-primary);
 }
-.btn-ghost:hover {
-  background: var(--color-surface-alt);
-}
+.btn-ghost:hover:not(:disabled) { background: var(--color-primary-light); }
 .btn-danger {
-  background: var(--color-danger);
+  background: var(--color-danger-dot);
   color: #ffffff;
 }
-.btn-danger:hover {
-  background: #ba1b23;
-}
+.btn-danger:hover:not(:disabled) { background: #b83a3a; }
 .btn-sm {
   padding: 7px 12px;
-  font-size: 12px;
+  font-size: 13px;
+  border-radius: var(--radius-chip);
 }
 
-/* ── Form Controls (Carbon: surface fill, bottom rule) ────── */
+/* ── Form Controls ────────────────────────────────────────── */
 .input {
   width: 100%;
-  padding: 11px 16px;
+  height: 38px;
+  padding: 0 12px;
   font-size: 14px;
   font-family: inherit;
-  border: none;
-  border-bottom: 1px solid #8d8d8d;
-  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
   color: var(--color-text);
   outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
+.input::placeholder { color: var(--color-text-muted); }
 .input:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 /* ── Page Layout ──────────────────────────────────────────── */
 .page-title {
-  font-size: 32px;
-  font-weight: 300;
-  line-height: 1.25;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   color: var(--color-text);
   margin-bottom: 4px;
 }
@@ -278,7 +291,7 @@ textarea:focus-visible,
   color: var(--color-text-secondary);
 }
 .section-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
   margin-bottom: 12px;
@@ -291,47 +304,25 @@ textarea:focus-visible,
   margin: 16px 0;
 }
 
-/* ── Login: split screen, stacks under 768px ─────────────── */
+/* ── Login ────────────────────────────────────────────────── */
 .login-page {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(280px, 2fr) 3fr;
-  background: var(--color-surface);
+  place-items: center;
+  padding: 32px 16px;
+  background: var(--color-bg);
 }
-.login-brand {
-  background: var(--shell-header-bg);
-  padding: 32px 48px 64px;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-.login-brand h1 {
-  margin: auto 0 0;
-  font-size: 42px;
-  font-weight: 300;
-  line-height: 1.2;
-  color: #ffffff;
+.login-card {
+  width: 100%;
   max-width: 420px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 32px;
 }
-.login-form {
-  position: relative;
-  padding: 96px 48px 64px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-}
-.login-lang {
-  position: absolute;
-  top: 24px;
-  right: 48px;
-}
-@media (max-width: 768px) {
-  .login-page { grid-template-columns: minmax(0, 1fr); align-content: start; }
-  .login-brand { min-height: 0; padding: 24px 24px 32px; gap: 24px; }
-  .login-brand h1 { font-size: 28px; margin-top: 0; max-width: none; }
-  .login-form { padding: 24px; justify-content: flex-start; }
-  .login-lang { position: static; align-self: flex-end; margin-bottom: 24px; }
+@media (max-width: 480px) {
+  .login-card { padding: 24px 20px; }
 }
 
 /* ── Responsive ──────────────────────────────────────────── */
@@ -343,7 +334,7 @@ textarea:focus-visible,
 
 @media (max-width: 1024px) {
   :root {
-    --sidebar-width: 200px;
+    --sidebar-width: 208px;
   }
 }
 

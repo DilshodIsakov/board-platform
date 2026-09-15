@@ -4,7 +4,7 @@ import type { User } from "@supabase/supabase-js";
 import { useTranslation } from "react-i18next";
 import type { Profile, Organization } from "../lib/profile";
 import { getLocalizedName } from "../lib/profile";
-import { fetchNSMeetings, fetchAgendaItems, type NSMeeting } from "../lib/nsMeetings";
+import { fetchNSMeetings, fetchAgendaItems, type NSMeeting, type AgendaItem } from "../lib/nsMeetings";
 import { fetchAllVotingsWithMeeting, type VotingWithMeeting } from "../lib/voting";
 import { getLocalizedField } from "../lib/i18nHelpers";
 import { getIntlLocale } from "../i18n";
@@ -36,7 +36,7 @@ export default function DashboardPage({ profile, org }: Props) {
 
   const [nextMeeting, setNextMeeting] = useState<NSMeeting | null>(null);
   const [allMeetings, setAllMeetings] = useState<NSMeeting[]>([]);
-  const [agendaCount, setAgendaCount] = useState<number>(0);
+  const [agenda, setAgenda] = useState<AgendaItem[]>([]);
   const [myTasks, setMyTasks] = useState<DashTask[]>([]);
   const [openVotings, setOpenVotings] = useState<VotingWithMeeting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +74,7 @@ export default function DashboardPage({ profile, org }: Props) {
 
     if (chosen) {
       const items = await fetchAgendaItems(chosen.id);
-      setAgendaCount(items.length);
+      setAgenda([...items].sort((a, b) => a.order_index - b.order_index));
     }
   };
 
@@ -155,8 +155,9 @@ export default function DashboardPage({ profile, org }: Props) {
   if (loading) {
     return (
       <div style={{ width: "100%" }}>
-        <div style={{ height: 56, marginBottom: 32, width: 360 }} className="skeleton" />
-        <div style={{ height: 176, marginBottom: 16 }} className="skeleton" />
+        <div style={{ height: 32, marginBottom: 8, width: 360 }} className="skeleton" />
+        <div style={{ height: 18, marginBottom: 24, width: 220 }} className="skeleton" />
+        <div style={{ height: 200, marginBottom: 16, borderRadius: 14 }} className="skeleton" />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
           <SkeletonCard lines={4} />
           <SkeletonCard lines={4} />
@@ -170,14 +171,8 @@ export default function DashboardPage({ profile, org }: Props) {
     ? getLocalizedField(nextMeeting as unknown as Record<string, unknown>, "title")
     : "";
   const meetingDate = nextMeeting ? new Date(nextMeeting.start_at) : null;
-
-  // The left rule carries the state; everything else stays quiet.
-  const heroRule =
-    meetingState === "now" ? "#24a148"
-    : meetingState === "soon" ? "#f1c21b"
-    : meetingState === "completed" ? "#c6c6c6"
-    : meetingState === "upcoming" ? "#0f62fe"
-    : "#e0e0e0";
+  const daysUntil = meetingDate ? Math.ceil((meetingDate.getTime() - Date.now()) / 86400000) : 0;
+  const agendaCount = agenda.length;
 
   const pendingVotings = openVotings.filter(
     (v) => !(v.votes || []).some((vote) => vote.voter_id === profile?.id)
@@ -188,67 +183,60 @@ export default function DashboardPage({ profile, org }: Props) {
   const isUrgent = (v: VotingWithMeeting) =>
     !!v.deadline && new Date(v.deadline).getTime() - Date.now() < 24 * 3600 * 1000;
 
+  const stateChip = () => {
+    if (meetingState === "now") return <StatusBadge variant="success" dot pulse>{t("dashboard.meetingGoingNow")}</StatusBadge>;
+    if (meetingState === "soon" && nextMeeting) return <StatusBadge variant="warning" dot>{t("dashboard.meetingSoon")}, {formatRelativeTime(nextMeeting.start_at)}</StatusBadge>;
+    if (meetingState === "completed") return <StatusBadge variant="neutral">{t("nsMeetings.statusCompleted")}</StatusBadge>;
+    return <StatusBadge variant="primary">{t("nsMeetings.statusScheduled", "Запланировано")}</StatusBadge>;
+  };
+
   return (
     <div style={{ width: "100%" }}>
 
       {/* ── Page header ── */}
-      <div style={{ marginBottom: 32 }}>
-        <p style={{ margin: "0 0 8px", fontSize: 14, color: "#525252" }}>{todayCap}</p>
-        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 300, lineHeight: 1.25, color: "#161616" }}>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ margin: "0 0 4px", fontSize: 26, fontWeight: 600, lineHeight: 1.2, letterSpacing: "-0.01em", color: "#1a1f2b" }}>
           {t("dashboard.greeting")} {profile ? getLocalizedName(profile, i18n.language) : ""}
         </h1>
+        <p style={{ margin: 0, fontSize: 14, color: "#6b7384" }}>{todayCap}</p>
       </div>
 
       {/* ── Next meeting ── */}
-      <section style={{ ...heroStyle, borderLeft: `3px solid ${heroRule}` }} aria-label={t("dashboard.nextMeeting")}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-          <span style={{ fontSize: 14, color: "#525252" }}>{t("dashboard.nextMeeting")}</span>
-          {meetingState === "now" && (
-            <StatusBadge variant="success" dot pulse>{t("dashboard.meetingGoingNow")}</StatusBadge>
-          )}
-          {meetingState === "soon" && nextMeeting && (
-            <StatusBadge variant="warning">{t("dashboard.meetingSoon")}, {formatRelativeTime(nextMeeting.start_at)}</StatusBadge>
-          )}
-          {meetingState === "completed" && (
-            <StatusBadge variant="neutral">{t("nsMeetings.statusCompleted")}</StatusBadge>
-          )}
-        </div>
-
+      <section style={heroStyle} aria-label={t("dashboard.nextMeeting")}>
         {nextMeeting && meetingDate ? (
-          <div style={{ display: "flex", gap: 40, alignItems: "flex-start", flexWrap: "wrap" }}>
-            {/* Date block: the day number is the one large element on the page */}
-            <div style={{ minWidth: 148, flexShrink: 0 }}>
-              <div style={{ fontSize: 60, fontWeight: 300, lineHeight: 1, letterSpacing: "-0.4px", color: "#161616" }}>
-                {meetingDate.getDate()}
+          <div style={heroGridStyle}>
+            {/* Calendar leaf: the one large element on the page */}
+            <div style={leafStyle}>
+              <div style={leafMonthStyle}>
+                {meetingDate.toLocaleDateString(getIntlLocale(), { month: "long" })}
               </div>
-              <div style={{ fontSize: 14, color: "#161616", marginTop: 8 }}>
-                {meetingDate.toLocaleDateString(getIntlLocale(), { month: "long", year: "numeric" })}
-              </div>
-              <div style={{ fontSize: 14, color: "#525252" }}>
-                {meetingDate.toLocaleDateString(getIntlLocale(), { weekday: "long" })}, {formatMeetingTime(nextMeeting.start_at)}
+              <div style={leafDayStyle}>{meetingDate.getDate()}</div>
+              <div style={leafWeekStyle}>
+                {meetingDate.toLocaleDateString(getIntlLocale(), { weekday: "short" })} · {formatMeetingTime(nextMeeting.start_at)}
               </div>
             </div>
 
-            <div style={{ flex: 1, minWidth: 260 }}>
-              <h2 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 400, lineHeight: 1.4, color: "#161616" }}>
-                {meetingTitle}
-              </h2>
-              <div style={{ fontSize: 14, color: "#525252", display: "flex", gap: 16, flexWrap: "wrap" }}>
-                {agendaCount > 0 && <span>{t("dashboard.agendaItems_other", { count: agendaCount })}</span>}
-                {nextMeeting.video_conference_provider && (
-                  <span>{nextMeeting.video_conference_provider.replace("_", " ")}</span>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, color: "#6b7384", marginBottom: 8 }}>
+                {t("dashboard.nextMeeting")}
+                {meetingState === "upcoming" && daysUntil >= 0 && (
+                  <> · {daysUntil === 0 ? t("dashboard.today") : t("dashboard.inDays", { count: daysUntil })}</>
                 )}
               </div>
-
-              <div style={{ marginTop: 24, display: "flex", gap: 1 }}>
+              <h2 style={{ margin: "0 0 10px", fontSize: 20, fontWeight: 600, lineHeight: 1.35, letterSpacing: "-0.01em", color: "#1a1f2b" }}>
+                {meetingTitle}
+              </h2>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
+                {stateChip()}
+                {agendaCount > 0 && <StatusBadge variant="neutral">{t("dashboard.agendaItems_other", { count: agendaCount })}</StatusBadge>}
+                {nextMeeting.video_conference_provider && (
+                  <StatusBadge variant="neutral">{nextMeeting.video_conference_provider.replace("_", " ")}</StatusBadge>
+                )}
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {nextMeeting.video_conference_enabled && nextMeeting.video_conference_url ? (
                   <>
-                    <a
-                      href={nextMeeting.video_conference_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-primary"
-                    >
+                    <a href={nextMeeting.video_conference_url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
                       {t("dashboard.joinVideoConf")}
                     </a>
                     <button onClick={() => navigate(`/ns-meetings/${nextMeeting.id}`)} className="btn btn-secondary">
@@ -262,10 +250,34 @@ export default function DashboardPage({ profile, org }: Props) {
                 )}
               </div>
             </div>
+
+            {/* Agenda preview on a soft inset — no card inside a card */}
+            <div style={insetStyle}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#6b7384", marginBottom: 8 }}>{t("dashboard.agendaTitle")}</div>
+              {agenda.length === 0 ? (
+                <div style={{ fontSize: 13.5, color: "#9ba3b4" }}>{t("dashboard.noAgenda")}</div>
+              ) : (
+                <ol style={{ margin: 0, paddingLeft: 20, fontSize: 13.5, lineHeight: 1.45, color: "#2a3040" }}>
+                  {agenda.slice(0, 4).map((item) => (
+                    <li key={item.id} style={{ padding: "3px 0" }}>
+                      {getLocalizedField(item as unknown as Record<string, unknown>, "title")}
+                    </li>
+                  ))}
+                  {agenda.length > 4 && (
+                    <li style={{ padding: "3px 0", color: "#6b7384", listStyle: "none", marginLeft: -20 }}>
+                      {t("dashboard.votingMoreItems", { count: agenda.length - 4 })}
+                    </li>
+                  )}
+                </ol>
+              )}
+            </div>
           </div>
         ) : (
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 300, color: "#161616", marginBottom: 16 }}>{t("dashboard.noNextMeeting")}</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 13.5, color: "#6b7384", marginBottom: 6 }}>{t("dashboard.nextMeeting")}</div>
+              <div style={{ fontSize: 18, fontWeight: 500, color: "#1a1f2b" }}>{t("dashboard.noNextMeeting")}</div>
+            </div>
             {isAdmin && (
               <button onClick={() => navigate("/ns-meetings")} className="btn btn-primary">
                 {t("dashboard.createFirstMeeting")}
@@ -278,54 +290,17 @@ export default function DashboardPage({ profile, org }: Props) {
       {/* ── Two columns ── */}
       <div style={gridStyle}>
 
-        {/* ── My tasks ── */}
-        <section style={tileStyle}>
-          <div style={tileHeaderStyle}>
-            <h2 style={tileTitleStyle}>{t("dashboard.myTasks")}</h2>
-            <Link to="/tasks" style={linkStyle}>{t("dashboard.allTasks")}</Link>
-          </div>
-
-          {myTasks.length === 0 ? (
-            <EmptyState title={t("dashboard.noMyTasks")} />
-          ) : (
-            <div>
-              {myTasks.map((task) => {
-                const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "done";
-                const status = getTaskStatus(task.status, task.due_date);
-                return (
-                  <Link key={task.id} to={`/tasks/${task.id}`} style={rowStyle}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
-                        {getTaskTitle(task)}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <StatusBadge variant={status.variant}>{status.label}</StatusBadge>
-                        {task.due_date && (
-                          <span style={{ fontSize: 12, letterSpacing: "0.32px", color: isOverdue ? "#da1e28" : "#525252" }}>
-                            {t("dashboard.taskDue")} {new Date(task.due_date).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "short" })}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <ChevronRight />
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
         {/* ── Votings ── */}
-        <section style={{ ...tileStyle, borderLeft: hasPending ? "3px solid #f1c21b" : tileStyle.border }}>
-          <div style={tileHeaderStyle}>
+        <section style={{ ...cardStyle, borderColor: hasPending ? "#f4e2a8" : "#e3e7ee" }}>
+          <div style={cardHeadStyle}>
             <div>
-              <h2 style={tileTitleStyle}>
+              <h2 style={cardTitleStyle}>
                 {hasPending
                   ? t("dashboard.votingPendingTitle", { count: pendingVotings.length })
                   : t("dashboard.activeVotings")}
               </h2>
               {isAdmin && openVotings.length > 0 && (
-                <div style={{ fontSize: 12, color: "#525252", letterSpacing: "0.32px", marginTop: 2 }}>
+                <div style={{ fontSize: 12.5, color: "#6b7384", marginTop: 2 }}>
                   {t("dashboard.votingAdminCount", { count: openVotings.length })}
                 </div>
               )}
@@ -334,13 +309,14 @@ export default function DashboardPage({ profile, org }: Props) {
           </div>
 
           {openVotings.length === 0 ? (
-            <EmptyState title={t("dashboard.noActiveVotings")} />
+            <div style={{ padding: "0 20px 20px" }}><EmptyState title={t("dashboard.noActiveVotings")} /></div>
           ) : (
             <div>
               {shownVotings.map((v) => {
                 const voted = (v.votes || []).some((vote) => vote.voter_id === profile?.id);
                 const urgent = isUrgent(v);
                 const meeting = allMeetings.find((m) => m.id === v.meeting_id);
+                const dot = voted ? "#2e9e5b" : urgent ? "#d14343" : "#e0a520";
                 return (
                   <div
                     key={v.id}
@@ -350,34 +326,66 @@ export default function DashboardPage({ profile, org }: Props) {
                     onKeyDown={(e) => { if (e.key === "Enter") navigate(`/ns-meetings/${v.meeting_id}`); }}
                     style={{ ...rowStyle, cursor: "pointer" }}
                   >
+                    <span style={{ ...dotStyle, background: dot }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
+                      <div style={rowTitleStyle}>
                         {getLocalizedField(v as unknown as Record<string, unknown>, "agenda_title") || v.title}
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        {voted ? (
-                          <StatusBadge variant="success">{t("dashboard.votingVoted")}</StatusBadge>
-                        ) : (
-                          <StatusBadge variant={urgent ? "danger" : "warning"}>
-                            {urgent ? t("dashboard.votingUrgent") : t("dashboard.votingAwaitingVote")}
-                          </StatusBadge>
-                        )}
-                        {meeting && (
-                          <span style={{ fontSize: 12, letterSpacing: "0.32px", color: "#525252" }}>
-                            {new Date(meeting.start_at).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "short", year: "numeric" })}
-                          </span>
-                        )}
-                      </div>
+                      {meeting && (
+                        <div style={rowCaptionStyle}>
+                          {new Date(meeting.start_at).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "long" })}
+                          {v.deadline && <> · {t("dashboard.taskDue")} {new Date(v.deadline).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "short" })}</>}
+                        </div>
+                      )}
                     </div>
-                    <ChevronRight />
+                    {voted ? (
+                      <StatusBadge variant="success">{t("dashboard.votingVoted")}</StatusBadge>
+                    ) : (
+                      <StatusBadge variant={urgent ? "danger" : "warning"}>
+                        {urgent ? t("dashboard.votingUrgent") : t("dashboard.votingAwaitingVote")}
+                      </StatusBadge>
+                    )}
                   </div>
                 );
               })}
               {extraVotings > 0 && (
-                <Link to="/voting" style={{ ...linkStyle, display: "block", paddingTop: 12 }}>
+                <Link to="/voting" style={{ ...linkStyle, display: "block", padding: "12px 20px", borderTop: "1px solid #eef1f6" }}>
                   {t("dashboard.votingMoreItems", { count: extraVotings })}
                 </Link>
               )}
+            </div>
+          )}
+        </section>
+
+        {/* ── My tasks ── */}
+        <section style={cardStyle}>
+          <div style={cardHeadStyle}>
+            <h2 style={cardTitleStyle}>{t("dashboard.myTasks")}</h2>
+            <Link to="/tasks" style={linkStyle}>{t("dashboard.allTasks")}</Link>
+          </div>
+
+          {myTasks.length === 0 ? (
+            <div style={{ padding: "0 20px 20px" }}><EmptyState title={t("dashboard.noMyTasks")} /></div>
+          ) : (
+            <div>
+              {myTasks.map((task) => {
+                const status = getTaskStatus(task.status, task.due_date);
+                const dot = status.variant === "danger" ? "#d14343" : status.variant === "primary" ? "#3557d6" : status.variant === "success" ? "#2e9e5b" : "#9ba3b4";
+                return (
+                  <Link key={task.id} to={`/tasks/${task.id}`} style={rowStyle}>
+                    <span style={{ ...dotStyle, background: dot }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={rowTitleStyle}>{getTaskTitle(task)}</div>
+                      {task.due_date && (
+                        <div style={{ ...rowCaptionStyle, color: status.variant === "danger" ? "#a12b2b" : "#6b7384" }}>
+                          {t("dashboard.taskDue")} {new Date(task.due_date).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "long" })}
+                        </div>
+                      )}
+                    </div>
+                    <StatusBadge variant={status.variant}>{status.label}</StatusBadge>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </section>
@@ -385,9 +393,9 @@ export default function DashboardPage({ profile, org }: Props) {
 
       {/* ── Admin quick actions ── */}
       {isAdmin && (
-        <section style={{ marginTop: 16 }}>
-          <h2 style={{ ...tileTitleStyle, marginBottom: 12 }}>{t("dashboard.quickActions")}</h2>
-          <div style={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+        <section style={{ marginTop: 20 }}>
+          <h2 style={{ ...cardTitleStyle, marginBottom: 10 }}>{t("dashboard.quickActions")}</h2>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button onClick={() => navigate("/ns-meetings")} className="btn btn-secondary">
               {t("dashboard.createNSMeeting")}
             </button>
@@ -408,54 +416,98 @@ export default function DashboardPage({ profile, org }: Props) {
   );
 }
 
-function ChevronRight() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden="true">
-      <path d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}
-
 // ── Styles ───────────────────────────────────────────────────────────────────
 
-const heroStyle: React.CSSProperties = {
+const cardStyle: React.CSSProperties = {
   background: "#ffffff",
-  border: "1px solid #e0e0e0",
-  padding: "24px 32px 32px",
+  border: "1px solid #e3e7ee",
+  borderRadius: 14,
+  boxShadow: "var(--shadow-card)",
+  overflow: "hidden",
+};
+
+const heroStyle: React.CSSProperties = {
+  ...cardStyle,
+  padding: "24px 28px",
   marginBottom: 16,
+  overflow: "visible",
+};
+
+const heroGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "96px minmax(0, 1fr) 300px",
+  gap: 28,
+  alignItems: "start",
+};
+
+const leafStyle: React.CSSProperties = {
+  border: "1px solid #e3e7ee",
+  borderRadius: 12,
+  overflow: "hidden",
+  textAlign: "center",
+  boxShadow: "var(--shadow-leaf)",
+  background: "#ffffff",
+};
+
+const leafMonthStyle: React.CSSProperties = {
+  background: "#3557d6",
+  color: "#ffffff",
+  fontSize: 11.5,
+  fontWeight: 600,
+  letterSpacing: "0.06em",
+  textTransform: "uppercase",
+  padding: "5px 4px",
+};
+
+const leafDayStyle: React.CSSProperties = {
+  fontSize: 40,
+  fontWeight: 600,
+  lineHeight: 1,
+  letterSpacing: "-0.02em",
+  padding: "12px 0 4px",
+  color: "#1a1f2b",
+  fontVariantNumeric: "tabular-nums",
+};
+
+const leafWeekStyle: React.CSSProperties = {
+  fontSize: 12,
+  color: "#6b7384",
+  paddingBottom: 10,
+};
+
+const insetStyle: React.CSSProperties = {
+  background: "#f5f7fa",
+  borderRadius: 12,
+  padding: 16,
+  minWidth: 0,
 };
 
 const gridStyle: React.CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))",
   gap: 16,
 };
 
-const tileStyle: React.CSSProperties = {
-  background: "#ffffff",
-  border: "1px solid #e0e0e0",
-  padding: "16px 16px 8px",
-};
-
-const tileHeaderStyle: React.CSSProperties = {
+const cardHeadStyle: React.CSSProperties = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "flex-start",
   gap: 16,
-  marginBottom: 8,
+  padding: "18px 20px 10px",
 };
 
-const tileTitleStyle: React.CSSProperties = {
+const cardTitleStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: 16,
+  fontSize: 15,
   fontWeight: 600,
-  lineHeight: 1.5,
-  color: "#161616",
+  lineHeight: 1.3,
+  color: "#1a1f2b",
 };
 
 const linkStyle: React.CSSProperties = {
-  fontSize: 14,
-  color: "#0f62fe",
+  fontSize: 13.5,
+  fontWeight: 500,
+  color: "#3557d6",
   textDecoration: "none",
   whiteSpace: "nowrap",
 };
@@ -464,8 +516,30 @@ const rowStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: 12,
-  padding: "12px 0",
-  borderTop: "1px solid #e0e0e0",
+  padding: "12px 20px",
+  borderTop: "1px solid #eef1f6",
   textDecoration: "none",
   color: "inherit",
+};
+
+const dotStyle: React.CSSProperties = {
+  width: 8,
+  height: 8,
+  borderRadius: "50%",
+  flexShrink: 0,
+};
+
+const rowTitleStyle: React.CSSProperties = {
+  fontSize: 14,
+  fontWeight: 500,
+  color: "#1a1f2b",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+const rowCaptionStyle: React.CSSProperties = {
+  fontSize: 12.5,
+  color: "#6b7384",
+  marginTop: 2,
 };

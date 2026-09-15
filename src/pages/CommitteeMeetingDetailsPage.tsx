@@ -277,11 +277,11 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
   };
 
   if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#8d8d8d" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: "#9ba3b4" }}>
       {t("common.loading")}
     </div>
   );
-  if (!meeting || !committee) return <div style={{ color: "#da1e28", padding: 32 }}>{t("common.notFound")}</div>;
+  if (!meeting || !committee) return <div style={{ color: "#d14343", padding: 32 }}>{t("common.notFound")}</div>;
 
   const color = committeeTypeColor(committee.type);
   const icon = committeeTypeIcon(committee.type);
@@ -325,19 +325,19 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-                <span style={{ fontWeight: 600, fontSize: 13, color: "#161616" }}>{comment.user_name}</span>
-                <span style={{ fontSize: 11, color: "#8d8d8d" }}>
+                <span style={{ fontWeight: 600, fontSize: 13, color: "#1a1f2b" }}>{comment.user_name}</span>
+                <span style={{ fontSize: 11, color: "#9ba3b4" }}>
                   {new Date(comment.created_at).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "short" })}
                   {" "}
                   {new Date(comment.created_at).toLocaleTimeString(getIntlLocale(), { hour: "2-digit", minute: "2-digit" })}
                 </span>
                 {comment.updated_at !== comment.created_at && (
-                  <span style={{ fontSize: 11, color: "#c6c6c6" }}>{t("nsMeetings.edited")}</span>
+                  <span style={{ fontSize: 11, color: "#cfd5df" }}>{t("nsMeetings.edited")}</span>
                 )}
               </div>
 
               {comment.is_deleted ? (
-                <div style={{ fontSize: 13, color: "#c6c6c6", fontStyle: "italic" }}>{t("nsMeetings.deletedComment")}</div>
+                <div style={{ fontSize: 13, color: "#cfd5df", fontStyle: "italic" }}>{t("nsMeetings.deletedComment")}</div>
               ) : isEditing ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <textarea
@@ -353,7 +353,7 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                   </div>
                 </div>
               ) : (
-                <div style={{ fontSize: 13, color: "#393939", lineHeight: 1.55, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                <div style={{ fontSize: 13, color: "#2a3040", lineHeight: 1.55, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                   {comment.content}
                 </div>
               )}
@@ -377,7 +377,7 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                     </button>
                   )}
                   {(isOwn || isAdmin) && (
-                    <button onClick={() => handleDeleteComment(discussionAgendaId, comment.id)} style={{ ...ghostBtnStyle, color: "#da1e28" }}>
+                    <button onClick={() => handleDeleteComment(discussionAgendaId, comment.id)} style={{ ...ghostBtnStyle, color: "#d14343" }}>
                       {t("common.delete")}
                     </button>
                   )}
@@ -400,9 +400,9 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                       onClick={() => handleAddComment(discussionAgendaId, comment.id)}
                       disabled={commentSending[discussionAgendaId] || !(replyText[discussionAgendaId] || "").trim()}
                       style={{
-                        padding: "6px 14px", fontSize: 13, fontWeight: 600, borderRadius: 0,
+                        padding: "6px 14px", fontSize: 13, fontWeight: 600, borderRadius: 10,
                         border: "none", cursor: "pointer",
-                        background: (replyText[discussionAgendaId] || "").trim() ? color : "#c6c6c6",
+                        background: (replyText[discussionAgendaId] || "").trim() ? color : "#cfd5df",
                         color: "#fff",
                       }}
                     >
@@ -430,21 +430,21 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - var(--header-height, 64px))" }}>
         {/* Header */}
-        <div style={{ background: "#fff", borderBottom: "1px solid #e0e0e0", padding: "16px 32px", flexShrink: 0 }}>
+        <div style={{ background: "#fff", borderBottom: "1px solid #e3e7ee", padding: "16px 32px", flexShrink: 0 }}>
           <button onClick={() => setDiscussionAgendaId(null)} style={{ ...smallBtnStyle, marginBottom: 12, display: "inline-flex", alignItems: "center", gap: 6 }}>
             ← {meetingTitle}
           </button>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "#161616" }}>{t("nsMeetings.discussion")}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "#1a1f2b" }}>{t("nsMeetings.discussion")}</div>
             {commentCount > 0 && (
-              <span style={{ background: "#edf5ff", color: "#0f62fe", fontSize: 13, fontWeight: 600, borderRadius: 0, padding: "2px 10px" }}>
+              <span style={{ background: "#e9edfb", color: "#3557d6", fontSize: 13, fontWeight: 600, borderRadius: 8, padding: "2px 10px" }}>
                 {commentCount}
               </span>
             )}
           </div>
-          <div style={{ fontSize: 14, color: "#525252", marginTop: 4 }}>{dTitle}</div>
+          <div style={{ fontSize: 14, color: "#6b7384", marginTop: 4 }}>{dTitle}</div>
           {isCompleted && (
-            <div style={{ marginTop: 8, padding: "6px 14px", background: "#fcf4d6", borderRadius: 0, fontSize: 13, color: "#684e00", display: "inline-block" }}>
+            <div style={{ marginTop: 8, padding: "6px 14px", background: "#fff5dd", borderRadius: 10, fontSize: 13, color: "#7a5410", display: "inline-block" }}>
               {t("nsMeetings.discussionClosed")}
             </div>
           )}
@@ -453,11 +453,11 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
         {/* Comments list */}
         <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>
           {rootComments.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "60px 0", color: "#8d8d8d" }}>
+            <div style={{ textAlign: "center", padding: "60px 0", color: "#9ba3b4" }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}></div>
-              <div style={{ fontSize: 15, fontWeight: 500, color: "#525252" }}>{t("nsMeetings.noComments")}</div>
+              <div style={{ fontSize: 15, fontWeight: 500, color: "#6b7384" }}>{t("nsMeetings.noComments")}</div>
               {canParticipate && !isCompleted && (
-                <div style={{ fontSize: 13, color: "#8d8d8d", marginTop: 4 }}>{t("nsMeetings.addComment")}</div>
+                <div style={{ fontSize: 13, color: "#9ba3b4", marginTop: 4 }}>{t("nsMeetings.addComment")}</div>
               )}
             </div>
           ) : (
@@ -469,7 +469,7 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
 
         {/* New comment input */}
         {canParticipate && !isCompleted && (
-          <div style={{ background: "#fff", borderTop: "1px solid #e0e0e0", padding: "16px 32px", flexShrink: 0 }}>
+          <div style={{ background: "#fff", borderTop: "1px solid #e3e7ee", padding: "16px 32px", flexShrink: 0 }}>
             <div style={{ maxWidth: 800, display: "flex", gap: 10, alignItems: "flex-end" }}>
               <textarea
                 value={commentText[discussionAgendaId] || ""}
@@ -483,9 +483,9 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                 onClick={() => handleAddComment(discussionAgendaId)}
                 disabled={commentSending[discussionAgendaId] || !(commentText[discussionAgendaId] || "").trim()}
                 style={{
-                  padding: "10px 20px", fontSize: 14, fontWeight: 600, borderRadius: 0,
+                  padding: "10px 20px", fontSize: 14, fontWeight: 600, borderRadius: 10,
                   border: "none", cursor: "pointer", flexShrink: 0,
-                  background: (commentText[discussionAgendaId] || "").trim() ? color : "#c6c6c6",
+                  background: (commentText[discussionAgendaId] || "").trim() ? color : "#cfd5df",
                   color: "#fff",
                 }}
               >
@@ -503,13 +503,13 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
       <button
         onClick={() => navigate(`/committees/${committeeId}`)}
-        style={{ background: "none", border: "none", color: "#525252", cursor: "pointer", fontSize: 14, marginBottom: 20, padding: 0 }}
+        style={{ background: "none", border: "none", color: "#6b7384", cursor: "pointer", fontSize: 14, marginBottom: 20, padding: 0 }}
       >
         ← {committeeName}
       </button>
 
       {/* Main card */}
-      <div style={{ background: "#fff", border: "1px solid #e0e0e0", borderRadius: 0, overflow: "hidden", marginBottom: 24 }}>
+      <div style={{ background: "#fff", border: "1px solid #e3e7ee", borderRadius: 10, overflow: "hidden", marginBottom: 24 }}>
         <div style={{ height: 6, background: color }} />
         <div style={{ padding: "24px 28px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
@@ -518,17 +518,17 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                 <span style={{ fontSize: 18 }}>{icon}</span>
                 <span style={{ fontSize: 12, color, fontWeight: 600 }}>{committeeName}</span>
               </div>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#161616", lineHeight: 1.3 }}>{meetingTitle}</h1>
-              <div style={{ marginTop: 8, display: "flex", gap: 16, flexWrap: "wrap", fontSize: 14, color: "#525252" }}>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "#1a1f2b", lineHeight: 1.3 }}>{meetingTitle}</h1>
+              <div style={{ marginTop: 8, display: "flex", gap: 16, flexWrap: "wrap", fontSize: 14, color: "#6b7384" }}>
                 <span>{dateStr}</span>
                 <span>{timeStr}</span>
                 {meeting.location && <span>{meeting.location}</span>}
               </div>
               <div style={{ marginTop: 8 }}>
                 <span style={{
-                  fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 0,
-                  background: meeting.status === "scheduled" ? "#d0e2ff" : "#f4f4f4",
-                  color: meeting.status === "scheduled" ? "#0043ce" : "#525252",
+                  fontSize: 12, fontWeight: 600, padding: "3px 10px", borderRadius: 8,
+                  background: meeting.status === "scheduled" ? "#d3dbf7" : "#f5f7fa",
+                  color: meeting.status === "scheduled" ? "#2c48b8" : "#6b7384",
                 }}>
                   {meeting.status === "scheduled" ? t("nsMeetings.statusScheduled") : t("nsMeetings.statusCompleted")}
                 </span>
@@ -543,20 +543,20 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                   }}
                   style={smallBtnStyle}
                 >{t("common.edit")}</button>
-                <button onClick={handleDelete} style={{ ...smallBtnStyle, color: "#da1e28", borderColor: "#ffd7d9" }}>{t("common.delete")}</button>
+                <button onClick={handleDelete} style={{ ...smallBtnStyle, color: "#d14343", borderColor: "#f5c9c9" }}>{t("common.delete")}</button>
               </div>
             )}
           </div>
 
           {meeting.notes && (
-            <div style={{ marginTop: 12, padding: "10px 14px", background: "#f4f4f4", borderRadius: 0, fontSize: 13, color: "#525252", lineHeight: 1.5 }}>
+            <div style={{ marginTop: 12, padding: "10px 14px", background: "#f5f7fa", borderRadius: 10, fontSize: 13, color: "#6b7384", lineHeight: 1.5 }}>
               {meeting.notes}
             </div>
           )}
 
           {/* Edit form */}
           {showEdit && (
-            <div style={{ marginTop: 16, padding: "16px", background: "#f4f4f4", borderRadius: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ marginTop: 16, padding: "16px", background: "#f5f7fa", borderRadius: 10, display: "flex", flexDirection: "column", gap: 10 }}>
               <LangInputs
                 label={t("committees.meetingTitle")}
                 values={{ ru: editForm.title, en: editForm.title_en, uz: editForm.title_uz }}
@@ -579,9 +579,9 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
       </div>
 
       {/* Documents */}
-      <div style={{ background: "#fff", border: "1px solid #e0e0e0", borderRadius: 0, padding: "20px 24px", marginBottom: 20 }}>
+      <div style={{ background: "#fff", border: "1px solid #e3e7ee", borderRadius: 14, boxShadow: "var(--shadow-card)", padding: "20px 24px", marginBottom: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "#161616" }}>{t("committees.documents")}</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#1a1f2b" }}>{t("committees.documents")}</span>
           {canParticipate && (
             <>
               <button onClick={() => fileInputRef.current?.click()} style={{ ...smallBtnStyle, display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -593,24 +593,24 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
           )}
         </div>
         {documents.length === 0 ? (
-          <p style={{ color: "#c6c6c6", fontSize: 13, margin: 0 }}>{t("committees.noDocuments")}</p>
+          <p style={{ color: "#cfd5df", fontSize: 13, margin: 0 }}>{t("committees.noDocuments")}</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {documents.map((doc) => {
               const ftLabel = getFileTypeLabel(doc.mime_type);
-              const ftColor = ftLabel === "PDF" ? "#da1e28" : ftLabel === "Word" ? "#0f62fe" : ftLabel === "Excel" ? "#24a148" : "#525252";
+              const ftColor = ftLabel === "PDF" ? "#d14343" : ftLabel === "Word" ? "#3557d6" : ftLabel === "Excel" ? "#2e9e5b" : "#6b7384";
               return (
-                <div key={doc.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f4f4f4", borderRadius: 0, border: "1px solid #f4f4f4" }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 0, background: ftColor + "18", color: ftColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+                <div key={doc.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f5f7fa", borderRadius: 10, border: "1px solid #f5f7fa" }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 8, background: ftColor + "18", color: ftColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
                     {ftLabel}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.file_name}</div>
-                    <div style={{ fontSize: 11, color: "#8d8d8d" }}>{formatFileSize(doc.file_size)} · {new Date(doc.created_at).toLocaleDateString(getIntlLocale())}</div>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: "#1a1f2b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.file_name}</div>
+                    <div style={{ fontSize: 11, color: "#9ba3b4" }}>{formatFileSize(doc.file_size)} · {new Date(doc.created_at).toLocaleDateString(getIntlLocale())}</div>
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
                     {/\.(docx|xlsx)$/i.test(doc.file_name) && (
-                      <button onClick={() => window.open(`/documents/${doc.id}/review`, "_blank", "noopener")} style={{ ...downloadBtnStyle, border: "1px solid #d0e2ff", background: "#edf5ff", color: "#0043ce" }} title={t("review.openHint")}>
+                      <button onClick={() => window.open(`/documents/${doc.id}/review`, "_blank", "noopener")} style={{ ...downloadBtnStyle, border: "1px solid #d3dbf7", background: "#e9edfb", color: "#2c48b8" }} title={t("review.openHint")}>
                         {t("review.open")}
                       </button>
                     )}
@@ -625,9 +625,9 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
       </div>
 
       {/* Agenda */}
-      <div style={{ background: "#fff", border: "1px solid #e0e0e0", borderRadius: 0, padding: "20px 24px" }}>
+      <div style={{ background: "#fff", border: "1px solid #e3e7ee", borderRadius: 14, boxShadow: "var(--shadow-card)", padding: "20px 24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "#161616" }}>{t("nsMeetings.agenda")}</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#1a1f2b" }}>{t("nsMeetings.agenda")}</span>
           {isAdmin && (
             <button onClick={() => setShowAgendaForm(!showAgendaForm)} style={smallBtnStyle}>
               + {t("nsMeetings.addAgendaItem")}
@@ -637,7 +637,7 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
 
         {/* Add agenda item form */}
         {showAgendaForm && isAdmin && (
-          <div style={{ marginBottom: 16, padding: "14px", background: "#f4f4f4", borderRadius: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ marginBottom: 16, padding: "14px", background: "#f5f7fa", borderRadius: 10, display: "flex", flexDirection: "column", gap: 8 }}>
             <LangInputs
               label={t("nsMeetings.agendaTitle")}
               values={{ ru: agendaForm.title, en: agendaForm.title_en, uz: agendaForm.title_uz }}
@@ -652,7 +652,7 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
         )}
 
         {agendaItems.length === 0 ? (
-          <p style={{ color: "#c6c6c6", fontSize: 13, margin: 0 }}>{t("nsMeetings.noAgendaItems")}</p>
+          <p style={{ color: "#cfd5df", fontSize: 13, margin: 0 }}>{t("nsMeetings.noAgendaItems")}</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {agendaItems.map((item, idx) => {
@@ -662,9 +662,9 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
               const commentCount = (commentsMap[item.id] || []).filter((c) => !c.is_deleted).length;
 
               return (
-                <div key={item.id} style={{ border: "1px solid #e0e0e0", borderRadius: 0, overflow: "hidden" }}>
+                <div key={item.id} style={{ border: "1px solid #e3e7ee", borderRadius: 10, overflow: "hidden" }}>
                   {/* Item header */}
-                  <div style={{ padding: "14px 16px", background: "#f4f4f4", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                  <div style={{ padding: "14px 16px", background: "#f5f7fa", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <div style={{ flex: 1 }}>
                       {isEditing ? (
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -681,15 +681,15 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                         </div>
                       ) : (
                         <>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: "#161616" }}>{idx + 1}. {itemTitle}</div>
-                          {item.presenter && <div style={{ fontSize: 12, color: "#525252", marginTop: 2 }}>{t("nsMeetings.presenter")}: {item.presenter}</div>}
+                          <div style={{ fontSize: 14, fontWeight: 600, color: "#1a1f2b" }}>{idx + 1}. {itemTitle}</div>
+                          {item.presenter && <div style={{ fontSize: 12, color: "#6b7384", marginTop: 2 }}>{t("nsMeetings.presenter")}: {item.presenter}</div>}
                         </>
                       )}
                     </div>
                     {isAdmin && !isEditing && (
                       <div style={{ display: "flex", gap: 4 }}>
                         <button onClick={() => { setEditingAgendaId(item.id); setEditAgendaForm({ title: item.title, title_en: item.title_en || "", title_uz: item.title_uz || "", presenter: item.presenter || "" }); }} style={{ ...smallBtnStyle, fontSize: 12, padding: "4px 10px" }}>{t("common.edit")}</button>
-                        <button onClick={() => handleDeleteAgendaItem(item.id)} style={{ ...smallBtnStyle, fontSize: 12, padding: "4px 8px", color: "#da1e28", borderColor: "#ffd7d9" }}></button>
+                        <button onClick={() => handleDeleteAgendaItem(item.id)} style={{ ...smallBtnStyle, fontSize: 12, padding: "4px 8px", color: "#d14343", borderColor: "#f5c9c9" }}></button>
                       </div>
                     )}
                   </div>
@@ -699,10 +699,10 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                     {/* Voting */}
                     {votings.length === 0 ? (
                       isAdmin ? (
-                        <button onClick={() => handleCreateVoting(item.id)} style={{ fontSize: 12, color, background: "none", border: `1px solid ${color}40`, borderRadius: 0, padding: "4px 12px", cursor: "pointer", fontWeight: 600 }}>
+                        <button onClick={() => handleCreateVoting(item.id)} style={{ fontSize: 12, color, background: "none", border: `1px solid ${color}40`, borderRadius: 8, padding: "4px 12px", cursor: "pointer", fontWeight: 600 }}>
                           {t("nsVoting.activate")}
                         </button>
-                      ) : <span style={{ fontSize: 12, color: "#c6c6c6" }}>{t("committees.noVoting")}</span>
+                      ) : <span style={{ fontSize: 12, color: "#cfd5df" }}>{t("committees.noVoting")}</span>
                     ) : votings.map((voting) => {
                       const votes = voting.votes || [];
                       const tally = tallyCommitteeVotes(votes);
@@ -711,24 +711,24 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                       const pct = voting.total_members > 0 ? Math.round((votes.length / voting.total_members) * 100) : 0;
 
                       return (
-                        <div key={voting.id} style={{ background: isOpen ? "#fcf4d6" : "#f4f4f4", border: `1px solid ${isOpen ? "#f1c21b" : "#e0e0e0"}`, borderRadius: 0, padding: "12px 14px", marginBottom: 10 }}>
+                        <div key={voting.id} style={{ background: isOpen ? "#fff5dd" : "#f5f7fa", border: `1px solid ${isOpen ? "#e0a520" : "#e3e7ee"}`, borderRadius: 10, padding: "12px 14px", marginBottom: 10 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                            <span style={{ fontSize: 13, fontWeight: 600, color: "#393939" }}>{voting.title}</span>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: "#2a3040" }}>{voting.title}</span>
                             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                              <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 0, background: isOpen ? "#fcf4d6" : "#f4f4f4", color: isOpen ? "#684e00" : "#525252" }}>
+                              <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 8, background: isOpen ? "#fff5dd" : "#f5f7fa", color: isOpen ? "#7a5410" : "#6b7384" }}>
                                 {isOpen ? t("nsVoting.statusOpen") : t("nsVoting.statusClosed")}
                               </span>
                               {isAdmin && isOpen && (
-                                <button onClick={() => handleCloseVoting(voting.id)} style={{ fontSize: 11, color: "#525252", background: "none", border: "1px solid #c6c6c6", borderRadius: 0, padding: "2px 8px", cursor: "pointer" }}>
+                                <button onClick={() => handleCloseVoting(voting.id)} style={{ fontSize: 11, color: "#6b7384", background: "none", border: "1px solid #cfd5df", borderRadius: 8, padding: "2px 8px", cursor: "pointer" }}>
                                   {t("nsVoting.close")}
                                 </button>
                               )}
                             </div>
                           </div>
-                          <div style={{ height: 4, background: "#e0e0e0", borderRadius: 0, marginBottom: 6, overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 0 }} />
+                          <div style={{ height: 4, background: "#e3e7ee", borderRadius: 10, marginBottom: 6, overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 10 }} />
                           </div>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#8d8d8d", marginBottom: 10 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#9ba3b4", marginBottom: 10 }}>
                             <span>{tally.forVotes} · {tally.againstVotes} · {tally.abstainVotes}</span>
                             <span>{votes.length}/{voting.total_members}</span>
                           </div>
@@ -736,10 +736,10 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                             <div style={{ display: "flex", gap: 6 }}>
                               {(["for", "against", "abstain"] as const).map((choice) => (
                                 <button key={choice} onClick={() => handleVote(voting.id, choice)} style={{
-                                  fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 0, cursor: "pointer", border: "1.5px solid",
-                                  background: myVote?.choice === choice ? (choice === "for" ? "#24a148" : choice === "against" ? "#da1e28" : "#525252") : "#fff",
-                                  color: myVote?.choice === choice ? "#fff" : (choice === "for" ? "#24a148" : choice === "against" ? "#da1e28" : "#525252"),
-                                  borderColor: choice === "for" ? "#24a148" : choice === "against" ? "#da1e28" : "#8d8d8d",
+                                  fontSize: 12, fontWeight: 600, padding: "5px 12px", borderRadius: 8, cursor: "pointer", border: "1.5px solid",
+                                  background: myVote?.choice === choice ? (choice === "for" ? "#2e9e5b" : choice === "against" ? "#d14343" : "#6b7384") : "#fff",
+                                  color: myVote?.choice === choice ? "#fff" : (choice === "for" ? "#2e9e5b" : choice === "against" ? "#d14343" : "#6b7384"),
+                                  borderColor: choice === "for" ? "#2e9e5b" : choice === "against" ? "#d14343" : "#9ba3b4",
                                 }}>
                                   {choice === "for" ? t("nsVoting.voteFor") : choice === "against" ? t("nsVoting.voteAgainst") : t("nsVoting.voteAbstain")}
                                 </button>
@@ -747,7 +747,7 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                             </div>
                           )}
                           {!isOpen && myVote && (
-                            <div style={{ fontSize: 12, color: "#525252" }}>
+                            <div style={{ fontSize: 12, color: "#6b7384" }}>
                               {t("nsVoting.yourVote")}: <b>{myVote.choice === "for" ? t("nsVoting.voteFor") : myVote.choice === "against" ? t("nsVoting.voteAgainst") : t("nsVoting.voteAbstain")}</b>
                             </div>
                           )}
@@ -756,21 +756,21 @@ export default function CommitteeMeetingDetailsPage({ profile, org }: Props) {
                     })}
 
                     {/* Discussion button */}
-                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #f4f4f4" }}>
+                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #f5f7fa" }}>
                       <button
                         onClick={() => setDiscussionAgendaId(item.id)}
                         style={{
                           display: "inline-flex", alignItems: "center", gap: 8,
                           padding: "7px 16px", fontSize: 13, fontWeight: 500,
-                          background: "#f4f4f4", border: "1px solid #e0e0e0", borderRadius: 0,
-                          color: "#393939", cursor: "pointer",
+                          background: "#f5f7fa", border: "1px solid #e3e7ee", borderRadius: 10,
+                          color: "#2a3040", cursor: "pointer",
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = "#f4f4f4"; e.currentTarget.style.borderColor = "#c6c6c6"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = "#f4f4f4"; e.currentTarget.style.borderColor = "#e0e0e0"; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "#f5f7fa"; e.currentTarget.style.borderColor = "#cfd5df"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "#f5f7fa"; e.currentTarget.style.borderColor = "#e3e7ee"; }}
                       >
                         {t("nsMeetings.discussion")}
                         {commentCount > 0 && (
-                          <span style={{ background: "#edf5ff", color: "#0f62fe", fontSize: 11, fontWeight: 700, borderRadius: 0, padding: "1px 8px" }}>
+                          <span style={{ background: "#e9edfb", color: "#3557d6", fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "1px 8px" }}>
                             {commentCount}
                           </span>
                         )}
@@ -798,7 +798,7 @@ function LangInputs({ label, values, onChange }: {
     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
       {(["ru", "en", "uz"] as const).map((lang) => (
         <div key={lang} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 28, flexShrink: 0, fontSize: 11, fontWeight: 700, color: "#525252", textAlign: "center" }}>
+          <span style={{ width: 28, flexShrink: 0, fontSize: 11, fontWeight: 700, color: "#6b7384", textAlign: "center" }}>
             {lang === "uz" ? "UZ" : lang.toUpperCase()}
           </span>
           <input
@@ -817,41 +817,41 @@ function LangInputs({ label, values, onChange }: {
 
 const smallBtnStyle: React.CSSProperties = {
   fontSize: 13, fontWeight: 500, padding: "6px 14px",
-  background: "#fff", border: "1px solid #c6c6c6",
-  borderRadius: 0, cursor: "pointer", color: "#393939",
+  background: "#fff", border: "1px solid #cfd5df",
+  borderRadius: 10, cursor: "pointer", color: "#2a3040",
 };
 
 const ghostBtnStyle: React.CSSProperties = {
-  fontSize: 12, color: "#525252", background: "none", border: "none",
+  fontSize: 12, color: "#6b7384", background: "none", border: "none",
   cursor: "pointer", padding: "2px 4px", fontWeight: 500,
 };
 
 const primaryBtnStyle = (color: string): React.CSSProperties => ({
   padding: "8px 20px", fontSize: 14, fontWeight: 600,
   background: color, color: "#fff", border: "none",
-  borderRadius: 0, cursor: "pointer",
+  borderRadius: 10, cursor: "pointer",
 });
 
 const cancelBtnStyle: React.CSSProperties = {
   padding: "8px 16px", fontSize: 14,
-  background: "none", border: "1px solid #c6c6c6",
-  borderRadius: 0, cursor: "pointer", color: "#393939",
+  background: "none", border: "1px solid #cfd5df",
+  borderRadius: 10, cursor: "pointer", color: "#2a3040",
 };
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "8px 12px", fontSize: 14,
-  border: "1px solid #c6c6c6", borderRadius: 0,
+  border: "1px solid #cfd5df", borderRadius: 10,
   outline: "none", boxSizing: "border-box",
 };
 
 const downloadBtnStyle: React.CSSProperties = {
-  fontSize: 12, padding: "4px 10px", borderRadius: 0,
-  border: "1px solid #c6c6c6", background: "#fff",
-  color: "#393939", cursor: "pointer",
+  fontSize: 12, padding: "4px 10px", borderRadius: 8,
+  border: "1px solid #cfd5df", background: "#fff",
+  color: "#2a3040", cursor: "pointer",
 };
 
 const deleteBtnStyle: React.CSSProperties = {
-  fontSize: 12, padding: "4px 8px", borderRadius: 0,
-  border: "1px solid #ffd7d9", background: "#fff",
-  color: "#da1e28", cursor: "pointer",
+  fontSize: 12, padding: "4px 8px", borderRadius: 8,
+  border: "1px solid #f5c9c9", background: "#fff",
+  color: "#d14343", cursor: "pointer",
 };

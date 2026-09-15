@@ -1,0 +1,5 @@
+Source: https://github.com/anthropics/claude-code/blob/main/plugins/frontend-design/skills/frontend-design/SKILL.md
+(part of the anthropics/claude-code repository)
+
+© Anthropic PBC. All rights reserved. Use is subject to Anthropic's
+Commercial Terms of Service: https://www.anthropic.com/legal/commercial-terms

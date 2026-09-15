@@ -9,7 +9,7 @@ import { fetchAllVotingsWithMeeting, type VotingWithMeeting } from "../lib/votin
 import { getLocalizedField } from "../lib/i18nHelpers";
 import { getIntlLocale } from "../i18n";
 import { supabase } from "../lib/supabaseClient";
-import { StatusBadge, SkeletonCard, EmptyState, RoleBadge } from "../components/ui";
+import { StatusBadge, SkeletonCard, EmptyState } from "../components/ui";
 
 interface DashTask {
   id: string;
@@ -119,11 +119,6 @@ export default function DashboardPage({ profile, org }: Props) {
     return "upcoming";
   };
 
-  const formatMeetingDate = (iso: string) =>
-    new Date(iso).toLocaleDateString(getIntlLocale(), {
-      weekday: "long", day: "numeric", month: "long", year: "numeric",
-    });
-
   const formatMeetingTime = (iso: string) =>
     new Date(iso).toLocaleTimeString(getIntlLocale(), { hour: "2-digit", minute: "2-digit" });
 
@@ -142,20 +137,12 @@ export default function DashboardPage({ profile, org }: Props) {
     return task.title_ru || task.title;
   };
 
-  const getTaskStatusStyle = (status: string, dueDate: string | null): React.CSSProperties => {
+  const getTaskStatus = (status: string, dueDate: string | null): { variant: "danger" | "primary" | "success" | "neutral"; label: string } => {
     const isOverdue = dueDate && new Date(dueDate) < new Date() && status !== "done" && status !== "canceled";
-    if (isOverdue || status === "overdue") return { background: "#FEE2E2", color: "#991B1B" };
-    if (status === "in_progress") return { background: "#DBEAFE", color: "#1E40AF" };
-    if (status === "done") return { background: "#DCFCE7", color: "#166534" };
-    return { background: "#F3F4F6", color: "#6B7280" };
-  };
-
-  const getTaskStatusLabel = (status: string, dueDate: string | null) => {
-    const isOverdue = dueDate && new Date(dueDate) < new Date() && status !== "done";
-    if (isOverdue || status === "overdue") return t("dashboard.taskOverdue");
-    if (status === "in_progress") return t("tasks.statusInProgress", "В работе");
-    if (status === "done") return t("tasks.statusDone", "Выполнено");
-    return t("tasks.statusOpen", "Открыто");
+    if (isOverdue || status === "overdue") return { variant: "danger", label: t("dashboard.taskOverdue") };
+    if (status === "in_progress") return { variant: "primary", label: t("tasks.statusInProgress", "В работе") };
+    if (status === "done") return { variant: "success", label: t("tasks.statusDone", "Выполнено") };
+    return { variant: "neutral", label: t("tasks.statusOpen", "Открыто") };
   };
 
   // ── Today string ─────────────────────────────────────────────────────────────
@@ -163,16 +150,14 @@ export default function DashboardPage({ profile, org }: Props) {
   const todayStr = new Date().toLocaleDateString(getIntlLocale(), {
     weekday: "long", day: "numeric", month: "long", year: "numeric",
   });
-
-  // Capitalize first letter
   const todayCap = todayStr.charAt(0).toUpperCase() + todayStr.slice(1);
 
   if (loading) {
     return (
-      <div style={{ width: "100%", boxSizing: "border-box" as const }}>
-        <div style={{ height: 72, background: "#F1F5F9", borderRadius: 12, marginBottom: 24 }} className="skeleton" />
-        <div style={{ height: 160, background: "#F1F5F9", borderRadius: 16, marginBottom: 24 }} className="skeleton" />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
+      <div style={{ width: "100%" }}>
+        <div style={{ height: 56, marginBottom: 32, width: 360 }} className="skeleton" />
+        <div style={{ height: 176, marginBottom: 16 }} className="skeleton" />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
           <SkeletonCard lines={4} />
           <SkeletonCard lines={4} />
         </div>
@@ -184,452 +169,303 @@ export default function DashboardPage({ profile, org }: Props) {
   const meetingTitle = nextMeeting
     ? getLocalizedField(nextMeeting as unknown as Record<string, unknown>, "title")
     : "";
+  const meetingDate = nextMeeting ? new Date(nextMeeting.start_at) : null;
 
-  const nextMeetingBg = meetingState === "now"
-    ? "linear-gradient(135deg, #064E3B 0%, #065F46 100%)"
-    : meetingState === "soon"
-    ? "linear-gradient(135deg, #78350F 0%, #92400E 100%)"
-    : "linear-gradient(135deg, #1E3A5F 0%, #1E40AF 100%)";
+  // The left rule carries the state; everything else stays quiet.
+  const heroRule =
+    meetingState === "now" ? "#24a148"
+    : meetingState === "soon" ? "#f1c21b"
+    : meetingState === "completed" ? "#c6c6c6"
+    : meetingState === "upcoming" ? "#0f62fe"
+    : "#e0e0e0";
+
+  const pendingVotings = openVotings.filter(
+    (v) => !(v.votes || []).some((vote) => vote.voter_id === profile?.id)
+  );
+  const hasPending = !isAdmin && pendingVotings.length > 0;
+  const shownVotings = openVotings.slice(0, 3);
+  const extraVotings = openVotings.length - 3;
+  const isUrgent = (v: VotingWithMeeting) =>
+    !!v.deadline && new Date(v.deadline).getTime() - Date.now() < 24 * 3600 * 1000;
 
   return (
-    <div style={{ width: "100%", boxSizing: "border-box" as const }}>
+    <div style={{ width: "100%" }}>
 
-      {/* ── Header ── */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
-          <div>
-            <h1 style={{ fontSize: 26, fontWeight: 700, color: "#111827", margin: 0 }}>
-              {t("dashboard.greeting")} {profile ? getLocalizedName(profile, i18n.language) : ""}!
-            </h1>
-            <p style={{ color: "#6B7280", fontSize: 14, margin: "4px 0 0" }}>
-              {todayCap}
-            </p>
-          </div>
-          {profile && (
-            <div style={{ alignSelf: "center" }}>
-              <RoleBadge role={profile.role} label={t(`roles.${profile.role}`, { defaultValue: profile.role })} />
-            </div>
+      {/* ── Page header ── */}
+      <div style={{ marginBottom: 32 }}>
+        <p style={{ margin: "0 0 8px", fontSize: 14, color: "#525252" }}>{todayCap}</p>
+        <h1 style={{ margin: 0, fontSize: 32, fontWeight: 300, lineHeight: 1.25, color: "#161616" }}>
+          {t("dashboard.greeting")} {profile ? getLocalizedName(profile, i18n.language) : ""}
+        </h1>
+      </div>
+
+      {/* ── Next meeting ── */}
+      <section style={{ ...heroStyle, borderLeft: `3px solid ${heroRule}` }} aria-label={t("dashboard.nextMeeting")}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+          <span style={{ fontSize: 14, color: "#525252" }}>{t("dashboard.nextMeeting")}</span>
+          {meetingState === "now" && (
+            <StatusBadge variant="success" dot pulse>{t("dashboard.meetingGoingNow")}</StatusBadge>
+          )}
+          {meetingState === "soon" && nextMeeting && (
+            <StatusBadge variant="warning">{t("dashboard.meetingSoon")}, {formatRelativeTime(nextMeeting.start_at)}</StatusBadge>
+          )}
+          {meetingState === "completed" && (
+            <StatusBadge variant="neutral">{t("nsMeetings.statusCompleted")}</StatusBadge>
           )}
         </div>
-      </div>
 
-      {/* ── Next Meeting — full width ── */}
-      <div style={{
-        background: nextMeeting ? nextMeetingBg : "#F9FAFB",
-        borderRadius: 16,
-        padding: nextMeeting ? "28px 32px" : "24px 28px",
-        marginBottom: 24,
-        border: nextMeeting ? "none" : "1px solid #E5E7EB",
-        boxShadow: nextMeeting ? "0 4px 24px rgba(0,0,0,0.12)" : "none",
-        color: nextMeeting ? "#FFFFFF" : "#374151",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Label row */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", opacity: 0.7 }}>
-                {t("dashboard.nextMeeting")}
-              </span>
-              {meetingState === "now" && (
-                <StatusBadge variant="success" dot pulse style={{ background: "rgba(16,185,129,0.25)", color: "#6EE7B7" }}>
-                  {t("dashboard.meetingGoingNow")}
-                </StatusBadge>
-              )}
-              {meetingState === "soon" && (
-                <StatusBadge variant="warning" style={{ background: "rgba(245,158,11,0.25)", color: "#FCD34D" }}>
-                  {t("dashboard.meetingSoon")} — {formatRelativeTime(nextMeeting!.start_at)}
-                </StatusBadge>
-              )}
-              {meetingState === "completed" && (
-                <StatusBadge variant="neutral" style={{ background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)" }}>
-                  {t("nsMeetings.statusCompleted")}
-                </StatusBadge>
-              )}
+        {nextMeeting && meetingDate ? (
+          <div style={{ display: "flex", gap: 40, alignItems: "flex-start", flexWrap: "wrap" }}>
+            {/* Date block: the day number is the one large element on the page */}
+            <div style={{ minWidth: 148, flexShrink: 0 }}>
+              <div style={{ fontSize: 60, fontWeight: 300, lineHeight: 1, letterSpacing: "-0.4px", color: "#161616" }}>
+                {meetingDate.getDate()}
+              </div>
+              <div style={{ fontSize: 14, color: "#161616", marginTop: 8 }}>
+                {meetingDate.toLocaleDateString(getIntlLocale(), { month: "long", year: "numeric" })}
+              </div>
+              <div style={{ fontSize: 14, color: "#525252" }}>
+                {meetingDate.toLocaleDateString(getIntlLocale(), { weekday: "long" })}, {formatMeetingTime(nextMeeting.start_at)}
+              </div>
             </div>
 
-            {/* Title */}
-            {nextMeeting ? (
-              <>
-                <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.3, marginBottom: 10, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-                  {meetingTitle}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", opacity: 0.85, fontSize: 14 }}>
-                  <span>📅 {formatMeetingDate(nextMeeting.start_at)}</span>
-                  <span>🕐 {formatMeetingTime(nextMeeting.start_at)}</span>
-                  {agendaCount > 0 && (
-                    <span>📋 {t("dashboard.agendaItems_other", { count: agendaCount })}</span>
-                  )}
-                  {nextMeeting.video_conference_provider && (
-                    <span style={{ opacity: 0.7, fontSize: 13 }}>
-                      📹 {nextMeeting.video_conference_provider.replace("_", " ")}
-                    </span>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div style={{ fontSize: 16, color: "#9CA3AF" }}>{t("dashboard.noNextMeeting")}</div>
-            )}
-          </div>
+            <div style={{ flex: 1, minWidth: 260 }}>
+              <h2 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 400, lineHeight: 1.4, color: "#161616" }}>
+                {meetingTitle}
+              </h2>
+              <div style={{ fontSize: 14, color: "#525252", display: "flex", gap: 16, flexWrap: "wrap" }}>
+                {agendaCount > 0 && <span>{t("dashboard.agendaItems_other", { count: agendaCount })}</span>}
+                {nextMeeting.video_conference_provider && (
+                  <span>{nextMeeting.video_conference_provider.replace("_", " ")}</span>
+                )}
+              </div>
 
-          {/* Action button */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
-            {nextMeeting ? (
-              <>
+              <div style={{ marginTop: 24, display: "flex", gap: 1 }}>
                 {nextMeeting.video_conference_enabled && nextMeeting.video_conference_url ? (
-                  <a
-                    href={nextMeeting.video_conference_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={meetingJoinBtnStyle}
-                  >
-                    {t("dashboard.joinVideoConf")}
-                  </a>
-                ) : meetingState === "completed" ? (
-                  <button onClick={() => navigate(`/ns-meetings/${nextMeeting.id}`)} style={meetingBtnStyle}>
-                    {t("dashboard.openMaterials")}
-                  </button>
+                  <>
+                    <a
+                      href={nextMeeting.video_conference_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary"
+                    >
+                      {t("dashboard.joinVideoConf")}
+                    </a>
+                    <button onClick={() => navigate(`/ns-meetings/${nextMeeting.id}`)} className="btn btn-secondary">
+                      {t("dashboard.openMaterials")}
+                    </button>
+                  </>
                 ) : (
-                  <button onClick={() => navigate(`/ns-meetings/${nextMeeting.id}`)} style={meetingBtnStyle}>
-                    {t("dashboard.viewDetails")}
+                  <button onClick={() => navigate(`/ns-meetings/${nextMeeting.id}`)} className="btn btn-primary">
+                    {meetingState === "completed" ? t("dashboard.openMaterials") : t("dashboard.viewDetails")}
                   </button>
                 )}
-              </>
-            ) : isAdmin ? (
-              <button onClick={() => navigate("/ns-meetings")} style={meetingBtnOutlineStyle}>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 300, color: "#161616", marginBottom: 16 }}>{t("dashboard.noNextMeeting")}</div>
+            {isAdmin && (
+              <button onClick={() => navigate("/ns-meetings")} className="btn btn-primary">
                 {t("dashboard.createFirstMeeting")}
               </button>
-            ) : null}
+            )}
           </div>
-        </div>
-      </div>
+        )}
+      </section>
 
-      {/* ── 3-column grid ── */}
+      {/* ── Two columns ── */}
       <div style={gridStyle}>
 
-        {/* ── My Tasks ── */}
-        <div style={cardStyle}>
-          <div style={cardHeaderStyle}>
-            <span style={cardTitleStyle}>📋 {t("dashboard.myTasks")}</span>
+        {/* ── My tasks ── */}
+        <section style={tileStyle}>
+          <div style={tileHeaderStyle}>
+            <h2 style={tileTitleStyle}>{t("dashboard.myTasks")}</h2>
             <Link to="/tasks" style={linkStyle}>{t("dashboard.allTasks")}</Link>
           </div>
 
           {myTasks.length === 0 ? (
-            <EmptyState icon="✅" title={t("dashboard.noMyTasks")} />
+            <EmptyState title={t("dashboard.noMyTasks")} />
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div>
               {myTasks.map((task) => {
                 const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "done";
-                const statusStyle = getTaskStatusStyle(task.status, task.due_date);
+                const status = getTaskStatus(task.status, task.due_date);
                 return (
-                  <Link
-                    key={task.id}
-                    to={`/tasks/${task.id}`}
-                    style={taskItemStyle}
-                  >
+                  <Link key={task.id} to={`/tasks/${task.id}`} style={rowStyle}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontSize: 13, fontWeight: 500, color: "#111827",
-                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                        marginBottom: 4,
-                      }}>
+                      <div style={{ fontSize: 14, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
                         {getTaskTitle(task)}
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{
-                          fontSize: 11, fontWeight: 600, padding: "1px 8px",
-                          borderRadius: 8, ...statusStyle,
-                        }}>
-                          {getTaskStatusLabel(task.status, task.due_date)}
-                        </span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <StatusBadge variant={status.variant}>{status.label}</StatusBadge>
                         {task.due_date && (
-                          <span style={{ fontSize: 11, color: isOverdue ? "#DC2626" : "#9CA3AF" }}>
+                          <span style={{ fontSize: 12, letterSpacing: "0.32px", color: isOverdue ? "#da1e28" : "#525252" }}>
                             {t("dashboard.taskDue")} {new Date(task.due_date).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "short" })}
                           </span>
                         )}
                       </div>
                     </div>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" style={{ flexShrink: 0 }}><path d="M9 5l7 7-7 7" /></svg>
+                    <ChevronRight />
                   </Link>
                 );
               })}
             </div>
           )}
-        </div>
+        </section>
 
         {/* ── Votings ── */}
-        {(() => {
-          const pendingVotings = openVotings.filter(
-            (v) => !(v.votes || []).some((vote) => vote.voter_id === profile?.id)
-          );
-          const displayList = openVotings;
-          const shown = displayList.slice(0, 3);
-          const extraCount = displayList.length - 3;
-          const hasPending = pendingVotings.length > 0;
-          const isUrgent = (v: VotingWithMeeting) =>
-            !!v.deadline && new Date(v.deadline).getTime() - Date.now() < 24 * 3600 * 1000;
-          const cardBorder = !isAdmin && hasPending
-            ? "1px solid #FDE68A"
-            : "1px solid #E5E7EB";
-          const cardBg = !isAdmin && hasPending ? "#FFFBEB" : "#FFFFFF";
-
-          return (
-            <div style={{ ...cardStyle, border: cardBorder, background: cardBg }}>
-              <div style={cardHeaderStyle}>
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <span style={cardTitleStyle}>
-                    🗳{" "}
-                    {!isAdmin && hasPending
-                      ? t("dashboard.votingPendingTitle", { count: pendingVotings.length })
-                      : t("dashboard.activeVotings")}
-                  </span>
-                  {isAdmin && openVotings.length > 0 && (
-                    <span style={{ fontSize: 11, color: "#6B7280" }}>
-                      {t("dashboard.votingAdminCount", { count: openVotings.length })}
-                    </span>
-                  )}
-                </div>
-                <Link to="/voting" style={linkStyle}>{t("dashboard.goToVoting")}</Link>
-              </div>
-
-              {displayList.length === 0 ? (
-                <div style={{ ...emptyStyle, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                  <span style={{ fontSize: 28 }}>✅</span>
-                  <span>{t("dashboard.noActiveVotings")}</span>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {shown.map((v) => {
-                    const voted = (v.votes || []).some((vote) => vote.voter_id === profile?.id);
-                    const urgent = isUrgent(v);
-                    const meeting = allMeetings.find((m) => m.id === v.meeting_id);
-                    return (
-                      <div
-                        key={v.id}
-                        onClick={() => navigate(`/ns-meetings/${v.meeting_id}`)}
-                        style={{
-                          ...votingItemStyle,
-                          border: urgent ? "1px solid #FCA5A5" : "1px solid #EDE9FE",
-                          background: urgent ? "#FFF5F5" : "#FAFAFE",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
-                            {urgent && (
-                              <span style={{ fontSize: 10, fontWeight: 700, background: "#DC2626", color: "#fff", borderRadius: 6, padding: "1px 6px" }}>
-                                {t("dashboard.votingUrgent")}
-                              </span>
-                            )}
-                            {voted ? (
-                              <span style={{ fontSize: 10, fontWeight: 600, background: "#DCFCE7", color: "#166534", borderRadius: 6, padding: "1px 6px" }}>
-                                ✓ {t("dashboard.votingVoted")}
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: 10, fontWeight: 600, background: "#FEF3C7", color: "#92400E", borderRadius: 6, padding: "1px 6px" }}>
-                                ⚠ {t("dashboard.votingAwaitingVote")}
-                              </span>
-                            )}
-                          </div>
-                          <div style={{
-                            fontSize: 13, fontWeight: 500, color: "#111827",
-                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 3,
-                          }}>
-                            {getLocalizedField(v as unknown as Record<string, unknown>, "agenda_title") || v.title}
-                          </div>
-                          {meeting && (
-                            <div style={{ fontSize: 11, color: "#9CA3AF" }}>
-                              📅 {new Date(meeting.start_at).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "short", year: "numeric" })}
-                            </div>
-                          )}
-                        </div>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" style={{ flexShrink: 0, marginLeft: 8 }}><path d="M9 5l7 7-7 7" /></svg>
-                      </div>
-                    );
-                  })}
-                  {extraCount > 0 && (
-                    <Link to="/voting" style={{ fontSize: 12, color: "#3B82F6", fontWeight: 500, textDecoration: "none", paddingLeft: 4 }}>
-                      {t("dashboard.votingMoreItems", { count: extraCount })}
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => navigate("/voting")}
-                    style={votingGoBtn}
-                  >
-                    {t("dashboard.goToVoting")}
-                  </button>
+        <section style={{ ...tileStyle, borderLeft: hasPending ? "3px solid #f1c21b" : tileStyle.border }}>
+          <div style={tileHeaderStyle}>
+            <div>
+              <h2 style={tileTitleStyle}>
+                {hasPending
+                  ? t("dashboard.votingPendingTitle", { count: pendingVotings.length })
+                  : t("dashboard.activeVotings")}
+              </h2>
+              {isAdmin && openVotings.length > 0 && (
+                <div style={{ fontSize: 12, color: "#525252", letterSpacing: "0.32px", marginTop: 2 }}>
+                  {t("dashboard.votingAdminCount", { count: openVotings.length })}
                 </div>
               )}
             </div>
-          );
-        })()}
+            <Link to="/voting" style={linkStyle}>{t("dashboard.goToVoting")}</Link>
+          </div>
+
+          {openVotings.length === 0 ? (
+            <EmptyState title={t("dashboard.noActiveVotings")} />
+          ) : (
+            <div>
+              {shownVotings.map((v) => {
+                const voted = (v.votes || []).some((vote) => vote.voter_id === profile?.id);
+                const urgent = isUrgent(v);
+                const meeting = allMeetings.find((m) => m.id === v.meeting_id);
+                return (
+                  <div
+                    key={v.id}
+                    onClick={() => navigate(`/ns-meetings/${v.meeting_id}`)}
+                    role="link"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === "Enter") navigate(`/ns-meetings/${v.meeting_id}`); }}
+                    style={{ ...rowStyle, cursor: "pointer" }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, color: "#161616", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
+                        {getLocalizedField(v as unknown as Record<string, unknown>, "agenda_title") || v.title}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        {voted ? (
+                          <StatusBadge variant="success">{t("dashboard.votingVoted")}</StatusBadge>
+                        ) : (
+                          <StatusBadge variant={urgent ? "danger" : "warning"}>
+                            {urgent ? t("dashboard.votingUrgent") : t("dashboard.votingAwaitingVote")}
+                          </StatusBadge>
+                        )}
+                        {meeting && (
+                          <span style={{ fontSize: 12, letterSpacing: "0.32px", color: "#525252" }}>
+                            {new Date(meeting.start_at).toLocaleDateString(getIntlLocale(), { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight />
+                  </div>
+                );
+              })}
+              {extraVotings > 0 && (
+                <Link to="/voting" style={{ ...linkStyle, display: "block", paddingTop: 12 }}>
+                  {t("dashboard.votingMoreItems", { count: extraVotings })}
+                </Link>
+              )}
+            </div>
+          )}
+        </section>
       </div>
 
       {/* ── Admin quick actions ── */}
       {isAdmin && (
-        <div style={{ ...cardStyle, marginTop: 24 }}>
-          <div style={cardHeaderStyle}>
-            <span style={cardTitleStyle}>⚡ {t("dashboard.quickActions")}</span>
-          </div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <button
-              onClick={() => navigate("/ns-meetings")}
-              style={quickActionBtnStyle}
-            >
-              <span style={{ fontSize: 18 }}>📅</span>
+        <section style={{ marginTop: 16 }}>
+          <h2 style={{ ...tileTitleStyle, marginBottom: 12 }}>{t("dashboard.quickActions")}</h2>
+          <div style={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <button onClick={() => navigate("/ns-meetings")} className="btn btn-secondary">
               {t("dashboard.createNSMeeting")}
             </button>
-            <Link to="/ns-meetings" style={{ ...quickActionBtnStyle, textDecoration: "none", color: "#374151" }}>
-              <span style={{ fontSize: 18 }}>📋</span>
+            <Link to="/tasks" className="btn btn-secondary">
+              {t("tasks.create", "Создать поручение")}
+            </Link>
+            <Link to="/ns-meetings" className="btn btn-ghost">
               {t("dashboard.goToNSMeetings")}
             </Link>
-            <Link to="/tasks" style={{ ...quickActionBtnStyle, textDecoration: "none", color: "#374151" }}>
-              <span style={{ fontSize: 18 }}>✅</span>
-              {t("tasks.create", "+ Создать поручение")}
-            </Link>
-            <Link to="/notifications" style={{ ...quickActionBtnStyle, textDecoration: "none", color: "#374151" }}>
-              <span style={{ fontSize: 18 }}>🔔</span>
+            <Link to="/notifications" className="btn btn-ghost">
               {t("dashboard.allNotifications")}
             </Link>
           </div>
-        </div>
+        </section>
       )}
 
     </div>
   );
 }
 
+function ChevronRight() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden="true">
+      <path d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
 // ── Styles ───────────────────────────────────────────────────────────────────
 
-const gridStyle: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(2, 1fr)",
-  gap: 20,
-};
-
-const cardStyle: React.CSSProperties = {
-  background: "#FFFFFF",
-  border: "1px solid #E5E7EB",
-  borderRadius: 14,
-  padding: "20px 20px 16px",
-  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-};
-
-const cardHeaderStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
+const heroStyle: React.CSSProperties = {
+  background: "#ffffff",
+  border: "1px solid #e0e0e0",
+  padding: "24px 32px 32px",
   marginBottom: 16,
 };
 
-const cardTitleStyle: React.CSSProperties = {
-  fontSize: 14,
-  fontWeight: 700,
-  color: "#111827",
+const gridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+  gap: 16,
+};
+
+const tileStyle: React.CSSProperties = {
+  background: "#ffffff",
+  border: "1px solid #e0e0e0",
+  padding: "16px 16px 8px",
+};
+
+const tileHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: 16,
+  marginBottom: 8,
+};
+
+const tileTitleStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: 16,
+  fontWeight: 600,
+  lineHeight: 1.5,
+  color: "#161616",
 };
 
 const linkStyle: React.CSSProperties = {
-  fontSize: 12,
-  color: "#3B82F6",
-  fontWeight: 500,
-  textDecoration: "none",
-};
-
-const emptyStyle: React.CSSProperties = {
-  fontSize: 13,
-  color: "#9CA3AF",
-  textAlign: "center",
-  padding: "24px 0",
-};
-
-const taskItemStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid #F3F4F6",
-  background: "#FAFAFA",
-  textDecoration: "none",
-  color: "inherit",
-  transition: "border-color 0.15s",
-};
-
-const votingItemStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  padding: "12px 14px",
-  borderRadius: 10,
-  border: "1px solid #EDE9FE",
-  background: "#FAFAFE",
-  textDecoration: "none",
-  color: "inherit",
-  transition: "border-color 0.15s",
-};
-
-const votingGoBtn: React.CSSProperties = {
-  marginTop: 4,
-  padding: "8px 0",
-  fontSize: 13,
-  fontWeight: 600,
-  borderRadius: 10,
-  border: "1px solid #C4B5FD",
-  background: "#EDE9FE",
-  color: "#5B21B6",
-  cursor: "pointer",
-  width: "100%",
-};
-
-const meetingBtnStyle: React.CSSProperties = {
-  padding: "10px 22px",
   fontSize: 14,
-  fontWeight: 600,
-  borderRadius: 10,
-  border: "2px solid rgba(255,255,255,0.4)",
-  background: "rgba(255,255,255,0.15)",
-  color: "#FFFFFF",
-  cursor: "pointer",
-  backdropFilter: "blur(4px)",
+  color: "#0f62fe",
+  textDecoration: "none",
   whiteSpace: "nowrap",
 };
 
-const meetingJoinBtnStyle: React.CSSProperties = {
-  display: "inline-block",
-  padding: "10px 22px",
-  fontSize: 14,
-  fontWeight: 700,
-  borderRadius: 10,
-  border: "none",
-  background: "#10B981",
-  color: "#FFFFFF",
-  cursor: "pointer",
-  textDecoration: "none",
-  whiteSpace: "nowrap",
-  boxShadow: "0 4px 12px rgba(16,185,129,0.35)",
-};
-
-const meetingBtnOutlineStyle: React.CSSProperties = {
-  padding: "10px 22px",
-  fontSize: 14,
-  fontWeight: 600,
-  borderRadius: 10,
-  border: "2px solid #D1D5DB",
-  background: "#FFFFFF",
-  color: "#374151",
-  cursor: "pointer",
-};
-
-const quickActionBtnStyle: React.CSSProperties = {
-  display: "inline-flex",
+const rowStyle: React.CSSProperties = {
+  display: "flex",
   alignItems: "center",
-  gap: 8,
-  padding: "10px 18px",
-  fontSize: 13,
-  fontWeight: 600,
-  borderRadius: 10,
-  border: "1px solid #E5E7EB",
-  background: "#F9FAFB",
-  color: "#374151",
-  cursor: "pointer",
+  gap: 12,
+  padding: "12px 0",
+  borderTop: "1px solid #e0e0e0",
   textDecoration: "none",
-  transition: "border-color 0.15s, background 0.15s",
+  color: "inherit",
 };

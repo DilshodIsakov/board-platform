@@ -33,10 +33,10 @@ export default function MfaChallengePage({ onVerified, onCancel }: Props) {
   };
 
   return (
-    <div style={{ maxWidth: 360, margin: "80px auto", fontFamily: "system-ui" }}>
+    <div style={{ maxWidth: 360, margin: "80px auto" }}>
       <h1>Board Platform</h1>
       <h2 style={{ fontSize: 18, marginBottom: 4 }}>{t("mfa.challengeTitle")}</h2>
-      <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 16 }}>{t("mfa.challengeHint")}</p>
+      <p style={{ color: "#525252", fontSize: 14, marginBottom: 16 }}>{t("mfa.challengeHint")}</p>
 
       <form onSubmit={handleSubmit}>
         <input
@@ -52,18 +52,18 @@ export default function MfaChallengePage({ onVerified, onCancel }: Props) {
           style={{
             display: "block", width: "100%", padding: "10px 12px", marginBottom: 12,
             fontSize: 18, letterSpacing: "0.3em", textAlign: "center",
-            border: "1px solid #ccc", borderRadius: 6, boxSizing: "border-box",
+            border: "1px solid #c6c6c6", borderRadius: 0, boxSizing: "border-box",
           }}
         />
 
-        {error && <p style={{ color: "#dc2626", fontSize: 14 }}>{error}</p>}
+        {error && <p style={{ color: "#da1e28", fontSize: 14 }}>{error}</p>}
 
         <button
           type="submit"
           disabled={loading || code.length < 6}
           style={{
             display: "block", width: "100%", padding: 10, marginBottom: 8, fontSize: 15,
-            borderRadius: 6, border: "none", cursor: "pointer", background: "#2563eb", color: "#fff",
+            borderRadius: 0, border: "none", cursor: "pointer", background: "#0f62fe", color: "#fff",
           }}
         >
           {loading ? "..." : t("mfa.confirm")}
@@ -74,7 +74,7 @@ export default function MfaChallengePage({ onVerified, onCancel }: Props) {
         type="button"
         onClick={onCancel}
         style={{
-          background: "none", border: "none", color: "#2563eb", fontSize: 14,
+          background: "none", border: "none", color: "#0f62fe", fontSize: 14,
           cursor: "pointer", padding: "8px 0", textDecoration: "underline",
         }}
       >

@@ -1,6 +1,6 @@
 /**
- * Shared UI components for Board Platform
- * Use these across pages for consistent, premium corporate look.
+ * Shared UI components for Board Platform.
+ * Visual system: DESIGN.md (Carbon) — square, hairline, one accent.
  */
 
 import type { ReactNode, CSSProperties } from "react";
@@ -9,22 +9,23 @@ import type { ReactNode, CSSProperties } from "react";
 
 type BadgeVariant = "success" | "warning" | "danger" | "neutral" | "primary" | "purple";
 
+// Carbon tag pairs: 10-tint background, 70-shade text.
 const BADGE_STYLES: Record<BadgeVariant, CSSProperties> = {
-  primary: { background: "#EFF6FF", color: "#2563EB" },
-  success: { background: "#DCFCE7", color: "#16A34A" },
-  warning: { background: "#FEF3C7", color: "#D97706" },
-  danger:  { background: "#FEE2E2", color: "#DC2626" },
-  neutral: { background: "#F3F4F6", color: "#6B7280" },
-  purple:  { background: "#EDE9FE", color: "#7C3AED" },
+  primary: { background: "#edf5ff", color: "#0043ce" },
+  success: { background: "#defbe6", color: "#0e6027" },
+  warning: { background: "#fcf4d6", color: "#684e00" },
+  danger:  { background: "#fff1f1", color: "#a2191f" },
+  neutral: { background: "#e0e0e0", color: "#393939" },
+  purple:  { background: "#e0e0e0", color: "#393939" },
 };
 
 const DOT_COLORS: Record<BadgeVariant, string> = {
-  primary: "#2563EB",
-  success: "#16A34A",
-  warning: "#D97706",
-  danger:  "#DC2626",
-  neutral: "#9CA3AF",
-  purple:  "#7C3AED",
+  primary: "#0f62fe",
+  success: "#24a148",
+  warning: "#f1c21b",
+  danger:  "#da1e28",
+  neutral: "#8d8d8d",
+  purple:  "#8d8d8d",
 };
 
 interface BadgeProps {
@@ -40,12 +41,12 @@ export function StatusBadge({ variant = "neutral", dot = false, pulse = false, c
     <span style={{
       display: "inline-flex",
       alignItems: "center",
-      gap: 5,
-      padding: "2px 10px",
-      borderRadius: 20,
+      gap: 6,
+      padding: "2px 8px",
       fontSize: 12,
-      fontWeight: 600,
-      lineHeight: 1.6,
+      fontWeight: 400,
+      lineHeight: 1.33,
+      letterSpacing: "0.32px",
       whiteSpace: "nowrap",
       ...BADGE_STYLES[variant],
       ...style,
@@ -75,27 +76,24 @@ interface CardProps {
   hover?: boolean;
 }
 
-export function Card({ children, style, onClick, padding = "20px 24px", hover = false }: CardProps) {
+export function Card({ children, style, onClick, padding = 16, hover = false }: CardProps) {
+  const interactive = hover || !!onClick;
   return (
     <div
       onClick={onClick}
       style={{
-        background: "#FFFFFF",
-        border: "1px solid #E5E7EB",
-        borderRadius: 14,
+        background: "#ffffff",
+        border: "1px solid #e0e0e0",
         padding,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-        transition: hover || onClick ? "box-shadow 0.2s ease, transform 0.2s ease" : undefined,
         cursor: onClick ? "pointer" : undefined,
+        transition: interactive ? "background-color 70ms" : undefined,
         ...style,
       }}
-      onMouseEnter={hover || onClick ? (e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)";
-        if (onClick) (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+      onMouseEnter={interactive ? (e) => {
+        (e.currentTarget as HTMLDivElement).style.background = "#f4f4f4";
       } : undefined}
-      onMouseLeave={hover || onClick ? (e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
-        (e.currentTarget as HTMLDivElement).style.transform = "";
+      onMouseLeave={interactive ? (e) => {
+        (e.currentTarget as HTMLDivElement).style.background = (style?.background as string) || "#ffffff";
       } : undefined}
     >
       {children}
@@ -112,11 +110,11 @@ interface SkeletonProps {
   style?: CSSProperties;
 }
 
-export function SkeletonBlock({ width = "100%", height = 16, borderRadius = 6, style }: SkeletonProps) {
+export function SkeletonBlock({ width = "100%", height = 16, style }: SkeletonProps) {
   return (
     <div
       className="skeleton"
-      style={{ width, height, borderRadius, ...style }}
+      style={{ width, height, ...style }}
     />
   );
 }
@@ -124,10 +122,9 @@ export function SkeletonBlock({ width = "100%", height = 16, borderRadius = 6, s
 export function SkeletonCard({ lines = 3 }: { lines?: number }) {
   return (
     <div style={{
-      background: "#FFFFFF",
-      border: "1px solid #E5E7EB",
-      borderRadius: 14,
-      padding: "20px 24px",
+      background: "#ffffff",
+      border: "1px solid #e0e0e0",
+      padding: 16,
     }}>
       <SkeletonBlock width="60%" height={18} style={{ marginBottom: 12 }} />
       {Array.from({ length: lines }).map((_, i) => (
@@ -145,29 +142,28 @@ export function SkeletonCard({ lines = 3 }: { lines?: number }) {
 // ── EmptyState ────────────────────────────────────────────────────────────────
 
 interface EmptyStateProps {
+  /** Kept for call-site compatibility; decorative icons are no longer rendered. */
   icon?: string;
   title: string;
   description?: string;
   action?: ReactNode;
 }
 
-export function EmptyState({ icon = "📭", title, description, action }: EmptyStateProps) {
+export function EmptyState({ title, description, action }: EmptyStateProps) {
   return (
     <div style={{
       display: "flex",
       flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "48px 32px",
-      textAlign: "center",
-      gap: 8,
+      alignItems: "flex-start",
+      padding: "32px 0",
+      gap: 4,
+      borderTop: "1px solid #e0e0e0",
     }}>
-      <div style={{ fontSize: 36, marginBottom: 4 }}>{icon}</div>
-      <div style={{ fontSize: 15, fontWeight: 600, color: "#374151" }}>{title}</div>
+      <div style={{ fontSize: 16, fontWeight: 400, color: "#161616" }}>{title}</div>
       {description && (
-        <div style={{ fontSize: 13, color: "#9CA3AF", maxWidth: 300, lineHeight: 1.5 }}>{description}</div>
+        <div style={{ fontSize: 14, color: "#525252", maxWidth: 480, lineHeight: 1.43 }}>{description}</div>
       )}
-      {action && <div style={{ marginTop: 12 }}>{action}</div>}
+      {action && <div style={{ marginTop: 16 }}>{action}</div>}
     </div>
   );
 }
@@ -186,24 +182,24 @@ export function PageHeader({ title, subtitle, actions, badge }: PageHeaderProps)
     <div style={{
       display: "flex",
       justifyContent: "space-between",
-      alignItems: "flex-start",
-      marginBottom: 28,
+      alignItems: "flex-end",
+      marginBottom: 32,
       gap: 16,
       flexWrap: "wrap",
     }}>
       <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: subtitle ? 4 : 0 }}>
-          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 600, letterSpacing: "-0.025em", color: "#0F172A" }}>
+        {subtitle && (
+          <p style={{ margin: "0 0 8px", fontSize: 14, color: "#525252" }}>{subtitle}</p>
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <h1 style={{ margin: 0, fontSize: 32, fontWeight: 300, lineHeight: 1.25, color: "#161616" }}>
             {title}
           </h1>
           {badge}
         </div>
-        {subtitle && (
-          <p style={{ margin: 0, fontSize: 14, color: "#94A3B8" }}>{subtitle}</p>
-        )}
       </div>
       {actions && (
-        <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
+        <div style={{ display: "flex", gap: 1, alignItems: "center", flexShrink: 0 }}>
           {actions}
         </div>
       )}
@@ -217,8 +213,8 @@ export function Divider({ style }: { style?: CSSProperties }) {
   return (
     <div style={{
       height: 1,
-      background: "#E9EDF2",
-      margin: "20px 0",
+      background: "#e0e0e0",
+      margin: "16px 0",
       ...style,
     }} />
   );
@@ -234,42 +230,32 @@ export function LoadingScreen({ message = "Загрузка..." }: { message?: s
       alignItems: "center",
       justifyContent: "center",
       minHeight: 300,
-      gap: 12,
+      gap: 16,
     }}>
       <div style={{
-        width: 36,
-        height: 36,
-        border: "3px solid #E5E7EB",
-        borderTopColor: "#2563EB",
+        width: 32,
+        height: 32,
+        border: "3px solid #e0e0e0",
+        borderTopColor: "#0f62fe",
         borderRadius: "50%",
         animation: "spin 0.7s linear infinite",
       }} />
-      <div style={{ fontSize: 13, color: "#94A3B8" }}>{message}</div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div style={{ fontSize: 14, color: "#525252" }}>{message}</div>
     </div>
   );
 }
 
 // ── Role badge ────────────────────────────────────────────────────────────────
 
-const ROLE_BADGE: Record<string, { bg: string; color: string }> = {
-  admin:          { bg: "#EFF6FF", color: "#2563EB" },
-  corp_secretary: { bg: "#EDE9FE", color: "#7C3AED" },
-  board_member:   { bg: "#F3F4F6", color: "#6B7280" },
-};
-
-export function RoleBadge({ label, role }: { label: string; role: string }) {
-  const style = ROLE_BADGE[role] || { bg: "#F3F4F6", color: "#6B7280" };
+export function RoleBadge({ label }: { label: string; role: string }) {
   return (
     <span style={{
-      fontSize: 11,
-      fontWeight: 600,
-      letterSpacing: "0.03em",
-      textTransform: "uppercase",
-      padding: "2px 10px",
-      borderRadius: 20,
-      background: style.bg,
-      color: style.color,
+      fontSize: 12,
+      fontWeight: 400,
+      letterSpacing: "0.32px",
+      padding: "2px 8px",
+      background: "#e0e0e0",
+      color: "#393939",
       whiteSpace: "nowrap",
     }}>
       {label}

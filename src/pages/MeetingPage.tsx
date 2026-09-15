@@ -189,7 +189,7 @@ export default function MeetingPage({ profile, org }: Props) {
 
   if (loading) {
     return (
-      <div style={{ color: "#9CA3AF" }}>
+      <div style={{ color: "#8d8d8d" }}>
         {t("common.loading")}
       </div>
     );
@@ -198,7 +198,7 @@ export default function MeetingPage({ profile, org }: Props) {
   if (!meeting) {
     return (
       <div>
-        <p style={{ color: "#dc2626" }}>{t("protocol.meetingNotFound")}</p>
+        <p style={{ color: "#da1e28" }}>{t("protocol.meetingNotFound")}</p>
       </div>
     );
   }
@@ -212,18 +212,18 @@ export default function MeetingPage({ profile, org }: Props) {
         </Link>
       </div>
 
-      <p style={{ color: "#6b7280", fontSize: 14, margin: 0 }}>
+      <p style={{ color: "#525252", fontSize: 14, margin: 0 }}>
         {formatDateTime(meeting.start_at)}
         {" · "}
         <span style={{
           padding: "2px 10px",
-          borderRadius: 12,
+          borderRadius: 0,
           fontSize: 13,
           fontWeight: 500,
-          background: meeting.status === "completed" ? "#dcfce7"
-            : meeting.status === "scheduled" ? "#dbeafe" : "#f3f4f6",
-          color: meeting.status === "completed" ? "#166534"
-            : meeting.status === "scheduled" ? "#1e40af" : "#374151",
+          background: meeting.status === "completed" ? "#defbe6"
+            : meeting.status === "scheduled" ? "#d0e2ff" : "#f4f4f4",
+          color: meeting.status === "completed" ? "#0e6027"
+            : meeting.status === "scheduled" ? "#0043ce" : "#393939",
         }}>
           {t(`meetingStatus.${meeting.status}`) || meeting.status}
         </span>
@@ -232,7 +232,6 @@ export default function MeetingPage({ profile, org }: Props) {
       {/* --- Видеоконференция --- */}
       <div style={meetBlockStyle}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 20 }}>&#128249;</span>
           <strong style={{ fontSize: 15 }}>{t("video.title")}</strong>
         </div>
 
@@ -281,7 +280,7 @@ export default function MeetingPage({ profile, org }: Props) {
             )}
           </div>
         ) : (
-          <p style={{ color: "#9ca3af", fontSize: 13, margin: "8px 0 0" }}>
+          <p style={{ color: "#8d8d8d", fontSize: 13, margin: "8px 0 0" }}>
             {t("meeting.noVideoLink")}
           </p>
         )}
@@ -291,7 +290,7 @@ export default function MeetingPage({ profile, org }: Props) {
       <h2 style={{ marginTop: 32, marginBottom: 16 }}>{t("nsMeetings.agenda")}</h2>
 
       {agendaItems.length === 0 && (
-        <p style={{ color: "#888" }}>{t("nsMeetings.noAgenda")}</p>
+        <p style={{ color: "#8d8d8d" }}>{t("nsMeetings.noAgenda")}</p>
       )}
 
       {agendaItems.map((item) => {
@@ -306,7 +305,7 @@ export default function MeetingPage({ profile, org }: Props) {
                   {item.order_index}. {getLocalizedField(item as unknown as Record<string, unknown>, "title")}
                 </strong>
                 {item.presenter && (
-                  <span style={{ color: "#6b7280", fontSize: 13, marginLeft: 8 }}>
+                  <span style={{ color: "#525252", fontSize: 13, marginLeft: 8 }}>
                     — {getLocalizedField(item as unknown as Record<string, unknown>, "presenter")}
                   </span>
                 )}
@@ -346,10 +345,10 @@ export default function MeetingPage({ profile, org }: Props) {
                     <span style={{ flex: 1 }}>{d.decision_text}</span>
                     <span style={{
                       ...decisionBadgeStyle,
-                      background: d.status === "approved" ? "#dcfce7"
-                        : d.status === "rejected" ? "#fee2e2" : "#f3f4f6",
-                      color: d.status === "approved" ? "#166534"
-                        : d.status === "rejected" ? "#991b1b" : "#374151",
+                      background: d.status === "approved" ? "#defbe6"
+                        : d.status === "rejected" ? "#fff1f1" : "#f4f4f4",
+                      color: d.status === "approved" ? "#0e6027"
+                        : d.status === "rejected" ? "#a2191f" : "#393939",
                     }}>
                       {t(`decisionStatus.${d.status}`, d.status)}
                     </span>
@@ -376,11 +375,11 @@ export default function MeetingPage({ profile, org }: Props) {
                           <span style={{
                             marginLeft: 8,
                             padding: "2px 8px",
-                            borderRadius: 10,
+                            borderRadius: 0,
                             fontSize: 11,
                             fontWeight: 600,
-                            background: v.status === "open" ? "#dbeafe" : "#f3f4f6",
-                            color: v.status === "open" ? "#1e40af" : "#6b7280",
+                            background: v.status === "open" ? "#d0e2ff" : "#f4f4f4",
+                            color: v.status === "open" ? "#0043ce" : "#525252",
                           }}>
                             {v.status === "open" ? t("meeting.votingOpen") : t("meeting.votingClosed")}
                           </span>
@@ -388,7 +387,7 @@ export default function MeetingPage({ profile, org }: Props) {
                         {canEdit && v.status === "open" && (
                           <button
                             onClick={() => handleCloseVoting(v.id)}
-                            style={{ ...btnSmallStyle, color: "#dc2626", borderColor: "#fecaca" }}
+                            style={{ ...btnSmallStyle, color: "#da1e28", borderColor: "#ffd7d9" }}
                           >
                             {t("meeting.closeVoting")}
                           </button>
@@ -397,9 +396,9 @@ export default function MeetingPage({ profile, org }: Props) {
 
                       {/* Результаты */}
                       <div style={{ display: "flex", gap: 16, marginTop: 8, fontSize: 14 }}>
-                        <span style={{ color: "#166534" }}>{t("voteChoice.for")}: <strong>{forCount}</strong></span>
-                        <span style={{ color: "#991b1b" }}>{t("voteChoice.against")}: <strong>{againstCount}</strong></span>
-                        <span style={{ color: "#6b7280" }}>{t("voteChoice.abstain")}: <strong>{abstainCount}</strong></span>
+                        <span style={{ color: "#0e6027" }}>{t("voteChoice.for")}: <strong>{forCount}</strong></span>
+                        <span style={{ color: "#a2191f" }}>{t("voteChoice.against")}: <strong>{againstCount}</strong></span>
+                        <span style={{ color: "#525252" }}>{t("voteChoice.abstain")}: <strong>{abstainCount}</strong></span>
                       </div>
 
                       {/* Кнопки голосования */}
@@ -412,11 +411,11 @@ export default function MeetingPage({ profile, org }: Props) {
                               style={{
                                 ...voteBtnStyle,
                                 background: myVote?.choice === choice
-                                  ? (choice === "for" ? "#166534" : choice === "against" ? "#991b1b" : "#6b7280")
+                                  ? (choice === "for" ? "#0e6027" : choice === "against" ? "#a2191f" : "#525252")
                                   : "transparent",
                                 color: myVote?.choice === choice ? "#fff"
-                                  : (choice === "for" ? "#166534" : choice === "against" ? "#991b1b" : "#6b7280"),
-                                borderColor: choice === "for" ? "#bbf7d0" : choice === "against" ? "#fecaca" : "#e5e7eb",
+                                  : (choice === "for" ? "#0e6027" : choice === "against" ? "#a2191f" : "#525252"),
+                                borderColor: choice === "for" ? "#a7f0ba" : choice === "against" ? "#ffd7d9" : "#e0e0e0",
                               }}
                             >
                               {t(`voteChoice.${choice}`)}
@@ -426,7 +425,7 @@ export default function MeetingPage({ profile, org }: Props) {
                       )}
 
                       {myVote && (
-                        <p style={{ fontSize: 12, color: "#9ca3af", margin: "6px 0 0" }}>
+                        <p style={{ fontSize: 12, color: "#8d8d8d", margin: "6px 0 0" }}>
                           {t("meeting.yourVote")}: {t(`voteChoice.${myVote.choice}`)}
                         </p>
                       )}
@@ -473,7 +472,7 @@ export default function MeetingPage({ profile, org }: Props) {
               </form>
             )}
             {decisionItemId === item.id && decisionError && (
-              <p style={{ color: "#dc2626", fontSize: 13, marginTop: 4 }}>{decisionError}</p>
+              <p style={{ color: "#da1e28", fontSize: 13, marginTop: 4 }}>{decisionError}</p>
             )}
           </div>
         );
@@ -481,7 +480,7 @@ export default function MeetingPage({ profile, org }: Props) {
 
       {/* --- Форма добавления пункта повестки --- */}
       {canEdit && (
-        <div style={{ marginTop: 24, padding: 16, border: "1px solid #e5e7eb", borderRadius: 8 }}>
+        <div style={{ marginTop: 24, padding: 16, border: "1px solid #e0e0e0", borderRadius: 0 }}>
           <h3 style={{ marginTop: 0, fontSize: 15 }}>{t("nsMeetings.addAgendaItem")}</h3>
           <form onSubmit={handleAddAgenda} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "end" }}>
             <div style={{ flex: 1, minWidth: 200 }}>
@@ -509,7 +508,7 @@ export default function MeetingPage({ profile, org }: Props) {
               {addingAgenda ? "..." : t("meeting.addButton")}
             </button>
           </form>
-          {agendaError && <p style={{ color: "#dc2626", fontSize: 13, marginTop: 6 }}>{agendaError}</p>}
+          {agendaError && <p style={{ color: "#da1e28", fontSize: 13, marginTop: 6 }}>{agendaError}</p>}
         </div>
       )}
     </div>
@@ -521,24 +520,24 @@ export default function MeetingPage({ profile, org }: Props) {
 const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 13,
-  color: "#6b7280",
+  color: "#525252",
   marginBottom: 4,
 };
 
 const inputStyle: React.CSSProperties = {
   padding: "8px 12px",
   fontSize: 15,
-  border: "1px solid #d1d5db",
-  borderRadius: 6,
+  border: "1px solid #c6c6c6",
+  borderRadius: 0,
   boxSizing: "border-box",
 };
 
 const btnPrimaryStyle: React.CSSProperties = {
   padding: "8px 20px",
   fontSize: 15,
-  borderRadius: 6,
+  borderRadius: 0,
   border: "none",
-  background: "#2563eb",
+  background: "#0f62fe",
   color: "#fff",
   cursor: "pointer",
   height: 38,
@@ -547,8 +546,8 @@ const btnPrimaryStyle: React.CSSProperties = {
 const btnSmallStyle: React.CSSProperties = {
   padding: "4px 12px",
   fontSize: 13,
-  borderRadius: 6,
-  border: "1px solid #d1d5db",
+  borderRadius: 0,
+  border: "1px solid #c6c6c6",
   background: "transparent",
   cursor: "pointer",
   whiteSpace: "nowrap",
@@ -556,8 +555,8 @@ const btnSmallStyle: React.CSSProperties = {
 
 const agendaCardStyle: React.CSSProperties = {
   padding: 16,
-  border: "1px solid #e5e7eb",
-  borderRadius: 8,
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
   marginBottom: 12,
 };
 
@@ -566,13 +565,13 @@ const decisionRowStyle: React.CSSProperties = {
   alignItems: "center",
   gap: 8,
   padding: "6px 0",
-  borderTop: "1px solid #f3f4f6",
+  borderTop: "1px solid #f4f4f4",
   fontSize: 14,
 };
 
 const decisionBadgeStyle: React.CSSProperties = {
   padding: "2px 10px",
-  borderRadius: 12,
+  borderRadius: 0,
   fontSize: 12,
   fontWeight: 500,
   whiteSpace: "nowrap",
@@ -580,16 +579,16 @@ const decisionBadgeStyle: React.CSSProperties = {
 
 const votingBoxStyle: React.CSSProperties = {
   padding: 12,
-  background: "#f9fafb",
-  borderRadius: 8,
-  border: "1px solid #e5e7eb",
+  background: "#f4f4f4",
+  borderRadius: 0,
+  border: "1px solid #e0e0e0",
   marginBottom: 8,
 };
 
 const voteBtnStyle: React.CSSProperties = {
   padding: "6px 16px",
   fontSize: 13,
-  borderRadius: 6,
+  borderRadius: 0,
   border: "1px solid",
   cursor: "pointer",
   fontWeight: 500,
@@ -599,9 +598,9 @@ const voteBtnStyle: React.CSSProperties = {
 const meetBlockStyle: React.CSSProperties = {
   marginTop: 20,
   padding: 16,
-  background: "#f0fdf4",
-  border: "1px solid #bbf7d0",
-  borderRadius: 8,
+  background: "#defbe6",
+  border: "1px solid #a7f0ba",
+  borderRadius: 0,
 };
 
 const meetJoinBtnStyle: React.CSSProperties = {
@@ -609,8 +608,8 @@ const meetJoinBtnStyle: React.CSSProperties = {
   padding: "10px 24px",
   fontSize: 14,
   fontWeight: 600,
-  borderRadius: 8,
-  background: "#16a34a",
+  borderRadius: 0,
+  background: "#24a148",
   color: "#fff",
   textDecoration: "none",
   cursor: "pointer",
@@ -619,10 +618,10 @@ const meetJoinBtnStyle: React.CSSProperties = {
 const protocolBtnStyle: React.CSSProperties = {
   padding: "8px 18px",
   fontSize: 14,
-  borderRadius: 6,
-  border: "1px solid #d1d5db",
+  borderRadius: 0,
+  border: "1px solid #c6c6c6",
   background: "transparent",
-  color: "#374151",
+  color: "#393939",
   textDecoration: "none",
   cursor: "pointer",
 };

@@ -247,7 +247,7 @@ export default function AdminUsersPage() {
   };
 
   if (loading) {
-    return <div style={{ color: "#9CA3AF" }}>{t("common.loading")}</div>;
+    return <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>;
   }
 
   return (
@@ -255,22 +255,22 @@ export default function AdminUsersPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
         <h1 style={{ margin: 0 }}>{t("admin.title")}</h1>
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={openCreateModal} style={{ ...createBtnStyle, background: "#3B82F6" }}>{t("admin.createUser")}</button>
+          <button onClick={openCreateModal} style={{ ...createBtnStyle, background: "#0f62fe" }}>{t("admin.createUser")}</button>
           <button onClick={openInviteModal} style={createBtnStyle}>{t("admin.inviteUser")}</button>
         </div>
       </div>
-      <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 20px" }}>
+      <p style={{ color: "#525252", fontSize: 14, margin: "0 0 20px" }}>
         {t("admin.subtitle")}
       </p>
 
       {error && (
-        <div style={msgStyle("#FEF2F2", "#FECACA", "#DC2626")}>
+        <div style={msgStyle("#fff1f1", "#ffd7d9", "#da1e28")}>
           {error}
           <button onClick={() => setError("")} style={msgCloseBtnStyle}>&times;</button>
         </div>
       )}
       {success && (
-        <div style={msgStyle("#F0FDF4", "#BBF7D0", "#16A34A")}>
+        <div style={msgStyle("#defbe6", "#a7f0ba", "#24a148")}>
           {success}
           <button onClick={() => setSuccess("")} style={msgCloseBtnStyle}>&times;</button>
         </div>
@@ -279,8 +279,8 @@ export default function AdminUsersPage() {
       {/* ===== Pending Approvals Section ===== */}
       {pendingProfiles.length > 0 && (
         <div style={{ marginBottom: 28 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: "#B45309", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: "50%", background: "#FEF3C7", color: "#B45309", fontSize: 13, fontWeight: 700 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: "#684e00", margin: "0 0 12px", display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: "50%", background: "#fcf4d6", color: "#684e00", fontSize: 13, fontWeight: 700 }}>
               {pendingProfiles.length}
             </span>
             {t("admin.pendingApprovals")}
@@ -289,13 +289,13 @@ export default function AdminUsersPage() {
             {pendingProfiles.map((p) => (
               <div key={p.id} style={pendingCardStyle}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: "#161616" }}>
                     {getLocalizedName(p, i18n.language) || p.email}
                   </div>
-                  <div style={{ fontSize: 13, color: "#6B7280", marginTop: 2 }}>
+                  <div style={{ fontSize: 13, color: "#525252", marginTop: 2 }}>
                     {p.email}
                   </div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: "#8d8d8d", marginTop: 2 }}>
                     {new Date(p.created_at).toLocaleDateString(getIntlLocale())}
                   </div>
                 </div>
@@ -315,12 +315,12 @@ export default function AdminUsersPage() {
 
       {/* ===== Users Table ===== */}
       {approvedProfiles.length === 0 ? (
-        <p style={{ color: "#9CA3AF" }}>{t("admin.noUsers")}</p>
+        <p style={{ color: "#8d8d8d" }}>{t("admin.noUsers")}</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table style={tableStyle}>
             <thead>
-              <tr style={{ background: "#F3F4F6", borderBottom: "1px solid #E5E7EB" }}>
+              <tr style={{ background: "#f4f4f4", borderBottom: "1px solid #e0e0e0" }}>
                 <th style={thStyle}>Email</th>
                 <th style={thStyle}>{t("admin.fullName")}</th>
                 <th style={thStyle}>{t("admin.mainRole")}</th>
@@ -331,16 +331,16 @@ export default function AdminUsersPage() {
             </thead>
             <tbody>
               {approvedProfiles.map((p) => (
-                <tr key={p.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                <tr key={p.id} style={{ borderBottom: "1px solid #e0e0e0" }}>
                   <td style={tdStyle}>{p.email}</td>
                   <td style={tdStyle}>{p.full_name || "—"}</td>
                   <td style={tdStyle}>
                     <span style={roleBadge(p.role)}>{ROLE_LABELS[p.role] || p.role}</span>
                   </td>
-                  <td style={{ ...tdStyle, color: "#6B7280", fontSize: 13 }}>
+                  <td style={{ ...tdStyle, color: "#525252", fontSize: 13 }}>
                     {p.role !== "admin" && p.role_details ? p.role_details : "—"}
                   </td>
-                  <td style={{ ...tdStyle, fontSize: 13, color: "#6B7280" }}>
+                  <td style={{ ...tdStyle, fontSize: 13, color: "#525252" }}>
                     {new Date(p.created_at).toLocaleDateString(getIntlLocale())}
                   </td>
                   <td style={{ ...tdStyle, textAlign: "center" }}>
@@ -387,15 +387,15 @@ export default function AdminUsersPage() {
               {modalMode === "invite" && (
                 <>
                   {/* Toggle: invite vs create */}
-                  <div style={{ display: "flex", gap: 0, marginBottom: 20, borderRadius: 8, overflow: "hidden", border: "1px solid #D1D5DB" }}>
+                  <div style={{ display: "flex", gap: 0, marginBottom: 20, borderRadius: 0, overflow: "hidden", border: "1px solid #c6c6c6" }}>
                     <button type="button" onClick={() => { setCreateWithPassword(false); setFormPassword(""); }}
                       style={{ flex: 1, padding: "9px 0", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer",
-                        background: !createWithPassword ? "#111827" : "#F9FAFB", color: !createWithPassword ? "#fff" : "#6B7280" }}>
+                        background: !createWithPassword ? "#161616" : "#f4f4f4", color: !createWithPassword ? "#fff" : "#525252" }}>
                       {t("admin.inviteUser")}
                     </button>
                     <button type="button" onClick={() => setCreateWithPassword(true)}
-                      style={{ flex: 1, padding: "9px 0", fontSize: 13, fontWeight: 600, border: "none", borderLeft: "1px solid #D1D5DB", cursor: "pointer",
-                        background: createWithPassword ? "#111827" : "#F9FAFB", color: createWithPassword ? "#fff" : "#6B7280" }}>
+                      style={{ flex: 1, padding: "9px 0", fontSize: 13, fontWeight: 600, border: "none", borderLeft: "1px solid #c6c6c6", cursor: "pointer",
+                        background: createWithPassword ? "#161616" : "#f4f4f4", color: createWithPassword ? "#fff" : "#525252" }}>
                       {t("admin.createUser")}
                     </button>
                   </div>
@@ -442,7 +442,7 @@ export default function AdminUsersPage() {
                   <div style={fldStyle}>
                     <label style={lblStyle}>{t("admin.roleDetails")} (RU)</label>
                     <input value={formRoleDetailsRu} onChange={(e) => setFormRoleDetailsRu(e.target.value)} placeholder={t("admin.roleDetailsPlaceholder")} style={inpStyle} />
-                    <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{t("admin.roleDetailsHint")}</div>
+                    <div style={{ fontSize: 12, color: "#8d8d8d", marginTop: 4 }}>{t("admin.roleDetailsHint")}</div>
                   </div>
                   <div style={fldStyle}>
                     <label style={lblStyle}>{t("admin.roleDetails")} (EN)</label>
@@ -456,7 +456,7 @@ export default function AdminUsersPage() {
               )}
 
               {modalMode === "invite" && !createWithPassword && (
-                <div style={{ fontSize: 13, color: "#6B7280", background: "#F9FAFB", border: "1px solid #E5E7EB", borderRadius: 8, padding: "10px 14px", marginTop: 8 }}>
+                <div style={{ fontSize: 13, color: "#525252", background: "#f4f4f4", border: "1px solid #e0e0e0", borderRadius: 0, padding: "10px 14px", marginTop: 8 }}>
                   {t("admin.inviteHint")}
                 </div>
               )}
@@ -484,7 +484,7 @@ export default function AdminUsersPage() {
             </div>
 
             <form onSubmit={handleApprove}>
-              <div style={{ fontSize: 14, color: "#374151", marginBottom: 16 }}>
+              <div style={{ fontSize: 14, color: "#393939", marginBottom: 16 }}>
                 {approvingProfile.email}
               </div>
 
@@ -525,64 +525,64 @@ export default function AdminUsersPage() {
 // ============================================================
 
 const createBtnStyle: React.CSSProperties = {
-  padding: "10px 20px", fontSize: 14, fontWeight: 600, borderRadius: 8,
-  border: "none", background: "#111827", color: "#FFFFFF", cursor: "pointer",
+  padding: "10px 20px", fontSize: 14, fontWeight: 600, borderRadius: 0,
+  border: "none", background: "#161616", color: "#FFFFFF", cursor: "pointer",
 };
 
 const tableStyle: React.CSSProperties = {
-  width: "100%", borderCollapse: "collapse", border: "1px solid #E5E7EB", borderRadius: 8, overflow: "hidden",
+  width: "100%", borderCollapse: "collapse", border: "1px solid #e0e0e0", borderRadius: 0, overflow: "hidden",
 };
 
 const thStyle: React.CSSProperties = {
-  padding: "12px 14px", textAlign: "left", fontSize: 13, fontWeight: 600, color: "#6B7280",
+  padding: "12px 14px", textAlign: "left", fontSize: 13, fontWeight: 600, color: "#525252",
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: "12px 14px", fontSize: 14, color: "#111827",
+  padding: "12px 14px", fontSize: 14, color: "#161616",
 };
 
 function roleBadge(role: string): React.CSSProperties {
   const c: Record<string, { bg: string; fg: string }> = {
-    admin: { bg: "#FEF3C7", fg: "#92400E" },
-    board_member: { bg: "#DBEAFE", fg: "#1E40AF" },
-    executive: { bg: "#E0E7FF", fg: "#3730A3" },
-    employee: { bg: "#F3F4F6", fg: "#374151" },
-    corp_secretary: { bg: "#FDE68A", fg: "#78350F" },
-    auditor: { bg: "#D1FAE5", fg: "#065F46" },
-    management: { bg: "#E0E7FF", fg: "#3730A3" },
+    admin: { bg: "#fcf4d6", fg: "#684e00" },
+    board_member: { bg: "#d0e2ff", fg: "#0043ce" },
+    executive: { bg: "#d0e2ff", fg: "#002d9c" },
+    employee: { bg: "#f4f4f4", fg: "#393939" },
+    corp_secretary: { bg: "#f1c21b", fg: "#684e00" },
+    auditor: { bg: "#defbe6", fg: "#0e6027" },
+    management: { bg: "#d0e2ff", fg: "#002d9c" },
   };
-  const v = c[role] || { bg: "#F3F4F6", fg: "#374151" };
-  return { display: "inline-block", padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600, background: v.bg, color: v.fg };
+  const v = c[role] || { bg: "#f4f4f4", fg: "#393939" };
+  return { display: "inline-block", padding: "3px 10px", borderRadius: 0, fontSize: 12, fontWeight: 600, background: v.bg, color: v.fg };
 }
 
 const pendingCardStyle: React.CSSProperties = {
   display: "flex", alignItems: "center", justifyContent: "space-between",
-  background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 10,
+  background: "#fcf4d6", border: "1px solid #f1c21b", borderRadius: 0,
   padding: "14px 18px",
 };
 
 const approveBtnStyle: React.CSSProperties = {
-  padding: "7px 16px", fontSize: 13, fontWeight: 600, borderRadius: 7,
-  border: "none", background: "#16A34A", color: "#FFFFFF", cursor: "pointer",
+  padding: "7px 16px", fontSize: 13, fontWeight: 600, borderRadius: 0,
+  border: "none", background: "#24a148", color: "#FFFFFF", cursor: "pointer",
 };
 
 const rejectBtnStyle: React.CSSProperties = {
-  padding: "7px 16px", fontSize: 13, fontWeight: 600, borderRadius: 7,
-  border: "1px solid #FECACA", background: "#FEF2F2", color: "#DC2626", cursor: "pointer",
+  padding: "7px 16px", fontSize: 13, fontWeight: 600, borderRadius: 0,
+  border: "1px solid #ffd7d9", background: "#fff1f1", color: "#da1e28", cursor: "pointer",
 };
 
 const actBtnStyle: React.CSSProperties = {
-  width: 32, height: 32, borderRadius: 6, border: "1px solid #D1D5DB",
-  background: "#FFFFFF", color: "#6B7280", cursor: "pointer",
+  width: 32, height: 32, borderRadius: 0, border: "1px solid #c6c6c6",
+  background: "#FFFFFF", color: "#525252", cursor: "pointer",
   display: "flex", alignItems: "center", justifyContent: "center",
 };
 
 const delBtnStyle: React.CSSProperties = {
-  ...actBtnStyle, border: "1px solid #FECACA", background: "#FEF2F2", color: "#DC2626",
+  ...actBtnStyle, border: "1px solid #ffd7d9", background: "#fff1f1", color: "#da1e28",
 };
 
 function msgStyle(bg: string, bdr: string, txt: string): React.CSSProperties {
-  return { background: bg, border: `1px solid ${bdr}`, borderRadius: 8, padding: "10px 14px", color: txt, fontSize: 13, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" };
+  return { background: bg, border: `1px solid ${bdr}`, borderRadius: 0, padding: "10px 14px", color: txt, fontSize: 13, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" };
 }
 
 const msgCloseBtnStyle: React.CSSProperties = {
@@ -595,33 +595,32 @@ const overlayStyle: React.CSSProperties = {
 };
 
 const modalStyle: React.CSSProperties = {
-  background: "#FFFFFF", borderRadius: 14, padding: 28, width: 480, maxWidth: "90vw",
-  maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-};
+  background: "#FFFFFF", borderRadius: 0, padding: 28, width: 480, maxWidth: "90vw",
+  maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--shadow-overlay)", };
 
 const closeBtnStyle: React.CSSProperties = {
-  background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "#9CA3AF", padding: 0, lineHeight: 1,
+  background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "#8d8d8d", padding: 0, lineHeight: 1,
 };
 
 const fldStyle: React.CSSProperties = { marginBottom: 16 };
 
 const lblStyle: React.CSSProperties = {
-  display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 4,
+  display: "block", fontSize: 13, fontWeight: 500, color: "#393939", marginBottom: 4,
 };
 
 const inpStyle: React.CSSProperties = {
-  width: "100%", padding: "9px 12px", fontSize: 14, border: "1px solid #D1D5DB",
-  borderRadius: 8, outline: "none", boxSizing: "border-box", fontFamily: "inherit",
+  width: "100%", padding: "9px 12px", fontSize: 14, border: "1px solid #c6c6c6",
+  borderRadius: 0, outline: "none", boxSizing: "border-box", fontFamily: "inherit",
 };
 
 const selStyle: React.CSSProperties = { ...inpStyle, cursor: "pointer", background: "#FFFFFF" };
 
 const cancelBtnStyle: React.CSSProperties = {
-  padding: "10px 20px", fontSize: 14, fontWeight: 500, borderRadius: 8,
-  border: "1px solid #D1D5DB", background: "#FFFFFF", color: "#374151", cursor: "pointer",
+  padding: "10px 20px", fontSize: 14, fontWeight: 500, borderRadius: 0,
+  border: "1px solid #c6c6c6", background: "#FFFFFF", color: "#393939", cursor: "pointer",
 };
 
 const saveBtnStyle: React.CSSProperties = {
-  padding: "10px 24px", fontSize: 14, fontWeight: 600, borderRadius: 8,
-  border: "none", background: "#3B82F6", color: "#FFFFFF", cursor: "pointer",
+  padding: "10px 24px", fontSize: 14, fontWeight: 600, borderRadius: 0,
+  border: "none", background: "#0f62fe", color: "#FFFFFF", cursor: "pointer",
 };

@@ -127,205 +127,258 @@ export default function LoginPage() {
     setCpSuccess("");
   };
 
+  const isSuccessMessage = error === t("login.signUpSuccess");
+
   return (
-    <div style={{ maxWidth: 360, margin: "80px auto", fontFamily: "system-ui", position: "relative" }}>
-      <div style={{ position: "absolute", top: -40, right: 0 }}>
-        <select
-          value={i18n.language}
-          onChange={(e) => handleLanguageChange(e.target.value)}
-          style={langSelectStyle}
-        >
-          <option value="ru">Русский</option>
-          <option value="en">English</option>
-          <option value="uz-Cyrl">Ўзбекча</option>
-        </select>
-      </div>
-      <h1>Board Platform</h1>
+    <div className="login-page">
+      {/* Left: the one inverted surface — product identity, nothing else */}
+      <aside className="login-brand">
+        <div style={{ fontSize: 14, color: "#c6c6c6", letterSpacing: "0.16px" }}>
+          {t("sidebar.title")}
+        </div>
+        <h1>
+          {mode === "login" ? t("login.title") : t("login.changePassword.title")}
+        </h1>
+      </aside>
 
-      {mode === "login" ? (
-        <>
-          <p style={{ color: "#888" }}>{t("login.title")}</p>
-
-          <form onSubmit={handleSignIn}>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={inputStyle}
-            />
-            <input
-              type="password"
-              placeholder={t("login.password")}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              style={inputStyle}
-            />
-
-            {error && (
-              <p style={{ color: error === t("login.signUpSuccess") ? "green" : "#dc2626", fontSize: 14 }}>
-                {error}
-              </p>
-            )}
-
-            <button type="submit" disabled={loading} style={{ ...btnStyle, background: "#2563eb", color: "#fff" }}>
-              {loading ? "..." : t("login.signIn")}
-            </button>
-            <button type="button" disabled={loading} onClick={handleSignUp} style={btnStyle}>
-              {t("login.signUp")}
-            </button>
-          </form>
-
-          <button
-            type="button"
-            onClick={() => switchMode("changePassword")}
-            style={linkBtnStyle}
+      {/* Right: the form */}
+      <main className="login-form">
+        <div className="login-lang">
+          <select
+            value={i18n.language}
+            onChange={(e) => handleLanguageChange(e.target.value)}
+            style={langSelectStyle}
+            aria-label="Language"
           >
-            {t("login.changePassword.link")}
-          </button>
+            <option value="ru">Русский</option>
+            <option value="en">English</option>
+            <option value="uz-Cyrl">Ўзбекча</option>
+          </select>
+        </div>
 
-          {IS_DEMO && (
-            <div style={demoBlockStyle}>
-              <div style={{ fontSize: 12, color: "#6B7280", marginBottom: 10, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                ⚡ Demo — быстрый вход
-              </div>
-              {DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleDemoLogin(acc.email)}
-                  style={demoBtnStyle}
-                >
-                  <span style={{ fontWeight: 600 }}>{acc.label}</span>
-                  <span style={{ fontSize: 11, color: "#6B7280" }}>{acc.email}</span>
+        <div style={{ width: "100%", maxWidth: 400 }}>
+          {mode === "login" ? (
+            <form onSubmit={handleSignIn}>
+              <Field label="Email">
+                <input
+                  type="email"
+                  autoComplete="username"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label={t("login.password")}>
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  style={inputStyle}
+                />
+              </Field>
+
+              {error && <Notice kind={isSuccessMessage ? "success" : "error"}>{error}</Notice>}
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 1, marginTop: 32 }}>
+                <button type="submit" disabled={loading} className="btn btn-primary" style={fullBtn}>
+                  {loading ? "…" : t("login.signIn")}
                 </button>
-              ))}
-            </div>
+                <button type="button" disabled={loading} onClick={handleSignUp} className="btn btn-secondary" style={fullBtn}>
+                  {t("login.signUp")}
+                </button>
+              </div>
+
+              <button type="button" onClick={() => switchMode("changePassword")} style={linkBtnStyle}>
+                {t("login.changePassword.link")}
+              </button>
+
+              {IS_DEMO && (
+                <div style={demoBlockStyle}>
+                  <div style={{ fontSize: 14, color: "#161616", marginBottom: 12 }}>
+                    Demo — быстрый вход
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    {DEMO_ACCOUNTS.map((acc) => (
+                      <button
+                        key={acc.email}
+                        type="button"
+                        disabled={loading}
+                        onClick={() => handleDemoLogin(acc.email)}
+                        style={demoBtnStyle}
+                      >
+                        <span>{acc.label}</span>
+                        <span style={{ fontSize: 12, color: "#525252", letterSpacing: "0.32px" }}>{acc.email}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </form>
+          ) : (
+            <form onSubmit={handleChangePassword}>
+              {/* Mode switch as a content tab strip (Carbon: text + 2px accent underline) */}
+              <div style={{ display: "flex", borderBottom: "1px solid #e0e0e0", marginBottom: 24 }}>
+                <TabButton active={!cpResetMode} onClick={() => { setCpResetMode(false); setCpOldPassword(""); setError(""); setCpSuccess(""); }}>
+                  {t("login.changePassword.normalMode")}
+                </TabButton>
+                <TabButton active={cpResetMode} onClick={() => { setCpResetMode(true); setCpOldPassword(""); setError(""); setCpSuccess(""); }}>
+                  {t("login.changePassword.resetMode")}
+                </TabButton>
+              </div>
+
+              <Field label="Email">
+                <input
+                  type="email"
+                  autoComplete="username"
+                  value={cpEmail}
+                  onChange={(e) => setCpEmail(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
+              </Field>
+              {!cpResetMode && (
+                <Field label={t("login.changePassword.oldPassword")}>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    value={cpOldPassword}
+                    onChange={(e) => setCpOldPassword(e.target.value)}
+                    required
+                    style={inputStyle}
+                  />
+                </Field>
+              )}
+              <Field label={t("login.changePassword.newPassword")}>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={cpNewPassword}
+                  onChange={(e) => setCpNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  style={inputStyle}
+                />
+              </Field>
+              <Field label={t("login.changePassword.confirmNewPassword")}>
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={cpConfirmPassword}
+                  onChange={(e) => setCpConfirmPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  style={inputStyle}
+                />
+              </Field>
+
+              {error && <Notice kind="error">{error}</Notice>}
+              {cpSuccess && <Notice kind="success">{cpSuccess}</Notice>}
+
+              <div style={{ marginTop: 32 }}>
+                <button type="submit" disabled={loading} className="btn btn-primary" style={fullBtn}>
+                  {loading ? "…" : t("login.changePassword.submit")}
+                </button>
+              </div>
+
+              <button type="button" onClick={() => switchMode("login")} style={linkBtnStyle}>
+                {t("login.changePassword.backToLogin")}
+              </button>
+            </form>
           )}
-        </>
-      ) : (
-        <>
-          <p style={{ color: "#888" }}>{t("login.changePassword.title")}</p>
-
-          {/* Toggle: normal change vs admin-reset mode */}
-          <div style={{ display: "flex", gap: 0, marginBottom: 16, borderRadius: 6, overflow: "hidden", border: "1px solid #ccc" }}>
-            <button type="button" onClick={() => { setCpResetMode(false); setCpOldPassword(""); setError(""); setCpSuccess(""); }}
-              style={{ flex: 1, padding: "8px 0", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer",
-                background: !cpResetMode ? "#2563eb" : "#f9fafb", color: !cpResetMode ? "#fff" : "#6B7280" }}>
-              {t("login.changePassword.normalMode")}
-            </button>
-            <button type="button" onClick={() => { setCpResetMode(true); setCpOldPassword(""); setError(""); setCpSuccess(""); }}
-              style={{ flex: 1, padding: "8px 0", fontSize: 13, fontWeight: 600, border: "none", borderLeft: "1px solid #ccc", cursor: "pointer",
-                background: cpResetMode ? "#2563eb" : "#f9fafb", color: cpResetMode ? "#fff" : "#6B7280" }}>
-              {t("login.changePassword.resetMode")}
-            </button>
-          </div>
-
-          <form onSubmit={handleChangePassword}>
-            <input
-              type="email"
-              placeholder="Email"
-              value={cpEmail}
-              onChange={(e) => setCpEmail(e.target.value)}
-              required
-              style={inputStyle}
-            />
-            {!cpResetMode && (
-              <input
-                type="password"
-                placeholder={t("login.changePassword.oldPassword")}
-                value={cpOldPassword}
-                onChange={(e) => setCpOldPassword(e.target.value)}
-                required
-                style={inputStyle}
-              />
-            )}
-            <input
-              type="password"
-              placeholder={t("login.changePassword.newPassword")}
-              value={cpNewPassword}
-              onChange={(e) => setCpNewPassword(e.target.value)}
-              required
-              minLength={6}
-              style={inputStyle}
-            />
-            <input
-              type="password"
-              placeholder={t("login.changePassword.confirmNewPassword")}
-              value={cpConfirmPassword}
-              onChange={(e) => setCpConfirmPassword(e.target.value)}
-              required
-              minLength={6}
-              style={inputStyle}
-            />
-
-            {error && (
-              <p style={{ color: "#dc2626", fontSize: 14 }}>{error}</p>
-            )}
-            {cpSuccess && (
-              <p style={{ color: "green", fontSize: 14 }}>{cpSuccess}</p>
-            )}
-
-            <button type="submit" disabled={loading} style={{ ...btnStyle, background: "#2563eb", color: "#fff" }}>
-              {loading ? "..." : t("login.changePassword.submit")}
-            </button>
-          </form>
-
-          <button
-            type="button"
-            onClick={() => switchMode("login")}
-            style={linkBtnStyle}
-          >
-            {t("login.changePassword.backToLogin")}
-          </button>
-        </>
-      )}
+        </div>
+      </main>
     </div>
   );
 }
 
+// ── Small building blocks ────────────────────────────────────────────────────
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label style={{ display: "block", marginBottom: 24 }}>
+      <span style={{ display: "block", fontSize: 12, color: "#525252", letterSpacing: "0.32px", marginBottom: 8 }}>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function Notice({ kind, children }: { kind: "error" | "success"; children: React.ReactNode }) {
+  const rule = kind === "error" ? "#da1e28" : "#24a148";
+  return (
+    <div role={kind === "error" ? "alert" : "status"} style={{
+      borderLeft: `3px solid ${rule}`,
+      background: "#f4f4f4",
+      padding: "12px 16px",
+      fontSize: 14,
+      color: "#161616",
+      marginTop: 8,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      style={{
+        padding: "12px 16px",
+        fontSize: 14,
+        fontWeight: active ? 600 : 400,
+        color: active ? "#161616" : "#525252",
+        borderBottom: active ? "2px solid #0f62fe" : "2px solid transparent",
+        marginBottom: -1,
+        cursor: "pointer",
+        background: "none",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Styles ───────────────────────────────────────────────────────────────────
+
 const inputStyle: React.CSSProperties = {
   display: "block",
   width: "100%",
-  padding: "10px 12px",
-  marginBottom: 12,
-  fontSize: 15,
-  border: "1px solid #ccc",
-  borderRadius: 6,
+  height: 40,
+  padding: "0 16px",
+  fontSize: 14,
+  border: "none",
+  borderBottom: "1px solid #8d8d8d",
+  background: "#f4f4f4",
+  color: "#161616",
   boxSizing: "border-box",
 };
 
-const btnStyle: React.CSSProperties = {
-  display: "block",
+const fullBtn: React.CSSProperties = {
   width: "100%",
-  padding: "10px",
-  marginBottom: 8,
-  fontSize: 15,
-  borderRadius: 6,
-  border: "1px solid #ccc",
-  cursor: "pointer",
+  justifyContent: "flex-start",
+  height: 48,
 };
 
 const linkBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "#2563eb",
+  color: "#0f62fe",
   fontSize: 14,
   cursor: "pointer",
-  padding: "8px 0",
-  textDecoration: "underline",
+  padding: "16px 0 0",
 };
 
 const demoBlockStyle: React.CSSProperties = {
-  marginTop: 24,
-  padding: "14px 16px",
-  background: "#FFFBEB",
-  border: "1px solid #FDE68A",
-  borderRadius: 8,
+  marginTop: 32,
+  padding: 16,
+  background: "#f4f4f4",
+  borderLeft: "3px solid #f1c21b",
 };
 
 const demoBtnStyle: React.CSSProperties = {
@@ -333,23 +386,22 @@ const demoBtnStyle: React.CSSProperties = {
   flexDirection: "column",
   alignItems: "flex-start",
   width: "100%",
-  padding: "8px 12px",
-  marginBottom: 6,
+  padding: "8px 16px",
   fontSize: 14,
-  borderRadius: 6,
-  border: "1px solid #E5E7EB",
-  background: "#fff",
+  border: "1px solid #e0e0e0",
+  background: "#ffffff",
+  color: "#161616",
   cursor: "pointer",
   textAlign: "left",
   gap: 2,
 };
 
 const langSelectStyle: React.CSSProperties = {
-  background: "#fff",
-  border: "1px solid #E5E7EB",
-  borderRadius: 6,
-  padding: "5px 10px",
-  fontSize: 13,
-  color: "#6B7280",
+  background: "#ffffff",
+  border: "none",
+  borderBottom: "1px solid #8d8d8d",
+  padding: "8px 12px",
+  fontSize: 14,
+  color: "#161616",
   cursor: "pointer",
 };

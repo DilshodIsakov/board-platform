@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import type { Profile } from "../lib/profile";
-import { updateProfileLocale, getLocalizedName } from "../lib/profile";
+import { getLocalizedName } from "../lib/profile";
 
 interface Props {
   profile: Profile | null;
@@ -23,13 +23,14 @@ const ICONS: Record<string, string> = {
   stats:        "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
   tasks:        "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01",
   shareholders: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
-  workplan:     "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M12 3v4M9 3h6M7 13h4m-4 3h6",
+  committees:   "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
   library:      "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.753 0-3.332.477-4.5 1.253",
   bell:         "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
   shield:       "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+  users:        "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
 };
 
-function SidebarIcon({ name, size = 18 }: { name: string; size?: number }) {
+function SidebarIcon({ name, size = 16 }: { name: string; size?: number }) {
   const d = ICONS[name];
   if (!d) return null;
   return (
@@ -38,10 +39,11 @@ function SidebarIcon({ name, size = 18 }: { name: string; size?: number }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.75"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={{ flexShrink: 0, opacity: 0.85 }}
+      style={{ flexShrink: 0 }}
+      aria-hidden="true"
     >
       <path d={d} />
     </svg>
@@ -56,138 +58,96 @@ function getInitials(name: string): string {
     : name[0].toUpperCase();
 }
 
-const ROLE_COLORS: Record<string, { bg: string; color: string }> = {
-  admin:          { bg: "#1E3A5F", color: "#93C5FD" },
-  corp_secretary: { bg: "#2D1B69", color: "#C4B5FD" },
-  board_member:   { bg: "#1A2E1A", color: "#86EFAC" },
-};
-
 export default function Sidebar({ profile, onSignOut, unreadNotificationsCount = 0, unreadChatCount = 0 }: Props) {
   const { t } = useTranslation();
 
   type MenuItem = { to: string; label: string; icon: string };
 
-  const menuItems: MenuItem[] = [
-    { to: "/",               label: t("sidebar.dashboard"),      icon: "dashboard"    },
-    { to: "/notifications",  label: t("sidebar.notifications"),  icon: "bell"         },
-    { to: "/calendar",       label: t("sidebar.calendar"),       icon: "calendar"     },
-    { to: "/ns-meetings",    label: t("sidebar.nsMeetings"),     icon: "protocol"     },
-    { to: "/voting",         label: t("sidebar.voting"),         icon: "vote"         },
-    { to: "/tasks",          label: t("sidebar.tasks"),          icon: "tasks"        },
-    { to: "/chat",           label: t("sidebar.chat"),           icon: "chat"         },
-    { to: "/documents",      label: t("sidebar.documents"),      icon: "docs"         },
-    { to: "/videoconference",label: t("sidebar.videoconference"),icon: "video"        },
-    { to: "/stats",          label: t("sidebar.stats"),          icon: "stats"        },
-    { to: "/company",        label: t("sidebar.company"),        icon: "info"         },
-    { to: "/shareholder-meeting", label: t("sidebar.shareholders"), icon: "shareholders" },
-    { to: "/committees",          label: t("sidebar.committees"),   icon: "vote"         },
-    { to: "/regulations",         label: t("sidebar.regulations"),  icon: "library"      },
-    ...(profile?.role === "admin" || profile?.role === "corp_secretary"
-      ? [{ to: "/audit-log", label: t("sidebar.auditLog"), icon: "shield" }]
-      : []),
-    ...(profile?.role === "admin"
-      ? [{ to: "/admin/users", label: t("admin.title"), icon: "shield" }]
-      : []),
+  // Grouped by what a board member does: prepare → decide → communicate → reference.
+  const groups: { items: MenuItem[] }[] = [
+    { items: [
+      { to: "/",               label: t("sidebar.dashboard"),      icon: "dashboard"    },
+      { to: "/notifications",  label: t("sidebar.notifications"),  icon: "bell"         },
+      { to: "/calendar",       label: t("sidebar.calendar"),       icon: "calendar"     },
+    ]},
+    { items: [
+      { to: "/ns-meetings",    label: t("sidebar.nsMeetings"),     icon: "protocol"     },
+      { to: "/voting",         label: t("sidebar.voting"),         icon: "vote"         },
+      { to: "/tasks",          label: t("sidebar.tasks"),          icon: "tasks"        },
+      { to: "/documents",      label: t("sidebar.documents"),      icon: "docs"         },
+      { to: "/committees",     label: t("sidebar.committees"),     icon: "committees"   },
+      { to: "/shareholder-meeting", label: t("sidebar.shareholders"), icon: "shareholders" },
+    ]},
+    { items: [
+      { to: "/chat",           label: t("sidebar.chat"),           icon: "chat"         },
+      { to: "/videoconference",label: t("sidebar.videoconference"),icon: "video"        },
+    ]},
+    { items: [
+      { to: "/company",        label: t("sidebar.company"),        icon: "info"         },
+      { to: "/regulations",    label: t("sidebar.regulations"),    icon: "library"      },
+      { to: "/stats",          label: t("sidebar.stats"),          icon: "stats"        },
+      ...(profile?.role === "admin" || profile?.role === "corp_secretary"
+        ? [{ to: "/audit-log", label: t("sidebar.auditLog"), icon: "shield" }]
+        : []),
+      ...(profile?.role === "admin"
+        ? [{ to: "/admin/users", label: t("admin.title"), icon: "users" }]
+        : []),
+    ]},
   ];
 
-  const roleStyle = ROLE_COLORS[profile?.role || ""] || { bg: "#1F2937", color: "#9CA3AF" };
-
   return (
-    <aside style={sidebarStyle}>
-      {/* Brand */}
-      <div style={brandSection}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={logoMark}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d={ICONS.shield} />
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#F8FAFC", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
-              {t("sidebar.title")}
-            </div>
-            <div style={{ fontSize: 11, color: "#475569", marginTop: 1, letterSpacing: "0.02em" }}>
-              Supervisory Board
-            </div>
-          </div>
-        </div>
-
-        {/* Language selector */}
-        <select
-          value={i18n.language}
-          onChange={(e) => {
-            const lng = e.target.value;
-            i18n.changeLanguage(lng);
-            localStorage.setItem("locale", lng);
-            updateProfileLocale(lng);
-          }}
-          style={langSelectStyle}
-        >
-          <option value="ru">Русский</option>
-          <option value="en">English</option>
-          <option value="uz-Cyrl">Ўзбекча</option>
-        </select>
-      </div>
-
-      {/* Navigation */}
+    <aside style={sidebarStyle} aria-label="Navigation">
       <nav style={navStyle}>
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            className="sidebar-nav-item"
-            style={({ isActive }) => ({
-              ...navItemStyle,
-              background: isActive ? "rgba(37,99,235,0.18)" : "transparent",
-              color: isActive ? "#FFFFFF" : "var(--sidebar-text)",
-              borderLeft: isActive ? "3px solid #2563EB" : "3px solid transparent",
-            })}
-          >
-            <SidebarIcon name={item.icon} />
-            <span style={{ flex: 1, fontSize: 13.5 }}>{item.label}</span>
-            {item.to === "/notifications" && unreadNotificationsCount > 0 && (
-              <span style={badgeStyle}>{unreadNotificationsCount > 99 ? "99+" : unreadNotificationsCount}</span>
-            )}
-            {item.to === "/chat" && unreadChatCount > 0 && (
-              <span style={badgeStyle}>{unreadChatCount}</span>
-            )}
-          </NavLink>
+        {groups.map((group, gi) => (
+          <div key={gi} style={{ borderTop: gi === 0 ? "none" : "1px solid var(--sidebar-border)", padding: "8px 0" }}>
+            {group.items.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === "/"}
+                className={({ isActive }) => (isActive ? "sidebar-nav-item active" : "sidebar-nav-item")}
+                style={({ isActive }) => ({
+                  ...navItemStyle,
+                  background: isActive ? "var(--sidebar-active)" : "transparent",
+                  color: isActive ? "var(--sidebar-text-active)" : "var(--sidebar-text)",
+                  fontWeight: isActive ? 600 : 400,
+                  borderLeft: isActive ? "3px solid var(--color-primary)" : "3px solid transparent",
+                })}
+              >
+                <SidebarIcon name={item.icon} />
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {item.to === "/notifications" && unreadNotificationsCount > 0 && (
+                  <span style={countStyle}>{unreadNotificationsCount > 99 ? "99+" : unreadNotificationsCount}</span>
+                )}
+                {item.to === "/chat" && unreadChatCount > 0 && (
+                  <span style={countStyle}>{unreadChatCount}</span>
+                )}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 
-      {/* User profile */}
       {profile && (
         <div style={userSection}>
           <NavLink to="/profile" style={{ textDecoration: "none", flexShrink: 0 }}>
             <div style={userAvatarStyle}>
               {profile.avatar_url
-                ? <img src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                ? <img src={profile.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : <span>{getInitials(profile.full_name || profile.email)}</span>
               }
             </div>
           </NavLink>
           <NavLink to="/profile" style={{ flex: 1, minWidth: 0, textDecoration: "none" }}>
-            <div style={{ fontWeight: 600, fontSize: 13, color: "#F1F5F9", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div style={{ fontSize: 14, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {getLocalizedName(profile, i18n.language) || t("sidebar.user")}
             </div>
-            <span style={{
-              display: "inline-block",
-              marginTop: 3,
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-              padding: "1px 8px",
-              borderRadius: 10,
-              background: roleStyle.bg,
-              color: roleStyle.color,
-            }}>
+            <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2, letterSpacing: "0.32px" }}>
               {t(`roles.${profile.role}`, profile.role)}
-            </span>
+            </div>
           </NavLink>
-          <button onClick={onSignOut} style={logoutBtnStyle} title={t("sidebar.logout")}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={onSignOut} style={logoutBtnStyle} title={t("sidebar.logout")} aria-label={t("sidebar.logout")}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
             </svg>
           </button>
@@ -201,118 +161,83 @@ export default function Sidebar({ profile, onSignOut, unreadNotificationsCount =
 
 const sidebarStyle: React.CSSProperties = {
   width: "var(--sidebar-width)",
-  height: "100vh",
   position: "fixed",
-  top: 0,
+  top: "var(--header-height)",
+  bottom: 0,
   left: 0,
   background: "var(--sidebar-bg)",
   borderRight: "1px solid var(--sidebar-border)",
   display: "flex",
   flexDirection: "column",
   zIndex: 100,
-  overflowY: "auto",
-};
-
-const brandSection: React.CSSProperties = {
-  padding: "20px 16px 16px",
-  borderBottom: "1px solid #1E2D3D",
-  display: "flex",
-  flexDirection: "column",
-  gap: 12,
-};
-
-const logoMark: React.CSSProperties = {
-  width: 32,
-  height: 32,
-  borderRadius: 8,
-  background: "#2563EB",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexShrink: 0,
-};
-
-const langSelectStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: 6,
-  padding: "4px 8px",
-  fontSize: 12,
-  fontWeight: 500,
-  color: "#94A3B8",
-  cursor: "pointer",
-  width: "100%",
-  outline: "none",
+  overflow: "hidden",
 };
 
 const navStyle: React.CSSProperties = {
   flex: 1,
-  padding: "10px 10px",
   display: "flex",
   flexDirection: "column",
-  gap: 2,
   overflowY: "auto",
 };
 
 const navItemStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: 10,
-  padding: "9px 12px",
-  borderRadius: 8,
-  fontWeight: 500,
+  gap: 12,
+  minHeight: 40,
+  padding: "8px 16px 8px 13px",
+  fontSize: 14,
+  letterSpacing: "0.16px",
   textDecoration: "none",
-  transition: "all 0.15s ease",
-  lineHeight: 1.4,
-  marginLeft: -3,
-  paddingLeft: 12,
+  lineHeight: 1.29,
+  transition: "background-color 70ms",
 };
 
-const badgeStyle: React.CSSProperties = {
-  background: "#EF4444",
-  color: "#FFFFFF",
-  borderRadius: 10,
-  minWidth: 18,
-  height: 18,
-  display: "flex",
+const countStyle: React.CSSProperties = {
+  minWidth: 20,
+  height: 20,
+  padding: "0 6px",
+  display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 10,
-  fontWeight: 700,
-  padding: "0 4px",
+  fontSize: 12,
+  fontWeight: 600,
+  letterSpacing: 0,
+  background: "var(--color-primary)",
+  color: "#ffffff",
   flexShrink: 0,
 };
 
 const userSection: React.CSSProperties = {
-  padding: "12px 14px",
-  borderTop: "1px solid #1E2D3D",
+  padding: "12px 16px",
+  borderTop: "1px solid var(--sidebar-border)",
   display: "flex",
   alignItems: "center",
-  gap: 10,
+  gap: 12,
 };
 
 const userAvatarStyle: React.CSSProperties = {
-  width: 34,
-  height: 34,
+  width: 32,
+  height: 32,
   borderRadius: "50%",
-  background: "#2563EB",
-  color: "#FFFFFF",
+  background: "var(--color-primary)",
+  color: "#ffffff",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   fontSize: 12,
-  fontWeight: 700,
+  fontWeight: 600,
   flexShrink: 0,
   overflow: "hidden",
 };
 
 const logoutBtnStyle: React.CSSProperties = {
-  padding: 6,
-  borderRadius: 6,
-  color: "#475569",
+  width: 32,
+  height: 32,
+  color: "var(--color-text-secondary)",
   cursor: "pointer",
   flexShrink: 0,
   display: "flex",
   alignItems: "center",
-  transition: "color 0.15s",
+  justifyContent: "center",
 };

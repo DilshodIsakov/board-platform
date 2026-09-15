@@ -165,20 +165,20 @@ export default function DocumentViewer({
   return (
     <div style={{ position: "relative" }}>
       <style>{`
-        .dc-highlight { background: #FEF3C7; border-bottom: 2px solid #F59E0B; cursor: pointer; }
-        .dc-highlight-resolved { background: #E5E7EB; border-bottom-color: #9CA3AF; }
-        .dc-highlight.dc-active { background: #FDE68A; box-shadow: 0 0 0 2px #F59E0B; }
-        .dc-docx-host .docx-wrapper { background: #F3F4F6; padding: 16px; }
-        .dc-xtable td { border: 1px solid #E5E7EB; padding: 4px 8px; font-size: 13px; white-space: nowrap; user-select: none; cursor: cell; }
-        .dc-xtable td.dc-rownum, .dc-xtable th { background: #F9FAFB; color: #6B7280; font-weight: 600; text-align: center; position: sticky; top: 0; }
-        .dc-xtable td.dc-sel { background: #DBEAFE !important; }
-        .dc-xtable td.dc-commented { background: #FEF3C7; cursor: pointer; }
+        .dc-highlight { background: #fcf4d6; border-bottom: 2px solid #f1c21b; cursor: pointer; }
+        .dc-highlight-resolved { background: #e0e0e0; border-bottom-color: #8d8d8d; }
+        .dc-highlight.dc-active { background: #f1c21b; box-shadow: 0 0 0 2px #f1c21b; }
+        .dc-docx-host .docx-wrapper { background: #f4f4f4; padding: 16px; }
+        .dc-xtable td { border: 1px solid #e0e0e0; padding: 4px 8px; font-size: 13px; white-space: nowrap; user-select: none; cursor: cell; }
+        .dc-xtable td.dc-rownum, .dc-xtable th { background: #f4f4f4; color: #525252; font-weight: 600; text-align: center; position: sticky; top: 0; }
+        .dc-xtable td.dc-sel { background: #d0e2ff !important; }
+        .dc-xtable td.dc-commented { background: #fcf4d6; cursor: pointer; }
       `}</style>
 
       {kind === "docx" && (
         <>
           {docxRendering && (
-            <div style={{ color: "#9CA3AF", fontSize: 13, padding: 12 }}>{t("review.rendering")}</div>
+            <div style={{ color: "#8d8d8d", fontSize: 13, padding: 12 }}>{t("review.rendering")}</div>
           )}
           <div
             ref={docxRef}
@@ -198,10 +198,10 @@ export default function DocumentViewer({
                   key={s.name + i}
                   onClick={() => { setActiveSheet(i); setDragStart(null); setDragEnd(null); }}
                   style={{
-                    padding: "5px 12px", fontSize: 13, borderRadius: 6, cursor: "pointer",
-                    border: "1px solid " + (i === activeSheet ? "#2563EB" : "#D1D5DB"),
-                    background: i === activeSheet ? "#EFF6FF" : "#fff",
-                    color: i === activeSheet ? "#2563EB" : "#374151", fontWeight: 500,
+                    padding: "5px 12px", fontSize: 13, borderRadius: 0, cursor: "pointer",
+                    border: "1px solid " + (i === activeSheet ? "#0f62fe" : "#c6c6c6"),
+                    background: i === activeSheet ? "#edf5ff" : "#fff",
+                    color: i === activeSheet ? "#0f62fe" : "#393939", fontWeight: 500,
                   }}
                 >
                   {s.name}
@@ -209,7 +209,7 @@ export default function DocumentViewer({
               ))}
             </div>
           )}
-          <div style={{ overflow: "auto", maxHeight: "70vh", border: "1px solid #E5E7EB", borderRadius: 8 }}>
+          <div style={{ overflow: "auto", maxHeight: "70vh", border: "1px solid #e0e0e0", borderRadius: 0 }}>
             <table className="dc-xtable" style={{ borderCollapse: "collapse" }}>
               <thead>
                 <tr>
@@ -258,7 +258,7 @@ export default function DocumentViewer({
             </table>
           </div>
           {sheet.truncated && (
-            <p style={{ fontSize: 12, color: "#9CA3AF", marginTop: 6 }}>{t("review.sheetTruncated")}</p>
+            <p style={{ fontSize: 12, color: "#8d8d8d", marginTop: 6 }}>{t("review.sheetTruncated")}</p>
           )}
         </div>
       )}
@@ -275,18 +275,17 @@ export default function DocumentViewer({
             transform: "translateX(-50%)",
             zIndex: 1500,
             padding: "7px 14px",
-            background: "#2563EB",
+            background: "#0f62fe",
             color: "#fff",
             border: "none",
-            borderRadius: 8,
+            borderRadius: 0,
             fontSize: 13,
             fontWeight: 600,
             cursor: "pointer",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
             whiteSpace: "nowrap",
           }}
         >
-          💬 {t("review.addComment")}
+          {t("review.addComment")}
         </button>
       )}
     </div>

@@ -114,7 +114,7 @@ export default function StatsPage({ profile }: Props) {
       if (!printWin) return;
       printWin.document.write(`<html><head><meta charset="utf-8"><title>${t("stats.title")}</title>
         <style>body{font-family:sans-serif;padding:24px}table{border-collapse:collapse;width:100%}
-        th,td{border:1px solid #ccc;padding:8px 12px;text-align:left}th{background:#f3f4f6}</style></head><body>
+        th,td{border:1px solid #c6c6c6;padding:8px 12px;text-align:left}th{background:#f4f4f4}</style></head><body>
         <h2>${t("stats.title")}</h2>
         <p>${t("stats.totalMeetingsLabel")}: ${totalMeetings} | ${t("stats.onlineLabel")}: ${onlineMeetings} | ${t("stats.offlineLabel")}: ${offlineMeetings} | ${t("stats.decisionsLabel")}: ${decisionsCount}</p>
         <table><thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>
@@ -137,20 +137,20 @@ export default function StatsPage({ profile }: Props) {
   };
 
   if (loading) {
-    return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>{t("common.loading")}</div>;
+    return <div style={{ color: "#8d8d8d", padding: "40px 0" }}>{t("common.loading")}</div>;
   }
 
   return (
     <div>
       <h1 style={{ marginBottom: 8 }}>{t("stats.title")}</h1>
-      <p style={{ color: "#6B7280", fontSize: 16, marginBottom: 28 }}>
+      <p style={{ color: "#525252", fontSize: 16, marginBottom: 28 }}>
         {t("stats.subtitle")}
       </p>
 
       {/* Filters bar */}
       <div style={filterBarStyle}>
         <div>
-          <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 6, fontWeight: 500 }}>{t("stats.selectOrgan")}</div>
+          <div style={{ fontSize: 13, color: "#525252", marginBottom: 6, fontWeight: 500 }}>{t("stats.selectOrgan")}</div>
           <select style={selectStyle}>
             <option>{t("stats.allOrgans")}</option>
             <option>{t("stats.boardOfDirectors")}</option>
@@ -158,7 +158,7 @@ export default function StatsPage({ profile }: Props) {
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 6, fontWeight: 500 }}>{t("stats.period")}</div>
+          <div style={{ fontSize: 13, color: "#525252", marginBottom: 6, fontWeight: 500 }}>{t("stats.period")}</div>
           <select
             value={period}
             onChange={(e) => setPeriod(e.target.value as PeriodFilter)}
@@ -171,7 +171,7 @@ export default function StatsPage({ profile }: Props) {
           </select>
         </div>
         <div>
-          <div style={{ fontSize: 13, color: "#6B7280", marginBottom: 6, fontWeight: 500 }}>{t("stats.exportFormat")}</div>
+          <div style={{ fontSize: 13, color: "#525252", marginBottom: 6, fontWeight: 500 }}>{t("stats.exportFormat")}</div>
           <select
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
@@ -196,26 +196,26 @@ export default function StatsPage({ profile }: Props) {
       <div style={kpiGridStyle}>
         <KpiCard
           icon={<CalendarIcon />}
-          iconBg="#DBEAFE"
+          iconBg="#d0e2ff"
           value={totalMeetings}
           label={t("stats.totalMeetings")}
           trend={totalMeetings > 0 ? "up" : undefined}
         />
         <KpiCard
           icon={<VideoIcon />}
-          iconBg="#D1FAE5"
+          iconBg="#defbe6"
           value={`${onlineMeetings}/${offlineMeetings}`}
           label={t("stats.onlineOffline")}
         />
         <KpiCard
           icon={<DocIcon />}
-          iconBg="#FEE2E2"
+          iconBg="#fff1f1"
           value={decisionsCount}
           label={t("stats.decisionsMade")}
         />
         <KpiCard
           icon={<ChartIcon />}
-          iconBg="#EDE9FE"
+          iconBg="#f4f4f4"
           value={avgDuration}
           label={t("stats.avgDuration")}
         />
@@ -226,11 +226,11 @@ export default function StatsPage({ profile }: Props) {
         <h2 style={{ margin: "0 0 20px 0" }}>{t("stats.meetingHistory")}</h2>
 
         {meetings.length === 0 ? (
-          <p style={{ color: "#9CA3AF", fontSize: 15 }}>{t("stats.noMeetingsForPeriod")}</p>
+          <p style={{ color: "#8d8d8d", fontSize: 15 }}>{t("stats.noMeetingsForPeriod")}</p>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
+              <tr style={{ borderBottom: "1px solid #e0e0e0" }}>
                 <th style={thStyle}>{t("stats.dateCol")}</th>
                 <th style={thStyle}>{t("stats.meetingCol")}</th>
                 <th style={thStyle}>{t("stats.organCol")}</th>
@@ -244,13 +244,13 @@ export default function StatsPage({ profile }: Props) {
               {meetings.map((m) => {
                 const isOnline = !!m.meet_url;
                 return (
-                  <tr key={m.id} style={{ borderBottom: "1px solid #F3F4F6" }}>
+                  <tr key={m.id} style={{ borderBottom: "1px solid #f4f4f4" }}>
                     <td style={tdStyle}>
                       {new Date(m.start_at).toLocaleDateString(getIntlLocale(), {
                         day: "2-digit", month: "2-digit", year: "numeric",
                       })}
                     </td>
-                    <td style={{ ...tdStyle, fontWeight: 500, color: "#111827" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title")}</td>
+                    <td style={{ ...tdStyle, fontWeight: 500, color: "#161616" }}>{getLocalizedField(m as unknown as Record<string, unknown>, "title")}</td>
                     <td style={tdStyle}>
                       <span style={organBadgeStyle}>{t("stats.boardOfDirectors")}</span>
                     </td>
@@ -258,32 +258,32 @@ export default function StatsPage({ profile }: Props) {
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         {isOnline ? (
                           <>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#24a148" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
-                            <span style={{ color: "#059669", fontSize: 14 }}>{t("stats.online")}</span>
+                            <span style={{ color: "#24a148", fontSize: 14 }}>{t("stats.online")}</span>
                           </>
                         ) : (
                           <>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <span style={{ color: "#7C3AED", fontSize: 14 }}>{t("stats.offline")}</span>
+                            <span style={{ color: "#525252", fontSize: 14 }}>{t("stats.offline")}</span>
                           </>
                         )}
                       </div>
                     </td>
-                    <td style={{ ...tdStyle, color: "#6B7280" }}>—</td>
+                    <td style={{ ...tdStyle, color: "#525252" }}>—</td>
                     <td style={tdStyle}>
                       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f62fe" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <span style={{ color: "#3B82F6", fontSize: 14 }}>—</span>
+                        <span style={{ color: "#0f62fe", fontSize: 14 }}>—</span>
                       </div>
                     </td>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: "#374151" }}>—</td>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: "#393939" }}>—</td>
                   </tr>
                 );
               })}
@@ -311,14 +311,14 @@ function KpiCard({ icon, iconBg, value, label, trend }: {
           {icon}
         </div>
         {trend === "up" && (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#24a148" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M23 6l-9.5 9.5-5-5L1 18" />
             <path d="M17 6h6v6" />
           </svg>
         )}
       </div>
-      <div style={{ fontSize: 36, fontWeight: 700, color: "#111827", lineHeight: 1.2 }}>{value}</div>
-      <div style={{ fontSize: 14, color: "#6B7280", marginTop: 4 }}>{label}</div>
+      <div style={{ fontSize: 36, fontWeight: 700, color: "#161616", lineHeight: 1.2 }}>{value}</div>
+      <div style={{ fontSize: 14, color: "#525252", marginTop: 4 }}>{label}</div>
     </div>
   );
 }
@@ -327,7 +327,7 @@ function KpiCard({ icon, iconBg, value, label, trend }: {
 
 function CalendarIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f62fe" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
   );
@@ -335,7 +335,7 @@ function CalendarIcon() {
 
 function VideoIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#24a148" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
     </svg>
   );
@@ -343,7 +343,7 @@ function VideoIcon() {
 
 function DocIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#da1e28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
     </svg>
   );
@@ -351,7 +351,7 @@ function DocIcon() {
 
 function ChartIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#525252" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
     </svg>
   );
@@ -365,8 +365,8 @@ const filterBarStyle: React.CSSProperties = {
   gap: 20,
   padding: "24px 28px",
   background: "#FFFFFF",
-  border: "1px solid #E5E7EB",
-  borderRadius: 14,
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
   marginBottom: 24,
   alignItems: "end",
 };
@@ -375,8 +375,8 @@ const selectStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 14px",
   fontSize: 15,
-  border: "1px solid #D1D5DB",
-  borderRadius: 10,
+  border: "1px solid #c6c6c6",
+  borderRadius: 0,
   outline: "none",
   boxSizing: "border-box",
   fontFamily: "inherit",
@@ -391,9 +391,9 @@ const exportBtnStyle: React.CSSProperties = {
   padding: "10px 28px",
   fontSize: 15,
   fontWeight: 600,
-  borderRadius: 10,
+  borderRadius: 0,
   border: "none",
-  background: "#3B82F6",
+  background: "#0f62fe",
   color: "#FFFFFF",
   cursor: "pointer",
   whiteSpace: "nowrap",
@@ -409,14 +409,14 @@ const kpiGridStyle: React.CSSProperties = {
 const kpiCardStyle: React.CSSProperties = {
   padding: "24px",
   background: "#FFFFFF",
-  border: "1px solid #E5E7EB",
-  borderRadius: 14,
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
 };
 
 const kpiIconStyle: React.CSSProperties = {
   width: 48,
   height: 48,
-  borderRadius: 12,
+  borderRadius: 0,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -424,8 +424,8 @@ const kpiIconStyle: React.CSSProperties = {
 
 const tableCardStyle: React.CSSProperties = {
   background: "#FFFFFF",
-  border: "1px solid #E5E7EB",
-  borderRadius: 14,
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
   padding: "28px 32px",
 };
 
@@ -433,24 +433,23 @@ const thStyle: React.CSSProperties = {
   padding: "12px 14px",
   fontWeight: 600,
   textAlign: "left",
-  color: "#6B7280",
+  color: "#525252",
   fontSize: 12,
-  textTransform: "uppercase",
   letterSpacing: 0.5,
 };
 
 const tdStyle: React.CSSProperties = {
   padding: "14px",
   fontSize: 14,
-  color: "#374151",
+  color: "#393939",
 };
 
 const organBadgeStyle: React.CSSProperties = {
   display: "inline-block",
   padding: "4px 12px",
-  borderRadius: 8,
+  borderRadius: 0,
   fontSize: 13,
   fontWeight: 500,
-  background: "#DBEAFE",
-  color: "#1E40AF",
+  background: "#d0e2ff",
+  color: "#0043ce",
 };

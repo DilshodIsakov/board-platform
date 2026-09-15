@@ -34,18 +34,18 @@ const ENTITY_TYPES = ["meeting","agenda_item","voting","vote","file","comment","
 const ROLES = ["admin","corp_secretary","board_member","management","executive","employee","auditor"];
 
 function getActionColor(action: string): { bg: string; text: string } {
-  if (action.includes("create") || action === "login" || action === "file_upload") return { bg: "#DCFCE7", text: "#166534" };
-  if (action.includes("delete") || action === "logout" || action === "login_failed") return { bg: "#FEE2E2", text: "#991B1B" };
-  if (action.includes("update") || action.includes("change")) return { bg: "#DBEAFE", text: "#1E40AF" };
-  if (action.includes("vote") || action.includes("sign")) return { bg: "#F3E8FF", text: "#6B21A8" };
-  if (action.includes("download") || action.includes("view")) return { bg: "#FEF9C3", text: "#854D0E" };
-  return { bg: "#F3F4F6", text: "#374151" };
+  if (action.includes("create") || action === "login" || action === "file_upload") return { bg: "#defbe6", text: "#0e6027" };
+  if (action.includes("delete") || action === "logout" || action === "login_failed") return { bg: "#fff1f1", text: "#a2191f" };
+  if (action.includes("update") || action.includes("change")) return { bg: "#d0e2ff", text: "#0043ce" };
+  if (action.includes("vote") || action.includes("sign")) return { bg: "#f4f4f4", text: "#6B21A8" };
+  if (action.includes("download") || action.includes("view")) return { bg: "#fcf4d6", text: "#854D0E" };
+  return { bg: "#f4f4f4", text: "#393939" };
 }
 
 function getStatusColor(status: string): { bg: string; text: string } {
-  if (status === "success") return { bg: "#DCFCE7", text: "#166534" };
-  if (status === "failed") return { bg: "#FEE2E2", text: "#991B1B" };
-  return { bg: "#F3F4F6", text: "#374151" };
+  if (status === "success") return { bg: "#defbe6", text: "#0e6027" };
+  if (status === "failed") return { bg: "#fff1f1", text: "#a2191f" };
+  return { bg: "#f4f4f4", text: "#393939" };
 }
 
 function getEntityIcon(type: string | null): string {
@@ -122,7 +122,7 @@ export default function AuditLogPage({ profile }: Props) {
   };
 
   if (profile?.role !== "admin" && profile?.role !== "corp_secretary") {
-    return <div style={{ padding: 40, textAlign: "center", color: "#9CA3AF" }}>{t("common.accessDenied") || "Access denied"}</div>;
+    return <div style={{ padding: 40, textAlign: "center", color: "#8d8d8d" }}>{t("common.accessDenied") || "Access denied"}</div>;
   }
 
   return (
@@ -130,12 +130,12 @@ export default function AuditLogPage({ profile }: Props) {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: "#111827", margin: 0 }}>{t("auditLog.title")}</h1>
-          <p style={{ fontSize: 14, color: "#6B7280", margin: "6px 0 0" }}>{t("auditLog.subtitle")}</p>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: "#161616", margin: 0 }}>{t("auditLog.title")}</h1>
+          <p style={{ fontSize: 14, color: "#525252", margin: "6px 0 0" }}>{t("auditLog.subtitle")}</p>
         </div>
         <button onClick={handleExportCSV} disabled={exporting} style={{
-          display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 10,
-          background: "#111827", color: "#FFF", border: "none", cursor: "pointer", fontSize: 14,
+          display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 0,
+          background: "#161616", color: "#FFF", border: "none", cursor: "pointer", fontSize: 14,
           fontWeight: 600, opacity: exporting ? 0.6 : 1,
         }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -146,7 +146,7 @@ export default function AuditLogPage({ profile }: Props) {
       </div>
 
       {/* Filters */}
-      <div style={{ background: "#FFF", borderRadius: 16, border: "1px solid #E5E7EB", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", padding: "20px 24px", marginBottom: 20 }}>
+      <div style={{ background: "#FFF", borderRadius: 0, border: "1px solid #e0e0e0", padding: "20px 24px", marginBottom: 20 }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "flex-end" }}>
           <div style={{ flex: "0 1 220px" }}>
             <label style={labelStyle}>{t("auditLog.col.user")}</label>
@@ -164,7 +164,7 @@ export default function AuditLogPage({ profile }: Props) {
           <div style={{ flex: "1 1 200px", minWidth: 160 }}>
             <label style={labelStyle}>{t("auditLog.search")}</label>
             <div style={{ position: "relative" }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8d8d8d" strokeWidth="2" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}>
                 <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
               </svg>
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("auditLog.searchPlaceholder")} style={{ ...inputStyle, paddingLeft: 36 }} />
@@ -209,7 +209,7 @@ export default function AuditLogPage({ profile }: Props) {
           </div>
           {(search || userId || actionType || entityType || userRole || status || dateFrom || dateTo) && (
             <button onClick={() => { setSearch(""); setUserId(""); setActionType(""); setEntityType(""); setUserRole(""); setStatus(""); setDateFrom(""); setDateTo(""); }}
-              style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #E5E7EB", background: "#FFF", color: "#6B7280", cursor: "pointer", fontSize: 13, fontWeight: 500, alignSelf: "flex-end", marginBottom: 1 }}>
+              style={{ padding: "8px 16px", borderRadius: 0, border: "1px solid #e0e0e0", background: "#FFF", color: "#525252", cursor: "pointer", fontSize: 13, fontWeight: 500, alignSelf: "flex-end", marginBottom: 1 }}>
               {t("auditLog.resetFilters")}
             </button>
           )}
@@ -218,16 +218,16 @@ export default function AuditLogPage({ profile }: Props) {
 
       {/* Stats */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, padding: "0 4px" }}>
-        <span style={{ fontSize: 13, color: "#6B7280" }}>{t("auditLog.totalRecords", { count: totalCount })}</span>
-        <span style={{ fontSize: 13, color: "#9CA3AF" }}>{t("auditLog.pageInfo", { page, total: totalPages })}</span>
+        <span style={{ fontSize: 13, color: "#525252" }}>{t("auditLog.totalRecords", { count: totalCount })}</span>
+        <span style={{ fontSize: 13, color: "#8d8d8d" }}>{t("auditLog.pageInfo", { page, total: totalPages })}</span>
       </div>
 
       {/* Table */}
-      <div style={{ background: "#FFF", borderRadius: 16, border: "1px solid #E5E7EB", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", overflow: "hidden" }}>
+      <div style={{ background: "#FFF", borderRadius: 0, border: "1px solid #e0e0e0", overflow: "hidden" }}>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
             <thead>
-              <tr style={{ background: "#F9FAFB", borderBottom: "1px solid #E5E7EB" }}>
+              <tr style={{ background: "#f4f4f4", borderBottom: "1px solid #e0e0e0" }}>
                 <th style={thStyle}>{t("auditLog.col.date")}</th>
                 <th style={thStyle}>{t("auditLog.col.user")}</th>
                 <th style={thStyle}>{t("auditLog.col.role")}</th>
@@ -240,45 +240,45 @@ export default function AuditLogPage({ profile }: Props) {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "#9CA3AF" }}>{t("common.loading")}</td></tr>
+                <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "#8d8d8d" }}>{t("common.loading")}</td></tr>
               ) : logs.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "#9CA3AF" }}>{t("auditLog.noRecords")}</td></tr>
+                <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "#8d8d8d" }}>{t("auditLog.noRecords")}</td></tr>
               ) : logs.map((log) => {
                 const ac = getActionColor(log.action_type);
                 const sc = getStatusColor(log.status);
                 return (
-                  <tr key={log.id} style={{ borderBottom: "1px solid #F3F4F6", cursor: "pointer", transition: "background 0.1s" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#F9FAFB")}
+                  <tr key={log.id} style={{ borderBottom: "1px solid #f4f4f4", cursor: "pointer", transition: "background 0.1s" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#f4f4f4")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     onClick={() => setSelectedLog(log)}>
-                    <td style={tdStyle}><span style={{ whiteSpace: "nowrap", fontSize: 13, color: "#374151" }}>{fmt(log.created_at)}</span></td>
+                    <td style={tdStyle}><span style={{ whiteSpace: "nowrap", fontSize: 13, color: "#393939" }}>{fmt(log.created_at)}</span></td>
                     <td style={tdStyle}>
-                      <div style={{ fontWeight: 500, color: "#111827" }}>{log.user_name || "—"}</div>
-                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{log.user_email || ""}</div>
+                      <div style={{ fontWeight: 500, color: "#161616" }}>{log.user_name || "—"}</div>
+                      <div style={{ fontSize: 12, color: "#8d8d8d" }}>{log.user_email || ""}</div>
                     </td>
-                    <td style={tdStyle}><span style={{ fontSize: 12, color: "#6B7280" }}>{t(`roles.${log.user_role}`, log.user_role || "")}</span></td>
+                    <td style={tdStyle}><span style={{ fontSize: 12, color: "#525252" }}>{t(`roles.${log.user_role}`, log.user_role || "")}</span></td>
                     <td style={tdStyle}>
-                      <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, background: ac.bg, color: ac.text }}>
+                      <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: 0, fontSize: 12, fontWeight: 600, background: ac.bg, color: ac.text }}>
                         {t(`auditLog.actions.${log.action_type}`, log.action_label || log.action_type)}
                       </span>
                     </td>
                     <td style={tdStyle}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={getEntityIcon(log.entity_type)} /></svg>
-                        <span style={{ fontSize: 13, color: "#6B7280" }}>{log.entity_type ? t(`auditLog.entities.${log.entity_type}`, log.entity_type) : "—"}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8d8d8d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={getEntityIcon(log.entity_type)} /></svg>
+                        <span style={{ fontSize: 13, color: "#525252" }}>{log.entity_type ? t(`auditLog.entities.${log.entity_type}`, log.entity_type) : "—"}</span>
                       </div>
                     </td>
                     <td style={{ ...tdStyle, maxWidth: 220 }}>
-                      <span style={{ fontSize: 13, color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>{log.entity_title || "—"}</span>
+                      <span style={{ fontSize: 13, color: "#393939", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>{log.entity_title || "—"}</span>
                     </td>
                     <td style={tdStyle}>
-                      <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: sc.bg, color: sc.text }}>
+                      <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 0, fontSize: 11, fontWeight: 600, background: sc.bg, color: sc.text }}>
                         {log.status === "success" ? t("auditLog.statusSuccess") : t("auditLog.statusFailed")}
                       </span>
                     </td>
                     <td style={tdStyle}>
                       <button onClick={(e) => { e.stopPropagation(); setSelectedLog(log); }}
-                        style={{ padding: "4px 10px", borderRadius: 6, border: "1px solid #E5E7EB", background: "#FFF", color: "#6B7280", cursor: "pointer", fontSize: 12 }}>
+                        style={{ padding: "4px 10px", borderRadius: 0, border: "1px solid #e0e0e0", background: "#FFF", color: "#525252", cursor: "pointer", fontSize: 12 }}>
                         {t("auditLog.details")}
                       </button>
                     </td>
@@ -290,11 +290,11 @@ export default function AuditLogPage({ profile }: Props) {
         </div>
 
         {totalPages > 1 && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "16px 24px", borderTop: "1px solid #F3F4F6" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "16px 24px", borderTop: "1px solid #f4f4f4" }}>
             <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1} style={pgBtn(page <= 1)}>&larr;</button>
             {genPages(page, totalPages).map((p, i) =>
-              p === "..." ? <span key={`d${i}`} style={{ padding: "4px 2px", color: "#9CA3AF" }}>...</span> : (
-                <button key={p} onClick={() => setPage(p as number)} style={{ ...pgBtn(false), background: page === p ? "#3B82F6" : "#FFF", color: page === p ? "#FFF" : "#374151", fontWeight: page === p ? 600 : 400 }}>{p}</button>
+              p === "..." ? <span key={`d${i}`} style={{ padding: "4px 2px", color: "#8d8d8d" }}>...</span> : (
+                <button key={p} onClick={() => setPage(p as number)} style={{ ...pgBtn(false), background: page === p ? "#0f62fe" : "#FFF", color: page === p ? "#FFF" : "#393939", fontWeight: page === p ? 600 : 400 }}>{p}</button>
               )
             )}
             <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages} style={pgBtn(page >= totalPages)}>&rarr;</button>
@@ -306,27 +306,27 @@ export default function AuditLogPage({ profile }: Props) {
       {selectedLog && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setSelectedLog(null)}>
-          <div style={{ background: "#FFF", borderRadius: 20, width: "100%", maxWidth: 600, maxHeight: "85vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
+          <div style={{ background: "#FFF", borderRadius: 0, width: "100%", maxWidth: 600, maxHeight: "85vh", overflow: "auto", boxShadow: "var(--shadow-overlay)", }}
             onClick={(e) => e.stopPropagation()}>
-            <div style={{ padding: "24px 28px 16px", borderBottom: "1px solid #F3F4F6", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#111827" }}>{t("auditLog.detailTitle")}</h2>
-              <button onClick={() => setSelectedLog(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#9CA3AF", fontSize: 20 }}>&times;</button>
+            <div style={{ padding: "24px 28px 16px", borderBottom: "1px solid #f4f4f4", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#161616" }}>{t("auditLog.detailTitle")}</h2>
+              <button onClick={() => setSelectedLog(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#8d8d8d", fontSize: 20 }}>&times;</button>
             </div>
             <div style={{ padding: "20px 28px 28px" }}>
               <div style={{ marginBottom: 20 }}>
                 {(() => { const ac = getActionColor(selectedLog.action_type); return (
-                  <span style={{ display: "inline-block", padding: "6px 16px", borderRadius: 8, fontSize: 14, fontWeight: 600, background: ac.bg, color: ac.text }}>
+                  <span style={{ display: "inline-block", padding: "6px 16px", borderRadius: 0, fontSize: 14, fontWeight: 600, background: ac.bg, color: ac.text }}>
                     {t(`auditLog.actions.${selectedLog.action_type}`, selectedLog.action_label || selectedLog.action_type)}
                   </span>
                 ); })()}
-                <span style={{ marginLeft: 12, fontSize: 13, color: "#9CA3AF" }}>{fmt(selectedLog.created_at)}</span>
+                <span style={{ marginLeft: 12, fontSize: 13, color: "#8d8d8d" }}>{fmt(selectedLog.created_at)}</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: "12px 16px", fontSize: 14 }}>
                 <DRow label={t("auditLog.col.user")} value={selectedLog.user_name || "—"} />
                 <DRow label="Email" value={selectedLog.user_email || "—"} />
                 <DRow label={t("auditLog.col.role")} value={t(`roles.${selectedLog.user_role}`, selectedLog.user_role || "—")} />
                 <DRow label={t("auditLog.col.status")} value={
-                  <span style={{ padding: "2px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600, background: getStatusColor(selectedLog.status).bg, color: getStatusColor(selectedLog.status).text }}>
+                  <span style={{ padding: "2px 10px", borderRadius: 0, fontSize: 12, fontWeight: 600, background: getStatusColor(selectedLog.status).bg, color: getStatusColor(selectedLog.status).text }}>
                     {selectedLog.status === "success" ? t("auditLog.statusSuccess") : t("auditLog.statusFailed")}
                   </span>
                 } />
@@ -335,8 +335,8 @@ export default function AuditLogPage({ profile }: Props) {
                 {selectedLog.file_language && <DRow label={t("auditLog.fileLanguage")} value={selectedLog.file_language.toUpperCase()} />}
                 {selectedLog.metadata && Object.keys(selectedLog.metadata).length > 0 && (
                   <>
-                    <div style={{ gridColumn: "1 / -1", borderTop: "1px solid #F3F4F6", margin: "4px 0" }} />
-                    <div style={{ gridColumn: "1 / -1", fontWeight: 600, color: "#374151", marginBottom: -4 }}>{t("auditLog.additionalDetails")}</div>
+                    <div style={{ gridColumn: "1 / -1", borderTop: "1px solid #f4f4f4", margin: "4px 0" }} />
+                    <div style={{ gridColumn: "1 / -1", fontWeight: 600, color: "#393939", marginBottom: -4 }}>{t("auditLog.additionalDetails")}</div>
                     {Object.entries(selectedLog.metadata).map(([key, val]) => <DRow key={key} label={t(`auditLog.meta.${key}`, key)} value={String(val ?? "")} />)}
                   </>
                 )}
@@ -350,7 +350,7 @@ export default function AuditLogPage({ profile }: Props) {
 }
 
 function DRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return <><div style={{ color: "#6B7280", fontWeight: 500 }}>{label}</div><div style={{ color: "#111827" }}>{value}</div></>;
+  return <><div style={{ color: "#525252", fontWeight: 500 }}>{label}</div><div style={{ color: "#161616" }}>{value}</div></>;
 }
 
 function genPages(cur: number, tot: number): (number | "...")[] {
@@ -363,9 +363,9 @@ function genPages(cur: number, tot: number): (number | "...")[] {
   return p;
 }
 
-const labelStyle: React.CSSProperties = { display: "block", fontSize: 12, fontWeight: 500, color: "#6B7280", marginBottom: 4 };
-const inputStyle: React.CSSProperties = { width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, color: "#374151", outline: "none", boxSizing: "border-box" };
-const selectStyle: React.CSSProperties = { width: "100%", padding: "8px 12px", borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 13, color: "#374151", background: "#FFF", cursor: "pointer", outline: "none" };
-const thStyle: React.CSSProperties = { padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.05em" };
+const labelStyle: React.CSSProperties = { display: "block", fontSize: 12, fontWeight: 500, color: "#525252", marginBottom: 4 };
+const inputStyle: React.CSSProperties = { width: "100%", padding: "8px 12px", borderRadius: 0, border: "1px solid #e0e0e0", fontSize: 13, color: "#393939", outline: "none", boxSizing: "border-box" };
+const selectStyle: React.CSSProperties = { width: "100%", padding: "8px 12px", borderRadius: 0, border: "1px solid #e0e0e0", fontSize: 13, color: "#393939", background: "#FFF", cursor: "pointer", outline: "none" };
+const thStyle: React.CSSProperties = { padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 600, color: "#525252", };
 const tdStyle: React.CSSProperties = { padding: "12px 16px", verticalAlign: "middle" };
-const pgBtn = (disabled: boolean): React.CSSProperties => ({ padding: "6px 12px", borderRadius: 8, border: "1px solid #E5E7EB", background: "#FFF", color: disabled ? "#D1D5DB" : "#374151", cursor: disabled ? "default" : "pointer", fontSize: 13, fontWeight: 500, opacity: disabled ? 0.5 : 1 });
+const pgBtn = (disabled: boolean): React.CSSProperties => ({ padding: "6px 12px", borderRadius: 0, border: "1px solid #e0e0e0", background: "#FFF", color: disabled ? "#c6c6c6" : "#393939", cursor: disabled ? "default" : "pointer", fontSize: 13, fontWeight: 500, opacity: disabled ? 0.5 : 1 });

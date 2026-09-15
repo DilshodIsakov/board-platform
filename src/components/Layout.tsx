@@ -2,7 +2,7 @@ import { type ReactNode, useState, useEffect, useRef, useCallback, createContext
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Sidebar from "./Sidebar";
-import { getLocalizedName, type Profile, type Organization } from "../lib/profile";
+import { getLocalizedName, updateProfileLocale, type Profile, type Organization } from "../lib/profile";
 import { getLocalizedOrgName } from "../lib/profile";
 import {
   fetchNotifications,
@@ -144,147 +144,161 @@ export default function Layout({ children, profile, org, onSignOut }: Props) {
     [navigate, searchQuery]
   );
 
+  const handleLanguageChange = (lng: string) => {
+    i18n.changeLanguage(lng);
+    localStorage.setItem("locale", lng);
+    updateProfileLocale(lng);
+  };
+
   return (
     <NotificationContext.Provider value={{ refresh: refreshNotifications }}>
-      {isDemoMode && (
-        <div style={demoBannerStyle}>
-          ⚡ Демо-версия · Demo version · Демо версия &nbsp;|&nbsp;
-          <span style={{ fontWeight: 400, opacity: 0.85 }}>
-            secretary@demo.almaz.uz / chairman@demo.almaz.uz / member@demo.almaz.uz — пароль: <strong>Demo1234!</strong>
+      {/* Header: the single dark surface in the system */}
+      <header style={headerStyle}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, minWidth: 0 }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--shell-header-text)", whiteSpace: "nowrap" }}>
+            {t("sidebar.title")}
           </span>
+          {org && (
+            <span style={{ fontSize: 14, color: "var(--shell-header-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {getLocalizedOrgName(org, i18n.language)}
+            </span>
+          )}
         </div>
-      )}
-      <div style={containerStyle}>
-        <Sidebar profile={profile} onSignOut={onSignOut} unreadNotificationsCount={unreadCount} unreadChatCount={unreadChatCount} />
 
-        <div style={mainStyle}>
-        {/* Top Header Bar */}
-        <header style={headerStyle}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", letterSpacing: "-0.01em" }}>
-                {org ? getLocalizedOrgName(org, i18n.language) : t("layout.platformTitle")}
-              </div>
-              {org && (
-                <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 1, letterSpacing: "0.01em" }}>
-                  {t("layout.platformTitle")}
-                </div>
+        <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <form onSubmit={handleSearchSubmit} style={{ display: "flex", height: "100%" }}>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("search.placeholder")}
+              title={t("search.title")}
+              style={headerSearchStyle}
+            />
+          </form>
+
+          <select
+            value={i18n.language}
+            onChange={(e) => handleLanguageChange(e.target.value)}
+            style={langSelectStyle}
+            aria-label="Language"
+          >
+            <option value="ru">Русский</option>
+            <option value="en">English</option>
+            <option value="uz-Cyrl">Ўзбекча</option>
+          </select>
+
+          <div style={{ position: "relative", height: "100%" }}>
+            <button
+              ref={bellRef}
+              style={headerIconBtnStyle}
+              title={t("layout.notifications")}
+              aria-label={t("layout.notifications")}
+              onClick={handleBellClick}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
+              </svg>
+              {unreadCount > 0 && (
+                <span style={badgeStyle}>
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
               )}
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {/* Global search */}
-            <form onSubmit={handleSearchSubmit} style={{ display: "flex" }}>
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t("search.placeholder")}
-                title={t("search.title")}
-                style={headerSearchStyle}
-              />
-            </form>
+            </button>
 
-            {/* Notification bell */}
-            <div style={{ position: "relative" }}>
-              <button
-                ref={bellRef}
-                style={headerIconBtnStyle}
-                title={t("layout.notifications")}
-                onClick={handleBellClick}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
-                </svg>
-                {unreadCount > 0 && (
-                  <span style={badgeStyle}>
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </button>
+            {dropdownOpen && (
+              <div ref={dropdownRef} style={dropdownStyle}>
+                <div style={dropdownHeaderStyle}>
+                  <span style={{ fontSize: 14, fontWeight: 600 }}>{t("layout.notifications")}</span>
+                  {unreadCount > 0 && (
+                    <button style={markAllBtnStyle} onClick={handleMarkAllRead}>
+                      {t("layout.readAll")}
+                    </button>
+                  )}
+                </div>
 
-              {/* Dropdown */}
-              {dropdownOpen && (
-                <div ref={dropdownRef} style={dropdownStyle}>
-                  <div style={dropdownHeaderStyle}>
-                    <span style={{ fontWeight: 600, fontSize: 15 }}>{t("layout.notifications")}</span>
-                    {unreadCount > 0 && (
-                      <button style={markAllBtnStyle} onClick={handleMarkAllRead}>
-                        {t("layout.readAll")}
-                      </button>
-                    )}
-                  </div>
-
-                  <div style={dropdownListStyle}>
-                    {notifications.length === 0 ? (
-                      <div style={{ padding: "24px 16px", textAlign: "center", color: "#9CA3AF", fontSize: 13 }}>
-                        {t("layout.noNotifications")}
-                      </div>
-                    ) : (
-                      notifications.map((n) => (
-                        <div
-                          key={n.id}
-                          style={{
-                            ...notificationItemStyle,
-                            background: n.is_read ? "#FFFFFF" : "#EFF6FF",
-                          }}
-                          onClick={() => handleNotificationClick(n)}
-                        >
-                          <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                            <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>
-                              {getIcon(n.type)}
-                            </span>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 600, color: "#111827" }}>
-                                {n.title}
-                              </div>
-                              {n.body && (
-                                <div style={{
-                                  fontSize: 12,
-                                  color: "#6B7280",
-                                  marginTop: 2,
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                }}>
-                                  {n.body}
-                                </div>
-                              )}
-                              <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 3 }}>
-                                {formatTimeAgo(n.created_at, t)}
-                              </div>
+                <div style={dropdownListStyle}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: "24px 16px", color: "#525252", fontSize: 14 }}>
+                      {t("layout.noNotifications")}
+                    </div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        style={{
+                          ...notificationItemStyle,
+                          background: n.is_read ? "#ffffff" : "#edf5ff",
+                        }}
+                        onClick={() => handleNotificationClick(n)}
+                      >
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: n.is_read ? 400 : 600, color: "#161616" }}>
+                              {n.title}
                             </div>
-                            {!n.is_read && (
-                              <span style={unreadDotStyle} />
+                            {n.body && (
+                              <div style={{
+                                fontSize: 14,
+                                color: "#525252",
+                                marginTop: 2,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}>
+                                {n.body}
+                              </div>
                             )}
+                            <div style={{ fontSize: 12, color: "#8c8c8c", marginTop: 4, letterSpacing: "0.32px" }}>
+                              {formatTimeAgo(n.created_at, t)}
+                            </div>
                           </div>
+                          {!n.is_read && (
+                            <span style={unreadDotStyle} />
+                          )}
                         </div>
-                      ))
-                    )}
-                  </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              )}
-            </div>
-
-            {/* User avatar */}
-            {profile && (
-              profile.avatar_url ? (
-                <img src={profile.avatar_url} alt="" style={{ ...headerAvatarStyle, objectFit: "cover" }} />
-              ) : (
-                <div style={headerAvatarStyle}>
-                  {getInitials(getLocalizedName(profile, i18n.language) || profile.email)}
-                </div>
-              )
+              </div>
             )}
           </div>
-        </header>
 
-        {/* Page Content */}
-        <div style={contentStyle}>
-          {children}
+          {profile && (
+            <button
+              onClick={() => navigate("/profile")}
+              style={headerAvatarBtnStyle}
+              title={getLocalizedName(profile, i18n.language) || profile.email}
+              aria-label={t("sidebar.user")}
+            >
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt="" style={headerAvatarImgStyle} />
+              ) : (
+                <span style={headerAvatarStyle}>
+                  {getInitials(getLocalizedName(profile, i18n.language) || profile.email)}
+                </span>
+              )}
+            </button>
+          )}
         </div>
+      </header>
+
+      {isDemoMode && (
+        <div style={demoBannerStyle}>
+          Демо-версия · Demo version · Демо версия —{" "}
+          secretary@demo.almaz.uz / chairman@demo.almaz.uz / member@demo.almaz.uz, пароль <strong>Demo1234!</strong>
+        </div>
+      )}
+
+      <div style={containerStyle}>
+        <Sidebar profile={profile} onSignOut={onSignOut} unreadNotificationsCount={unreadCount} unreadChatCount={unreadChatCount} />
+        <main style={mainStyle}>
+          <div style={contentStyle}>
+            {children}
+          </div>
+        </main>
       </div>
-    </div>
     </NotificationContext.Provider>
   );
 }
@@ -296,18 +310,6 @@ function getInitials(name: string): string {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
   return name[0].toUpperCase();
-}
-
-function getIcon(type: string): string {
-  switch (type) {
-    case "task_assigned": return "\u{1F4CB}";
-    case "task_status_changed": return "\u{1F504}";
-    case "task_comment": return "\u{1F4AC}";
-    case "personal_message": return "\u{2709}\uFE0F";
-    case "group_message": return "\u{1F465}";
-    case "meeting_invitation": return "\u{1F4C5}";
-    default: return "\u{1F514}";
-  }
 }
 
 function formatTimeAgo(isoDate: string, t: (key: string, options?: Record<string, unknown>) => string): string {
@@ -324,9 +326,24 @@ function formatTimeAgo(isoDate: string, t: (key: string, options?: Record<string
 
 // --- Styles ---
 
+const headerStyle: React.CSSProperties = {
+  height: "var(--header-height)",
+  background: "var(--shell-header-bg)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  padding: "0 0 0 16px",
+  position: "fixed",
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 200,
+};
+
 const containerStyle: React.CSSProperties = {
   display: "flex",
   minHeight: "100vh",
+  paddingTop: "var(--header-height)",
 };
 
 const mainStyle: React.CSSProperties = {
@@ -334,79 +351,98 @@ const mainStyle: React.CSSProperties = {
   marginLeft: "var(--sidebar-width)",
   display: "flex",
   flexDirection: "column",
-  minHeight: "100vh",
+  minWidth: 0,
 };
 
-const headerStyle: React.CSSProperties = {
-  height: "var(--header-height)",
-  background: "#FFFFFF",
-  borderBottom: "1px solid #E9EDF2",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0 36px",
-  position: "sticky",
-  top: 0,
-  zIndex: 50,
-  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+const contentStyle: React.CSSProperties = {
+  flex: 1,
+  padding: "32px 32px 64px",
+  width: "100%",
+  maxWidth: 1584,
+  boxSizing: "border-box" as const,
 };
 
 const headerSearchStyle: React.CSSProperties = {
-  width: 220,
-  padding: "7px 12px",
-  fontSize: 13,
-  border: "1px solid #E5E7EB",
-  borderRadius: 8,
-  background: "#F9FAFB",
+  width: 240,
+  height: "100%",
+  padding: "0 16px",
+  fontSize: 14,
+  border: "none",
+  borderLeft: "1px solid #393939",
+  background: "var(--shell-header-bg)",
+  color: "var(--shell-header-text)",
   boxSizing: "border-box",
+  outline: "none",
+};
+
+const langSelectStyle: React.CSSProperties = {
+  height: "100%",
+  padding: "0 12px",
+  fontSize: 14,
+  border: "none",
+  borderLeft: "1px solid #393939",
+  background: "var(--shell-header-bg)",
+  color: "var(--shell-header-muted)",
+  cursor: "pointer",
   outline: "none",
 };
 
 const headerIconBtnStyle: React.CSSProperties = {
   position: "relative",
-  padding: 6,
-  borderRadius: 6,
-  color: "#6B7280",
+  width: 48,
+  height: "100%",
+  color: "var(--shell-header-muted)",
   cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  background: "none",
-  border: "none",
-};
-
-const headerAvatarStyle: React.CSSProperties = {
-  width: 34,
-  height: 34,
-  borderRadius: "50%",
-  background: "#2563EB",
-  color: "#FFFFFF",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 12,
-  fontWeight: 700,
-  border: "2px solid #DBEAFE",
+  background: "none",
+  border: "none",
+  borderLeft: "1px solid #393939",
+};
+
+const headerAvatarBtnStyle: React.CSSProperties = {
+  width: 48,
+  height: "100%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderLeft: "1px solid #393939",
   cursor: "pointer",
 };
 
-const contentStyle: React.CSSProperties = {
-  flex: 1,
-  padding: "36px 44px",
-  width: "100%",
-  boxSizing: "border-box" as const,
+const headerAvatarStyle: React.CSSProperties = {
+  width: 28,
+  height: 28,
+  borderRadius: "50%",
+  background: "var(--color-primary)",
+  color: "#ffffff",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: 0,
+};
+
+const headerAvatarImgStyle: React.CSSProperties = {
+  width: 28,
+  height: 28,
+  borderRadius: "50%",
+  objectFit: "cover",
 };
 
 const badgeStyle: React.CSSProperties = {
   position: "absolute",
-  top: -4,
-  right: -4,
-  background: "#EF4444",
-  color: "#FFFFFF",
+  top: 8,
+  right: 8,
+  background: "var(--color-primary)",
+  color: "#ffffff",
   fontSize: 10,
-  fontWeight: 700,
-  borderRadius: 10,
-  minWidth: 18,
-  height: 18,
+  fontWeight: 600,
+  letterSpacing: 0,
+  minWidth: 16,
+  height: 16,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -416,48 +452,47 @@ const badgeStyle: React.CSSProperties = {
 
 const dropdownStyle: React.CSSProperties = {
   position: "absolute",
-  top: "calc(100% + 8px)",
+  top: "100%",
   right: 0,
-  width: 380,
+  width: 384,
   maxHeight: 480,
-  background: "#FFFFFF",
-  borderRadius: 12,
-  boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
-  border: "1px solid #E5E7EB",
+  background: "#ffffff",
+  boxShadow: "var(--shadow-overlay)",
+  border: "1px solid #e0e0e0",
   zIndex: 100,
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
+  color: "#161616",
 };
 
 const dropdownHeaderStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "14px 16px",
-  borderBottom: "1px solid #F3F4F6",
+  padding: "12px 16px",
+  borderBottom: "1px solid #e0e0e0",
 };
 
 const demoBannerStyle: React.CSSProperties = {
   position: "sticky",
-  top: 0,
-  zIndex: 9999,
-  background: "#FEF3C7",
-  borderBottom: "1px solid #FDE68A",
-  padding: "7px 20px",
+  top: "var(--header-height)",
+  zIndex: 150,
+  background: "#fcf4d6",
+  borderBottom: "1px solid #f1c21b",
+  padding: "8px 16px",
   fontSize: 12,
-  fontWeight: 600,
-  color: "#92400E",
+  color: "#161616",
   textAlign: "center",
+  letterSpacing: "0.32px",
 };
 
 const markAllBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "#3B82F6",
-  fontSize: 13,
+  color: "var(--color-primary)",
+  fontSize: 14,
   cursor: "pointer",
-  fontWeight: 500,
 };
 
 const dropdownListStyle: React.CSSProperties = {
@@ -467,16 +502,16 @@ const dropdownListStyle: React.CSSProperties = {
 
 const notificationItemStyle: React.CSSProperties = {
   padding: "12px 16px",
-  borderBottom: "1px solid #F3F4F6",
+  borderBottom: "1px solid #e0e0e0",
   cursor: "pointer",
-  transition: "background 0.15s",
+  transition: "background 70ms",
 };
 
 const unreadDotStyle: React.CSSProperties = {
   width: 8,
   height: 8,
   borderRadius: "50%",
-  background: "#3B82F6",
+  background: "var(--color-primary)",
   flexShrink: 0,
-  marginTop: 4,
+  marginTop: 6,
 };

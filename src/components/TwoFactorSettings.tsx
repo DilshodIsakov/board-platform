@@ -97,14 +97,14 @@ export default function TwoFactorSettings() {
   return (
     <div style={cardStyle}>
       <h2 style={{ margin: "0 0 6px 0", fontSize: 17 }}>{t("mfa.title")}</h2>
-      <p style={{ margin: "0 0 14px 0", color: "#6B7280", fontSize: 13 }}>{t("mfa.description")}</p>
+      <p style={{ margin: "0 0 14px 0", color: "#525252", fontSize: 13 }}>{t("mfa.description")}</p>
 
-      {error && <p style={{ color: "#dc2626", fontSize: 13 }}>{error}</p>}
+      {error && <p style={{ color: "#da1e28", fontSize: 13 }}>{error}</p>}
 
       {factorId ? (
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <span style={{ background: "#DCFCE7", color: "#166534", padding: "4px 10px", borderRadius: 999, fontSize: 13, fontWeight: 600 }}>
-            ✓ {t("mfa.enabled")}
+          <span style={{ background: "#defbe6", color: "#0e6027", padding: "4px 10px", borderRadius: 999, fontSize: 13, fontWeight: 600 }}>
+            {t("mfa.enabled")}
           </span>
           <button type="button" onClick={handleDisable} disabled={saving} style={dangerBtnStyle}>
             {t("mfa.disable")}
@@ -112,16 +112,16 @@ export default function TwoFactorSettings() {
         </div>
       ) : enrolling ? (
         <div>
-          <p style={{ fontSize: 13, color: "#374151", marginTop: 0 }}>{t("mfa.scanQr")}</p>
+          <p style={{ fontSize: 13, color: "#393939", marginTop: 0 }}>{t("mfa.scanQr")}</p>
           {qrCode && (
             <img
               src={qrCode.startsWith("data:") ? qrCode : `data:image/svg+xml;utf8,${encodeURIComponent(qrCode)}`}
               alt="QR"
-              style={{ width: 180, height: 180, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 8, padding: 8 }}
+              style={{ width: 180, height: 180, background: "#fff", border: "1px solid #e0e0e0", borderRadius: 0, padding: 8 }}
             />
           )}
-          <p style={{ fontSize: 12, color: "#6B7280" }}>
-            {t("mfa.secretLabel")}: <code style={{ userSelect: "all", background: "#F3F4F6", padding: "2px 6px", borderRadius: 4 }}>{secret}</code>
+          <p style={{ fontSize: 12, color: "#525252" }}>
+            {t("mfa.secretLabel")}: <code style={{ userSelect: "all", background: "#f4f4f4", padding: "2px 6px", borderRadius: 0 }}>{secret}</code>
           </p>
           <form onSubmit={handleConfirmEnroll} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <input
@@ -133,7 +133,7 @@ export default function TwoFactorSettings() {
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
               required
-              style={{ padding: "8px 12px", fontSize: 15, border: "1px solid #ccc", borderRadius: 6, width: 160, textAlign: "center", letterSpacing: "0.2em" }}
+              style={{ padding: "8px 12px", fontSize: 15, border: "1px solid #c6c6c6", borderRadius: 0, width: 160, textAlign: "center", letterSpacing: "0.2em" }}
             />
             <button type="submit" disabled={saving || code.length < 6} style={primaryBtnStyle}>
               {saving ? "..." : t("mfa.confirm")}
@@ -154,8 +154,8 @@ export default function TwoFactorSettings() {
 
 const cardStyle: React.CSSProperties = {
   background: "#fff",
-  border: "1px solid #E5E7EB",
-  borderRadius: 12,
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
   padding: "20px 24px",
   marginTop: 24,
 };
@@ -163,10 +163,10 @@ const cardStyle: React.CSSProperties = {
 const primaryBtnStyle: React.CSSProperties = {
   padding: "8px 16px",
   fontSize: 14,
-  borderRadius: 6,
+  borderRadius: 0,
   border: "none",
   cursor: "pointer",
-  background: "#2563eb",
+  background: "#0f62fe",
   color: "#fff",
   fontWeight: 600,
 };
@@ -174,20 +174,20 @@ const primaryBtnStyle: React.CSSProperties = {
 const secondaryBtnStyle: React.CSSProperties = {
   padding: "8px 16px",
   fontSize: 14,
-  borderRadius: 6,
-  border: "1px solid #D1D5DB",
+  borderRadius: 0,
+  border: "1px solid #c6c6c6",
   cursor: "pointer",
   background: "#fff",
-  color: "#374151",
+  color: "#393939",
 };
 
 const dangerBtnStyle: React.CSSProperties = {
   padding: "8px 16px",
   fontSize: 14,
-  borderRadius: 6,
-  border: "1px solid #FCA5A5",
+  borderRadius: 0,
+  border: "1px solid #ffb3b8",
   cursor: "pointer",
-  background: "#FEF2F2",
-  color: "#B91C1C",
+  background: "#fff1f1",
+  color: "#a2191f",
   fontWeight: 600,
 };

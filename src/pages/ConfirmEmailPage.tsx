@@ -23,40 +23,39 @@ export default function ConfirmEmailPage({ user }: Props) {
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#F9FAFB" }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f4f4f4" }}>
       <div style={{
         background: "#fff",
-        borderRadius: 12,
+        borderRadius: 0,
         padding: 40,
         maxWidth: 400,
-        boxShadow: "0 10px 40px rgba(0,0,0,0.1)",
-        textAlign: "center",
+        boxShadow: "var(--shadow-overlay)", textAlign: "center",
       }}>
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 20px" }}>
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#0f62fe" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 20px" }}>
           <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
         </svg>
         
-        <h1 style={{ fontSize: 24, margin: "0 0 16px", color: "#111827" }}>
+        <h1 style={{ fontSize: 24, margin: "0 0 16px", color: "#161616" }}>
           {t("confirmEmail.title")}
         </h1>
         
-        <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 16px", lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: t("confirmEmail.sentTo", { email: user.email }) }} />
+        <p style={{ color: "#525252", fontSize: 14, margin: "0 0 16px", lineHeight: 1.5 }} dangerouslySetInnerHTML={{ __html: t("confirmEmail.sentTo", { email: user.email }) }} />
 
-        <p style={{ color: "#6B7280", fontSize: 13, margin: "0 0 24px", lineHeight: 1.5 }}>
+        <p style={{ color: "#525252", fontSize: 13, margin: "0 0 24px", lineHeight: 1.5 }}>
           {t("confirmEmail.checkSpam")}
         </p>
 
         {sent && (
           <div style={{
-            background: "#F0FDF4",
-            border: "1px solid #BBF7D0",
-            borderRadius: 8,
+            background: "#defbe6",
+            border: "1px solid #a7f0ba",
+            borderRadius: 0,
             padding: 12,
-            color: "#16A34A",
+            color: "#24a148",
             fontSize: 13,
             marginBottom: 16,
           }}>
-            ✓ {t("confirmEmail.resentSuccess")}
+            {t("confirmEmail.resentSuccess")}
           </div>
         )}
 
@@ -67,9 +66,9 @@ export default function ConfirmEmailPage({ user }: Props) {
             width: "100%",
             padding: 10,
             fontSize: 14,
-            borderRadius: 6,
+            borderRadius: 0,
             border: "none",
-            background: "#3B82F6",
+            background: "#0f62fe",
             color: "#fff",
             cursor: loading ? "not-allowed" : "pointer",
             fontWeight: 500,
@@ -79,7 +78,7 @@ export default function ConfirmEmailPage({ user }: Props) {
           {loading ? t("confirmEmail.sending") : t("confirmEmail.resend")}
         </button>
 
-        <p style={{ color: "#9CA3AF", fontSize: 12, margin: "16px 0 0" }}>
+        <p style={{ color: "#8d8d8d", fontSize: 12, margin: "16px 0 0" }}>
           {t("confirmEmail.afterConfirm")}
         </p>
       </div>

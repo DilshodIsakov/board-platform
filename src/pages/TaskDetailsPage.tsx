@@ -40,21 +40,21 @@ interface Props {
 const STATUS_KEYS = ["open", "in_progress", "done", "canceled", "overdue"];
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  open: { bg: "#DBEAFE", color: "#1E40AF" },
-  in_progress: { bg: "#FEF3C7", color: "#92400E" },
-  done: { bg: "#D1FAE5", color: "#065F46" },
-  canceled: { bg: "#F3F4F6", color: "#6B7280" },
-  overdue: { bg: "#FEE2E2", color: "#991B1B" },
+  open: { bg: "#d0e2ff", color: "#0043ce" },
+  in_progress: { bg: "#fcf4d6", color: "#684e00" },
+  done: { bg: "#defbe6", color: "#0e6027" },
+  canceled: { bg: "#f4f4f4", color: "#525252" },
+  overdue: { bg: "#fff1f1", color: "#a2191f" },
 };
 
 const PRIORITY_COLORS: Record<string, { bg: string; color: string }> = {
-  low: { bg: "#F3F4F6", color: "#6B7280" },
-  medium: { bg: "#FEF3C7", color: "#92400E" },
-  high: { bg: "#FEE2E2", color: "#991B1B" },
+  low: { bg: "#f4f4f4", color: "#525252" },
+  medium: { bg: "#fcf4d6", color: "#684e00" },
+  high: { bg: "#fff1f1", color: "#a2191f" },
 };
 
 const MANAGE_ROLES = ["admin", "corp_secretary"];
-const AVATAR_COLORS = ["#7C3AED", "#059669", "#DC2626", "#2563EB", "#D97706", "#0891B2"];
+const AVATAR_COLORS = ["#525252", "#24a148", "#da1e28", "#0f62fe", "#684e00", "#0f62fe"];
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -355,8 +355,8 @@ export default function TaskDetailsPage({ profile, org }: Props) {
     }
   };
 
-  if (loading) return <div style={{ color: "#9CA3AF", padding: "40px 0" }}>{t("common.loading")}</div>;
-  if (!task) return <div style={{ color: "#DC2626", padding: "40px 0" }}>{t("taskDetails.notFound")}</div>;
+  if (loading) return <div style={{ color: "#8d8d8d", padding: "40px 0" }}>{t("common.loading")}</div>;
+  if (!task) return <div style={{ color: "#da1e28", padding: "40px 0" }}>{t("taskDetails.notFound")}</div>;
 
   const sc = STATUS_COLORS[task.status] || STATUS_COLORS.open;
   const pc = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
@@ -389,9 +389,9 @@ export default function TaskDetailsPage({ profile, org }: Props) {
       </div>
 
       {error && (
-        <div style={{ background: "#FEE2E2", color: "#991B1B", padding: "10px 16px", borderRadius: 8, marginBottom: 16, fontSize: 14 }}>
+        <div style={{ background: "#fff1f1", color: "#a2191f", padding: "10px 16px", borderRadius: 0, marginBottom: 16, fontSize: 14 }}>
           {error}
-          <button onClick={() => setError("")} style={{ float: "right", background: "none", border: "none", cursor: "pointer", color: "#991B1B" }}>&times;</button>
+          <button onClick={() => setError("")} style={{ float: "right", background: "none", border: "none", cursor: "pointer", color: "#a2191f" }}>&times;</button>
         </div>
       )}
 
@@ -433,7 +433,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
           const tabDot = (lang: SupportedLang) => {
             const st = lang === "ru" ? editStatusRu : lang === "uz" ? editStatusUz : editStatusEn;
             const hasTitle = !!getEditTitle(lang).trim();
-            const color = hasTitle ? translationStatusColor(st as Parameters<typeof translationStatusColor>[0]) : "#D1D5DB";
+            const color = hasTitle ? translationStatusColor(st as Parameters<typeof translationStatusColor>[0]) : "#c6c6c6";
             return <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: color, marginRight: 5 }} />;
           };
 
@@ -487,7 +487,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
               </div>
 
               {/* Lang tabs */}
-              <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #E5E7EB", marginBottom: 12 }}>
+              <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #e0e0e0", marginBottom: 12 }}>
                 {(["ru", "uz", "en"] as SupportedLang[]).map((lang) => (
                   <button
                     key={lang}
@@ -497,12 +497,12 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                       padding: "6px 16px",
                       background: "none",
                       border: "none",
-                      borderBottom: editLangTab === lang ? "2px solid #3B82F6" : "2px solid transparent",
+                      borderBottom: editLangTab === lang ? "2px solid #0f62fe" : "2px solid transparent",
                       marginBottom: -2,
                       cursor: "pointer",
                       fontSize: 13,
                       fontWeight: editLangTab === lang ? 600 : 400,
-                      color: editLangTab === lang ? "#3B82F6" : "#6B7280",
+                      color: editLangTab === lang ? "#0f62fe" : "#525252",
                       display: "flex",
                       alignItems: "center",
                     }}
@@ -510,7 +510,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                     {tabDot(lang)}
                     {t(`langTabs.${lang}`)}
                     {lang === editSourceLang && (
-                      <span style={{ fontSize: 10, marginLeft: 5, background: "#DBEAFE", color: "#1E40AF", padding: "1px 5px", borderRadius: 4 }}>src</span>
+                      <span style={{ fontSize: 10, marginLeft: 5, background: "#d0e2ff", color: "#0043ce", padding: "1px 5px", borderRadius: 0 }}>src</span>
                     )}
                   </button>
                 ))}
@@ -534,7 +534,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
               />
 
               {/* Basis */}
-              <label style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 4, display: "block" }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: "#393939", marginBottom: 4, display: "block" }}>
                 {t("taskTable.basisLabel")}
               </label>
               <textarea
@@ -557,29 +557,29 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                     type="button"
                     onClick={handleGenerate}
                     disabled={editTranslating || !editSourceTitle.trim()}
-                    style={{ padding: "6px 12px", background: "#F3F4F6", border: "1px solid #D1D5DB", borderRadius: 7, fontSize: 12, cursor: editSourceTitle.trim() ? "pointer" : "default", color: "#374151" }}
+                    style={{ padding: "6px 12px", background: "#f4f4f4", border: "1px solid #c6c6c6", borderRadius: 0, fontSize: 12, cursor: editSourceTitle.trim() ? "pointer" : "default", color: "#393939" }}
                   >
                     {editTranslating ? t("taskTable.generating") : t("taskTable.generateTranslations")}
                   </button>
                   {isStale && (
-                    <span style={{ fontSize: 12, color: "#D97706", background: "#FEF3C7", padding: "3px 8px", borderRadius: 6 }}>
-                      ⚠ {t("taskTable.translationStale")}
+                    <span style={{ fontSize: 12, color: "#684e00", background: "#fcf4d6", padding: "3px 8px", borderRadius: 0 }}>
+                      {t("taskTable.translationStale")}
                     </span>
                   )}
                   {!isStale && editTranslationGenerated && !editTranslationError && (
-                    <span style={{ fontSize: 12, color: "#059669" }}>
+                    <span style={{ fontSize: 12, color: "#24a148" }}>
                       {translationStatusLabel("auto_translated")} {t("nsMeetings.translationStatus")}
                     </span>
                   )}
                 </div>
                 {!editTranslating && !editTranslationError && (
-                  <div style={{ fontSize: 11, color: "#7C3AED", marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: "#525252", marginTop: 4 }}>
                     {t("taskTable.translationProviderNote")}
                   </div>
                 )}
                 {editTranslationError && (
-                  <div style={{ fontSize: 12, color: "#DC2626", marginTop: 4, background: "#FEE2E2", padding: "5px 10px", borderRadius: 6 }}>
-                    ⚠ {editTranslationError}
+                  <div style={{ fontSize: 12, color: "#da1e28", marginTop: 4, background: "#fff1f1", padding: "5px 10px", borderRadius: 0 }}>
+                    {editTranslationError}
                   </div>
                 )}
               </div>
@@ -613,13 +613,13 @@ export default function TaskDetailsPage({ profile, org }: Props) {
             </h1>
             {(() => {
               const desc = getLocalizedField(task as unknown as Record<string, unknown>, "description") || task.description;
-              return desc ? <p style={{ color: "#4B5563", fontSize: 15, margin: "0 0 16px", lineHeight: 1.6 }}>{desc}</p> : null;
+              return desc ? <p style={{ color: "#525252", fontSize: 15, margin: "0 0 16px", lineHeight: 1.6 }}>{desc}</p> : null;
             })()}
 
             {getLocalizedField(task as unknown as Record<string, unknown>, "basis") && (
               <div style={{ marginBottom: 16 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#6B7280" }}>{t("taskTable.basisLabel")}:</span>
-                <p style={{ color: "#4B5563", fontSize: 14, margin: "4px 0 0", lineHeight: 1.5 }}>{getLocalizedField(task as unknown as Record<string, unknown>, "basis")}</p>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#525252" }}>{t("taskTable.basisLabel")}:</span>
+                <p style={{ color: "#525252", fontSize: 14, margin: "4px 0 0", lineHeight: 1.5 }}>{getLocalizedField(task as unknown as Record<string, unknown>, "basis")}</p>
               </div>
             )}
 
@@ -657,7 +657,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
               {/* Due date */}
               <div>
                 <span style={metaLabelStyle}>{t("taskTable.deadline")}</span>
-                <span style={{ fontWeight: isOverdue ? 600 : 400, color: isOverdue ? "#DC2626" : "#374151", fontSize: 14 }}>
+                <span style={{ fontWeight: isOverdue ? 600 : 400, color: isOverdue ? "#da1e28" : "#393939", fontSize: 14 }}>
                   {task.due_date ? new Date(task.due_date).toLocaleDateString(getIntlLocale()) : "—"}
                 </span>
               </div>
@@ -665,7 +665,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
               {/* Creator */}
               <div>
                 <span style={metaLabelStyle}>{t("taskDetails.creator")}</span>
-                <span style={{ fontSize: 14, color: "#374151" }}>
+                <span style={{ fontSize: 14, color: "#393939" }}>
                   {(task.creator as { full_name: string } | undefined)?.full_name || "—"}
                 </span>
               </div>
@@ -673,7 +673,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
               {/* Created at */}
               <div>
                 <span style={metaLabelStyle}>{t("taskDetails.createdDate")}</span>
-                <span style={{ fontSize: 14, color: "#6B7280" }}>
+                <span style={{ fontSize: 14, color: "#525252" }}>
                   {new Date(task.created_at).toLocaleDateString(getIntlLocale())}
                 </span>
               </div>
@@ -691,7 +691,7 @@ export default function TaskDetailsPage({ profile, org }: Props) {
           )}
         </div>
         {(!task.assignees || task.assignees.length === 0) ? (
-          <p style={{ color: "#9CA3AF", fontSize: 14 }}>{t("taskDetails.noAssignees")}</p>
+          <p style={{ color: "#8d8d8d", fontSize: 14 }}>{t("taskDetails.noAssignees")}</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {task.assignees
@@ -706,29 +706,29 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                       background: AVATAR_COLORS[i % AVATAR_COLORS.length],
                       color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 13, fontWeight: 600, flexShrink: 0,
-                      border: isMain ? "2px solid #F59E0B" : "none",
+                      border: isMain ? "2px solid #f1c21b" : "none",
                       boxSizing: "border-box",
                     }}>
                       {getInitials(a.profile?.full_name || "?")}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 500, fontSize: 14, color: "#111827" }}>
+                      <div style={{ fontWeight: 500, fontSize: 14, color: "#161616" }}>
                         {a.profile?.full_name || "—"}
                         {isMain && (
                           <span style={{
                             marginLeft: 8,
                             fontSize: 11,
-                            background: "#FEF3C7",
-                            color: "#92400E",
+                            background: "#fcf4d6",
+                            color: "#684e00",
                             padding: "2px 8px",
-                            borderRadius: 8,
+                            borderRadius: 0,
                             fontWeight: 500,
                           }}>
                             {t("taskTable.main")}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{t(`tasks.${a.role_in_task === "executor" ? "mainExecutor" : a.role_in_task === "co_executor" ? "coExecutor" : "controller"}`)}</div>
+                      <div style={{ fontSize: 12, color: "#8d8d8d" }}>{t(`tasks.${a.role_in_task === "executor" ? "mainExecutor" : a.role_in_task === "co_executor" ? "coExecutor" : "controller"}`)}</div>
                     </div>
                   </div>
                 );
@@ -742,21 +742,21 @@ export default function TaskDetailsPage({ profile, org }: Props) {
         <h2 style={sectionTitleStyle}>{t("taskDetails.comments", { count: comments.length })}</h2>
 
         {comments.length === 0 && (
-          <p style={{ color: "#9CA3AF", fontSize: 14, marginBottom: 16 }}>{t("taskDetails.noComments")}</p>
+          <p style={{ color: "#8d8d8d", fontSize: 14, marginBottom: 16 }}>{t("taskDetails.noComments")}</p>
         )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 20 }}>
           {comments.map((c) => (
             <div key={c.id} style={commentStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontWeight: 500, fontSize: 14, color: "#111827" }}>
+                <span style={{ fontWeight: 500, fontSize: 14, color: "#161616" }}>
                   {(c.author as { full_name: string } | undefined)?.full_name || "—"}
                 </span>
-                <span style={{ fontSize: 12, color: "#9CA3AF" }}>
+                <span style={{ fontSize: 12, color: "#8d8d8d" }}>
                   {new Date(c.created_at).toLocaleString(getIntlLocale(), { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
-              <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5 }}>{c.body}</div>
+              <div style={{ fontSize: 14, color: "#393939", lineHeight: 1.5 }}>{c.body}</div>
             </div>
           ))}
         </div>
@@ -792,11 +792,11 @@ export default function TaskDetailsPage({ profile, org }: Props) {
         </div>
 
         {attachments.length === 0 ? (
-          <p style={{ color: "#9CA3AF", fontSize: 14 }}>{t("taskDetails.noAttachments")}</p>
+          <p style={{ color: "#8d8d8d", fontSize: 14 }}>{t("taskDetails.noAttachments")}</p>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
+              <tr style={{ borderBottom: "1px solid #e0e0e0" }}>
                 <th style={thStyle}>{t("taskDetails.file")}</th>
                 <th style={thStyle}>{t("taskDetails.size")}</th>
                 <th style={thStyle}>{t("taskDetails.uploader")}</th>
@@ -806,22 +806,22 @@ export default function TaskDetailsPage({ profile, org }: Props) {
             </thead>
             <tbody>
               {attachments.map((a) => (
-                <tr key={a.id} style={{ borderBottom: "1px solid #F3F4F6" }}>
+                <tr key={a.id} style={{ borderBottom: "1px solid #f4f4f4" }}>
                   <td style={tdStyle}>
-                    <span style={{ color: "#3B82F6", cursor: "pointer" }} onClick={() => handleDownload(a)}>
+                    <span style={{ color: "#0f62fe", cursor: "pointer" }} onClick={() => handleDownload(a)}>
                       {a.file_name}
                     </span>
                   </td>
-                  <td style={{ ...tdStyle, color: "#6B7280" }}>{formatFileSize(a.file_size)}</td>
-                  <td style={{ ...tdStyle, color: "#6B7280" }}>{(a.uploader as { full_name: string } | undefined)?.full_name || "—"}</td>
-                  <td style={{ ...tdStyle, color: "#6B7280", whiteSpace: "nowrap" }}>
+                  <td style={{ ...tdStyle, color: "#525252" }}>{formatFileSize(a.file_size)}</td>
+                  <td style={{ ...tdStyle, color: "#525252" }}>{(a.uploader as { full_name: string } | undefined)?.full_name || "—"}</td>
+                  <td style={{ ...tdStyle, color: "#525252", whiteSpace: "nowrap" }}>
                     {new Date(a.created_at).toLocaleDateString(getIntlLocale())}
                   </td>
                   <td style={tdStyle}>
                     <div style={{ display: "flex", gap: 6 }}>
                       <button onClick={() => handleDownload(a)} style={smallBtnStyle}>{t("taskDetails.download")}</button>
                       {canDeleteAttachment(a) && (
-                        <button onClick={() => handleDeleteAttachment(a)} style={{ ...smallBtnStyle, color: "#DC2626", borderColor: "#FCA5A5" }}>
+                        <button onClick={() => handleDeleteAttachment(a)} style={{ ...smallBtnStyle, color: "#da1e28", borderColor: "#ffb3b8" }}>
                           {t("common.delete")}
                         </button>
                       )}
@@ -857,18 +857,18 @@ export default function TaskDetailsPage({ profile, org }: Props) {
                     />
                     <span style={{ flex: 1, cursor: "pointer" }} onClick={() => handleToggleAssignee(p.id)}>
                       {p.full_name}
-                      <span style={{ color: "#9CA3AF", fontSize: 12, marginLeft: 4 }}>({t(`roles.${p.role}`, p.role)})</span>
+                      <span style={{ color: "#8d8d8d", fontSize: 12, marginLeft: 4 }}>({t(`roles.${p.role}`, p.role)})</span>
                     </span>
                     {isAssigned && !isMain && (
                       <button
                         onClick={() => handleSetMainExecutor(p.id)}
-                        style={{ ...smallBtnStyle, fontSize: 11, color: "#D97706", borderColor: "#FCD34D" }}
+                        style={{ ...smallBtnStyle, fontSize: 11, color: "#684e00", borderColor: "#f1c21b" }}
                       >
                         {t("taskDetails.makeMain")}
                       </button>
                     )}
                     {isMain && (
-                      <span style={{ fontSize: 11, background: "#FEF3C7", color: "#92400E", padding: "2px 8px", borderRadius: 8 }}>
+                      <span style={{ fontSize: 11, background: "#fcf4d6", color: "#684e00", padding: "2px 8px", borderRadius: 0 }}>
                         {t("taskDetails.mainLabel")}
                       </span>
                     )}
@@ -890,8 +890,8 @@ export default function TaskDetailsPage({ profile, org }: Props) {
 
 const cardStyle: React.CSSProperties = {
   background: "#fff",
-  border: "1px solid #E5E7EB",
-  borderRadius: 12,
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
   padding: "24px 28px",
   marginBottom: 20,
 };
@@ -900,13 +900,13 @@ const sectionTitleStyle: React.CSSProperties = {
   margin: 0,
   fontSize: 16,
   fontWeight: 600,
-  color: "#111827",
+  color: "#161616",
 };
 
 const backBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "#3B82F6",
+  color: "#0f62fe",
   fontSize: 14,
   cursor: "pointer",
   padding: 0,
@@ -914,10 +914,10 @@ const backBtnStyle: React.CSSProperties = {
 
 const doneBtnStyle: React.CSSProperties = {
   padding: "8px 16px",
-  background: "#059669",
+  background: "#24a148",
   color: "#fff",
   border: "none",
-  borderRadius: 8,
+  borderRadius: 0,
   fontSize: 13,
   fontWeight: 500,
   cursor: "pointer",
@@ -926,30 +926,30 @@ const doneBtnStyle: React.CSSProperties = {
 const editBtnStyle: React.CSSProperties = {
   padding: "6px 14px",
   background: "#fff",
-  border: "1px solid #D1D5DB",
-  borderRadius: 8,
+  border: "1px solid #c6c6c6",
+  borderRadius: 0,
   fontSize: 13,
   cursor: "pointer",
-  color: "#374151",
+  color: "#393939",
 };
 
 const deleteBtnStyle: React.CSSProperties = {
   padding: "6px 14px",
-  background: "#FEE2E2",
-  border: "1px solid #FECACA",
-  borderRadius: 8,
+  background: "#fff1f1",
+  border: "1px solid #ffd7d9",
+  borderRadius: 0,
   fontSize: 13,
   cursor: "pointer",
-  color: "#DC2626",
+  color: "#da1e28",
   fontWeight: 500,
 };
 
 const saveBtnStyle: React.CSSProperties = {
   padding: "8px 18px",
-  background: "#3B82F6",
+  background: "#0f62fe",
   color: "#fff",
   border: "none",
-  borderRadius: 8,
+  borderRadius: 0,
   fontSize: 13,
   fontWeight: 500,
   cursor: "pointer",
@@ -958,18 +958,18 @@ const saveBtnStyle: React.CSSProperties = {
 const cancelBtnStyle: React.CSSProperties = {
   padding: "8px 18px",
   background: "#fff",
-  border: "1px solid #D1D5DB",
-  borderRadius: 8,
+  border: "1px solid #c6c6c6",
+  borderRadius: 0,
   fontSize: 13,
   cursor: "pointer",
-  color: "#374151",
+  color: "#393939",
 };
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "9px 12px",
-  border: "1px solid #D1D5DB",
-  borderRadius: 8,
+  border: "1px solid #c6c6c6",
+  borderRadius: 0,
   fontSize: 14,
   boxSizing: "border-box",
 };
@@ -977,7 +977,7 @@ const inputStyle: React.CSSProperties = {
 const badgeStyle: React.CSSProperties = {
   display: "inline-block",
   padding: "3px 10px",
-  borderRadius: 10,
+  borderRadius: 0,
   fontSize: 12,
   fontWeight: 500,
 };
@@ -985,13 +985,13 @@ const badgeStyle: React.CSSProperties = {
 const metaLabelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 12,
-  color: "#9CA3AF",
+  color: "#8d8d8d",
   marginBottom: 4,
 };
 
 const commentStyle: React.CSSProperties = {
-  background: "#F9FAFB",
-  borderRadius: 10,
+  background: "#f4f4f4",
+  borderRadius: 0,
   padding: "14px 16px",
 };
 
@@ -1000,7 +1000,7 @@ const thStyle: React.CSSProperties = {
   textAlign: "left",
   fontWeight: 600,
   fontSize: 13,
-  color: "#6B7280",
+  color: "#525252",
 };
 
 const tdStyle: React.CSSProperties = {
@@ -1010,8 +1010,8 @@ const tdStyle: React.CSSProperties = {
 const smallBtnStyle: React.CSSProperties = {
   padding: "4px 10px",
   fontSize: 12,
-  borderRadius: 6,
-  border: "1px solid #D1D5DB",
+  borderRadius: 0,
+  border: "1px solid #c6c6c6",
   background: "transparent",
   cursor: "pointer",
   whiteSpace: "nowrap",
@@ -1029,21 +1029,20 @@ const overlayStyle: React.CSSProperties = {
 
 const modalSmallStyle: React.CSSProperties = {
   background: "#fff",
-  borderRadius: 14,
+  borderRadius: 0,
   padding: "24px 28px",
   width: "100%",
   maxWidth: 420,
   maxHeight: "80vh",
   overflowY: "auto",
-  boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-};
+  boxShadow: "var(--shadow-overlay)", };
 
 const closeBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
   fontSize: 24,
   cursor: "pointer",
-  color: "#9CA3AF",
+  color: "#8d8d8d",
   padding: 0,
   lineHeight: 1,
 };

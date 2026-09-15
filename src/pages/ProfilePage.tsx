@@ -183,7 +183,7 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
     setUploadingPhoto(false);
   };
 
-  if (loading) return <div style={{ color: "#9CA3AF" }}>{t("common.loading")}</div>;
+  if (loading) return <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>;
   if (!profile) return null;
 
   const displayName = getLocalizedName(profile, i18n.language);
@@ -193,7 +193,7 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
   return (
     <div style={{ maxWidth: 800, margin: "0 auto" }}>
       <h1 style={{ marginBottom: 8 }}>{t("profile.title")}</h1>
-      <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 24 }}>{t("profile.subtitle")}</p>
+      <p style={{ color: "#525252", fontSize: 14, marginBottom: 24 }}>{t("profile.subtitle")}</p>
 
       {error && <div style={errorStyle}>{error}<button onClick={() => setError("")} style={closeBtn}>&times;</button></div>}
       {success && <div style={successStyle}>{success}<button onClick={() => setSuccess("")} style={closeBtn}>&times;</button></div>}
@@ -204,23 +204,23 @@ export default function ProfilePage({ profile, org, onProfileUpdate }: Props) {
           {avatarUrl ? (
             <img src={avatarUrl} alt="" style={avatarLargeStyle} />
           ) : (
-            <div style={{ ...avatarLargeStyle, background: "#3B82F6", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 700 }}>
+            <div style={{ ...avatarLargeStyle, background: "#0f62fe", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, fontWeight: 700 }}>
               {getInitials(displayName)}
             </div>
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 24, fontWeight: 700, color: "#111827" }}>{displayName}</div>
-          <div style={{ fontSize: 14, color: "#6B7280", marginTop: 2 }}>{t(`roles.${profile.role}`)}</div>
-          {displayRole && <div style={{ fontSize: 14, fontWeight: 500, color: "#374151", marginTop: 4 }}>{displayRole}</div>}
-          {org && <div style={{ fontSize: 13, color: "#9CA3AF", marginTop: 4 }}>{org.name}</div>}
+          <div style={{ fontSize: 24, fontWeight: 700, color: "#161616" }}>{displayName}</div>
+          <div style={{ fontSize: 14, color: "#525252", marginTop: 2 }}>{t(`roles.${profile.role}`)}</div>
+          {displayRole && <div style={{ fontSize: 14, fontWeight: 500, color: "#393939", marginTop: 4 }}>{displayRole}</div>}
+          {org && <div style={{ fontSize: 13, color: "#8d8d8d", marginTop: 4 }}>{org.name}</div>}
           <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
             <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handlePhotoUpload} style={{ display: "none" }} />
             <button onClick={() => fileInputRef.current?.click()} disabled={uploadingPhoto} style={btnSecondary}>
               {uploadingPhoto ? t("common.loading") : t("profile.uploadPhoto")}
             </button>
             {avatarUrl && (
-              <button onClick={handlePhotoRemove} disabled={uploadingPhoto} style={{ ...btnSecondary, color: "#DC2626", borderColor: "#FECACA" }}>
+              <button onClick={handlePhotoRemove} disabled={uploadingPhoto} style={{ ...btnSecondary, color: "#da1e28", borderColor: "#ffd7d9" }}>
                 {t("profile.removePhoto")}
               </button>
             )}
@@ -379,7 +379,7 @@ function getInitials(name: string): string {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={sectionStyle}>
-      <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 600, color: "#111827" }}>{title}</h3>
+      <h3 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 600, color: "#161616" }}>{title}</h3>
       {children}
     </div>
   );
@@ -464,8 +464,8 @@ function CheckboxField({ label, checked, onChange }: { label: string; checked: b
 function FieldRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ marginBottom: 8 }}>
-      <span style={{ fontSize: 13, color: "#6B7280" }}>{label}: </span>
-      <span style={{ fontSize: 14, color: "#111827" }}>{value}</span>
+      <span style={{ fontSize: 13, color: "#525252" }}>{label}: </span>
+      <span style={{ fontSize: 14, color: "#161616" }}>{value}</span>
     </div>
   );
 }
@@ -510,7 +510,7 @@ function ViewFields({ details, fields }: {
 
 function EmptyState({ text }: { text?: string }) {
   const { t } = useTranslation();
-  return <div style={{ color: "#9CA3AF", fontSize: 14, fontStyle: "italic" }}>{text || t("profile.noData")}</div>;
+  return <div style={{ color: "#8d8d8d", fontSize: 14, fontStyle: "italic" }}>{text || t("profile.noData")}</div>;
 }
 
 // ── Education structured components ───────────────────────────────────
@@ -530,10 +530,10 @@ function EducationEditor({ entries, onChange }: { entries: EducationEntry[]; onC
       {entries.map((entry, idx) => (
         <div key={idx} style={eduCardStyle}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#374151" }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#393939" }}>
               {t("profile.eduEntry", { n: idx + 1, defaultValue: `Образование #${idx + 1}` })}
             </span>
-            <button onClick={() => removeEntry(idx)} style={eduRemoveBtnStyle} title={t("common.delete")}>✕</button>
+            <button onClick={() => removeEntry(idx)} style={eduRemoveBtnStyle} title={t("common.delete")}></button>
           </div>
 
           {/* Degree */}
@@ -607,7 +607,7 @@ function EducationView({ entries, fallbackText }: { entries: EducationEntry[]; f
 
   if (!entries.length) {
     if (fallbackText) {
-      return <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{fallbackText}</div>;
+      return <div style={{ fontSize: 14, color: "#393939", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{fallbackText}</div>;
     }
     return <EmptyState />;
   }
@@ -622,10 +622,10 @@ function EducationView({ entries, fallbackText }: { entries: EducationEntry[]; f
 
         return (
           <div key={idx} style={eduViewCardStyle}>
-            {degree && <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{degree}</div>}
-            {specialty && <div style={{ fontSize: 13, color: "#374151", marginTop: 2 }}>{specialty}</div>}
-            {institution && <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4 }}>{institution}</div>}
-            {years && <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>{years}</div>}
+            {degree && <div style={{ fontSize: 14, fontWeight: 600, color: "#161616" }}>{degree}</div>}
+            {specialty && <div style={{ fontSize: 13, color: "#393939", marginTop: 2 }}>{specialty}</div>}
+            {institution && <div style={{ fontSize: 13, color: "#525252", marginTop: 4 }}>{institution}</div>}
+            {years && <div style={{ fontSize: 12, color: "#8d8d8d", marginTop: 4 }}>{years}</div>}
           </div>
         );
       })}
@@ -636,22 +636,22 @@ function EducationView({ entries, fallbackText }: { entries: EducationEntry[]; f
 // ── Styles ────────────────────────────────────────────────────────────
 
 const eduCardStyle: React.CSSProperties = {
-  padding: 16, border: "1px solid #E5E7EB", borderRadius: 10, marginBottom: 12, background: "#FAFAFA",
+  padding: 16, border: "1px solid #e0e0e0", borderRadius: 0, marginBottom: 12, background: "#f4f4f4",
 };
 const eduRemoveBtnStyle: React.CSSProperties = {
-  background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#9CA3AF", padding: "2px 6px",
+  background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#8d8d8d", padding: "2px 6px",
 };
 const eduAddBtnStyle: React.CSSProperties = {
-  padding: "8px 16px", fontSize: 13, fontWeight: 600, borderRadius: 8,
-  border: "1px dashed #D1D5DB", background: "#fff", color: "#3B82F6", cursor: "pointer", width: "100%",
+  padding: "8px 16px", fontSize: 13, fontWeight: 600, borderRadius: 0,
+  border: "1px dashed #c6c6c6", background: "#fff", color: "#0f62fe", cursor: "pointer", width: "100%",
 };
 const eduViewCardStyle: React.CSSProperties = {
-  padding: "12px 16px", border: "1px solid #F3F4F6", borderRadius: 10, background: "#FAFAFA",
+  padding: "12px 16px", border: "1px solid #f4f4f4", borderRadius: 0, background: "#f4f4f4",
 };
 
 const headerCardStyle: React.CSSProperties = {
   display: "flex", gap: 24, alignItems: "flex-start", padding: 24,
-  background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, marginBottom: 24,
+  background: "#fff", border: "1px solid #e0e0e0", borderRadius: 0, marginBottom: 24,
 };
 
 const avatarLargeStyle: React.CSSProperties = {
@@ -659,40 +659,40 @@ const avatarLargeStyle: React.CSSProperties = {
 };
 
 const sectionStyle: React.CSSProperties = {
-  padding: 24, background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, marginBottom: 16,
+  padding: 24, background: "#fff", border: "1px solid #e0e0e0", borderRadius: 0, marginBottom: 16,
 };
 
-const fieldLabelStyle: React.CSSProperties = { fontSize: 13, color: "#6B7280", marginBottom: 4, fontWeight: 500 };
-const langLabelStyle: React.CSSProperties = { fontSize: 11, color: "#9CA3AF", marginBottom: 2 };
+const fieldLabelStyle: React.CSSProperties = { fontSize: 13, color: "#525252", marginBottom: 4, fontWeight: 500 };
+const langLabelStyle: React.CSSProperties = { fontSize: 11, color: "#8d8d8d", marginBottom: 2 };
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "8px 12px", fontSize: 14, border: "1px solid #D1D5DB",
-  borderRadius: 6, boxSizing: "border-box",
+  width: "100%", padding: "8px 12px", fontSize: 14, border: "1px solid #c6c6c6",
+  borderRadius: 0, boxSizing: "border-box",
 };
 
 const btnPrimary: React.CSSProperties = {
-  padding: "8px 20px", fontSize: 14, borderRadius: 6, border: "none",
-  background: "#2563EB", color: "#fff", cursor: "pointer", fontWeight: 500,
+  padding: "8px 20px", fontSize: 14, borderRadius: 0, border: "none",
+  background: "#0f62fe", color: "#fff", cursor: "pointer", fontWeight: 500,
 };
 const btnSecondary: React.CSSProperties = {
-  padding: "8px 16px", fontSize: 14, borderRadius: 6, border: "1px solid #D1D5DB",
+  padding: "8px 16px", fontSize: 14, borderRadius: 0, border: "1px solid #c6c6c6",
   background: "transparent", cursor: "pointer",
 };
 
 const errorStyle: React.CSSProperties = {
-  padding: "10px 16px", background: "#FEF2F2", border: "1px solid #FECACA",
-  borderRadius: 8, color: "#DC2626", fontSize: 14, marginBottom: 12,
+  padding: "10px 16px", background: "#fff1f1", border: "1px solid #ffd7d9",
+  borderRadius: 0, color: "#da1e28", fontSize: 14, marginBottom: 12,
   display: "flex", justifyContent: "space-between", alignItems: "center",
 };
 const successStyle: React.CSSProperties = {
-  padding: "10px 16px", background: "#F0FDF4", border: "1px solid #BBF7D0",
-  borderRadius: 8, color: "#16A34A", fontSize: 14, marginBottom: 12,
+  padding: "10px 16px", background: "#defbe6", border: "1px solid #a7f0ba",
+  borderRadius: 0, color: "#24a148", fontSize: 14, marginBottom: 12,
   display: "flex", justifyContent: "space-between", alignItems: "center",
 };
 const closeBtn: React.CSSProperties = {
   background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "inherit", padding: "0 4px",
 };
 const infoBoxStyle: React.CSSProperties = {
-  padding: "12px 16px", background: "#EFF6FF", border: "1px solid #BFDBFE",
-  borderRadius: 8, color: "#1E40AF", fontSize: 13, lineHeight: 1.5, marginBottom: 16,
+  padding: "12px 16px", background: "#edf5ff", border: "1px solid #d0e2ff",
+  borderRadius: 0, color: "#0043ce", fontSize: 13, lineHeight: 1.5, marginBottom: 16,
 };

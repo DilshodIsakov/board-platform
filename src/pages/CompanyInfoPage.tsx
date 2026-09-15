@@ -70,7 +70,7 @@ export default function CompanyInfoPage({ profile }: Props) {
 
   if (loading) {
     return (
-      <div style={{ color: "#9CA3AF", padding: "40px 0" }}>{t("common.loading")}</div>
+      <div style={{ color: "#8d8d8d", padding: "40px 0" }}>{t("common.loading")}</div>
     );
   }
 
@@ -87,29 +87,29 @@ export default function CompanyInfoPage({ profile }: Props) {
     <div>
       {/* Page Title */}
       <h1 style={{ marginBottom: 8 }}>{t("company.title")}</h1>
-      <p style={{ color: "#6B7280", fontSize: 16, marginBottom: 28 }}>
+      <p style={{ color: "#525252", fontSize: 16, marginBottom: 28 }}>
         {t("company.subtitle")}
       </p>
 
       {/* KPI Cards */}
       <div style={kpiGridStyle}>
         <KpiCard
-          color="#7C3AED"
-          bgColor="#F3E8FF"
+          color="#525252"
+          bgColor="#f4f4f4"
           icon="users"
           value={boardMembers.length}
           label={t("company.boardOfDirectors")}
         />
         <KpiCard
-          color="#3B82F6"
-          bgColor="#DBEAFE"
+          color="#0f62fe"
+          bgColor="#d0e2ff"
           icon="briefcase"
           value={executives.length}
           label={t("company.management")}
         />
         <KpiCard
-          color="#059669"
-          bgColor="#D1FAE5"
+          color="#24a148"
+          bgColor="#defbe6"
           icon="users"
           value={staffMembers.length}
           label={t("company.staffTab")}
@@ -124,8 +124,8 @@ export default function CompanyInfoPage({ profile }: Props) {
             onClick={() => setActiveTab(tab.key)}
             style={{
               ...tabBtnStyle,
-              color: activeTab === tab.key ? "#3B82F6" : "#6B7280",
-              borderBottomColor: activeTab === tab.key ? "#3B82F6" : "transparent",
+              color: activeTab === tab.key ? "#0f62fe" : "#525252",
+              borderBottomColor: activeTab === tab.key ? "#0f62fe" : "transparent",
               fontWeight: activeTab === tab.key ? 600 : 400,
             }}
           >
@@ -138,7 +138,7 @@ export default function CompanyInfoPage({ profile }: Props) {
       {activeTab === "kpi" ? (
         <KpiTabContent />
       ) : currentMembers.length === 0 ? (
-        <p style={{ color: "#9CA3AF", padding: "32px 0" }}>
+        <p style={{ color: "#8d8d8d", padding: "32px 0" }}>
           {t("company.noMembers")}
         </p>
       ) : (
@@ -182,8 +182,8 @@ function KpiCard({ color, bgColor, icon, value, label }: {
         </svg>
       </div>
       <div>
-        <div style={{ fontSize: 36, fontWeight: 700, color: "#111827", lineHeight: 1.15 }}>{value}</div>
-        <div style={{ fontSize: 15, color: "#6B7280", marginTop: 4 }}>{label}</div>
+        <div style={{ fontSize: 36, fontWeight: 700, color: "#161616", lineHeight: 1.15 }}>{value}</div>
+        <div style={{ fontSize: 15, color: "#525252", marginTop: 4 }}>{label}</div>
       </div>
     </div>
   );
@@ -192,16 +192,16 @@ function KpiCard({ color, bgColor, icon, value, label }: {
 // --- Member Card ---
 
 const ROLE_BADGE_COLORS: Record<string, { bg: string; color: string }> = {
-  corp_secretary: { bg: "#DBEAFE", color: "#1E40AF" },
-  board_member: { bg: "#D1FAE5", color: "#065F46" },
-  executive: { bg: "#FEF3C7", color: "#92400E" },
-  management: { bg: "#E0E7FF", color: "#3730A3" },
-  admin: { bg: "#F3E8FF", color: "#6B21A8" },
-  employee: { bg: "#F3F4F6", color: "#374151" },
-  auditor: { bg: "#FEE2E2", color: "#991B1B" },
+  corp_secretary: { bg: "#d0e2ff", color: "#0043ce" },
+  board_member: { bg: "#defbe6", color: "#0e6027" },
+  executive: { bg: "#fcf4d6", color: "#684e00" },
+  management: { bg: "#d0e2ff", color: "#002d9c" },
+  admin: { bg: "#f4f4f4", color: "#6B21A8" },
+  employee: { bg: "#f4f4f4", color: "#393939" },
+  auditor: { bg: "#fff1f1", color: "#a2191f" },
 };
 
-const AVATAR_COLORS = ["#7C3AED", "#059669", "#DC2626", "#2563EB", "#D97706", "#0891B2"];
+const AVATAR_COLORS = ["#525252", "#24a148", "#da1e28", "#0f62fe", "#684e00", "#0f62fe"];
 
 function getInitials(name: string): string {
   if (!name) return "?";
@@ -215,7 +215,7 @@ function MemberCard({ member, isSelf, onMessage, onNameClick }: { member: Member
 
   const displayName = getLocalizedName(member, i18n.language);
   const displayRoleDetails = getLocalizedRoleDetails(member, i18n.language);
-  const badgeColors = ROLE_BADGE_COLORS[member.role] || { bg: "#F3F4F6", color: "#374151" };
+  const badgeColors = ROLE_BADGE_COLORS[member.role] || { bg: "#f4f4f4", color: "#393939" };
   const avatarColor = AVATAR_COLORS[(displayName || "").length % AVATAR_COLORS.length];
 
   return (
@@ -235,9 +235,9 @@ function MemberCard({ member, isSelf, onMessage, onNameClick }: { member: Member
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div
               onClick={onNameClick}
-              style={{ fontWeight: 600, fontSize: 20, color: "#111827", letterSpacing: "-0.01em", cursor: "pointer", transition: "color 0.15s" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#2563EB")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#111827")}
+              style={{ fontWeight: 600, fontSize: 20, color: "#161616", letterSpacing: "-0.01em", cursor: "pointer", transition: "color 0.15s" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#0f62fe")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#161616")}
             >
               {displayName || t("company.noName")}
             </div>
@@ -258,7 +258,7 @@ function MemberCard({ member, isSelf, onMessage, onNameClick }: { member: Member
             {t(`roles.${member.role}`, member.role)}
           </span>
           {displayRoleDetails && (
-            <div style={{ fontSize: 15, fontWeight: 600, color: "#374151", marginTop: 5 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#393939", marginTop: 5 }}>
               {displayRoleDetails}
             </div>
           )}
@@ -275,16 +275,16 @@ function KpiTabContent() {
   return (
     <div style={{ padding: "40px 0", textAlign: "center" }}>
       <div style={{
-        background: "#F9FAFB",
-        border: "1px solid #E5E7EB",
-        borderRadius: 12,
+        background: "#f4f4f4",
+        border: "1px solid #e0e0e0",
+        borderRadius: 0,
         padding: "48px 32px",
       }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
-        <div style={{ fontSize: 16, fontWeight: 600, color: "#374151", marginBottom: 8 }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}></div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: "#393939", marginBottom: 8 }}>
           {t("company.kpiMonitoring")}
         </div>
-        <p style={{ fontSize: 13, color: "#9CA3AF", maxWidth: 400, margin: "0 auto" }}>
+        <p style={{ fontSize: 13, color: "#8d8d8d", maxWidth: 400, margin: "0 auto" }}>
           {t("company.kpiDescription")}
         </p>
       </div>
@@ -307,14 +307,14 @@ const kpiCardStyle: React.CSSProperties = {
   gap: 20,
   padding: "24px 24px",
   background: "#FFFFFF",
-  border: "1px solid #E5E7EB",
-  borderRadius: 14,
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
 };
 
 const kpiIconBoxStyle: React.CSSProperties = {
   width: 52,
   height: 52,
-  borderRadius: 14,
+  borderRadius: 0,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -324,7 +324,7 @@ const kpiIconBoxStyle: React.CSSProperties = {
 const tabBarStyle: React.CSSProperties = {
   display: "flex",
   gap: 0,
-  borderBottom: "1px solid #E5E7EB",
+  borderBottom: "1px solid #e0e0e0",
   marginBottom: 28,
 };
 
@@ -340,7 +340,7 @@ const tabBtnStyle: React.CSSProperties = {
 
 const memberCardStyle: React.CSSProperties = {
   padding: "24px 0",
-  borderBottom: "1px solid #F3F4F6",
+  borderBottom: "1px solid #f4f4f4",
 };
 
 const memberAvatarStyle: React.CSSProperties = {
@@ -359,7 +359,7 @@ const memberAvatarStyle: React.CSSProperties = {
 const roleBadgeStyle: React.CSSProperties = {
   display: "inline-block",
   padding: "3px 12px",
-  borderRadius: 12,
+  borderRadius: 0,
   fontSize: 13,
   fontWeight: 500,
   marginTop: 6,
@@ -368,7 +368,7 @@ const roleBadgeStyle: React.CSSProperties = {
 const messageBtnStyle: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: 6,
   padding: "7px 14px", fontSize: 13, fontWeight: 500,
-  borderRadius: 8, border: "1px solid #D1D5DB",
-  background: "#FFFFFF", color: "#374151", cursor: "pointer",
+  borderRadius: 0, border: "1px solid #c6c6c6",
+  background: "#FFFFFF", color: "#393939", cursor: "pointer",
   whiteSpace: "nowrap",
 };

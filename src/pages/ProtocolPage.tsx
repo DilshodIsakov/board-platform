@@ -72,14 +72,14 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
 
   if (loading) {
     return (
-      <div style={{ color: "#9CA3AF" }}>{t("common.loading")}</div>
+      <div style={{ color: "#8d8d8d" }}>{t("common.loading")}</div>
     );
   }
 
   if (!protocolData) {
     return (
       <div>
-        <p style={{ color: "#dc2626" }}>{t("protocol.meetingNotFound")}</p>
+        <p style={{ color: "#da1e28" }}>{t("protocol.meetingNotFound")}</p>
       </div>
     );
   }
@@ -98,7 +98,7 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
         </div>
       </div>
 
-      <p style={{ color: "#6b7280", fontSize: 14, margin: "4px 0 20px" }}>
+      <p style={{ color: "#525252", fontSize: 14, margin: "4px 0 20px" }}>
         {protocolData.meeting.title}
       </p>
 
@@ -108,8 +108,8 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
           onClick={handleGenerateTemplate}
           style={{
             ...modeTabStyle,
-            background: mode === "template" ? "#2563eb" : "transparent",
-            color: mode === "template" ? "#fff" : "#374151",
+            background: mode === "template" ? "#0f62fe" : "transparent",
+            color: mode === "template" ? "#fff" : "#393939",
           }}
         >
           {t("protocol.template")}
@@ -119,13 +119,13 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
           disabled={generatingAI}
           style={{
             ...modeTabStyle,
-            background: mode === "ai" ? "#7c3aed" : "transparent",
-            color: mode === "ai" ? "#fff" : "#374151",
+            background: mode === "ai" ? "#525252" : "transparent",
+            color: mode === "ai" ? "#fff" : "#393939",
           }}
         >
           {generatingAI ? t("protocol.generating") : t("protocol.aiGenerate")}
         </button>
-        <span style={{ fontSize: 12, color: "#9ca3af", marginLeft: 8 }}>
+        <span style={{ fontSize: 12, color: "#8d8d8d", marginLeft: 8 }}>
           {mode === "ai"
             ? t("protocol.aiNote")
             : t("protocol.templateGeneration")}
@@ -146,7 +146,7 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
         <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.5 }}>
           {t("protocol.aiDescription")}
         </p>
-        <p style={{ margin: "8px 0 0", fontSize: 13, color: "#6b7280" }}>
+        <p style={{ margin: "8px 0 0", fontSize: 13, color: "#525252" }}>
           {t("protocol.aiArchitecture")}
         </p>
       </div>
@@ -159,8 +159,8 @@ export default function ProtocolPage({ profile, org: _org }: Props) {
 const btnOutlineStyle: React.CSSProperties = {
   padding: "8px 16px",
   fontSize: 13,
-  borderRadius: 6,
-  border: "1px solid #d1d5db",
+  borderRadius: 0,
+  border: "1px solid #c6c6c6",
   background: "transparent",
   cursor: "pointer",
 };
@@ -171,8 +171,8 @@ const modeBarStyle: React.CSSProperties = {
   gap: 4,
   marginBottom: 12,
   padding: 4,
-  background: "#f3f4f6",
-  borderRadius: 8,
+  background: "#f4f4f4",
+  borderRadius: 0,
   width: "fit-content",
 };
 
@@ -180,7 +180,7 @@ const modeTabStyle: React.CSSProperties = {
   padding: "6px 16px",
   fontSize: 13,
   fontWeight: 500,
-  borderRadius: 6,
+  borderRadius: 0,
   border: "none",
   cursor: "pointer",
   transition: "all 0.15s",
@@ -192,8 +192,8 @@ const textareaStyle: React.CSSProperties = {
   fontSize: 13,
   lineHeight: 1.6,
   padding: 16,
-  border: "1px solid #e5e7eb",
-  borderRadius: 8,
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
   resize: "vertical",
   boxSizing: "border-box",
 };
@@ -201,9 +201,9 @@ const textareaStyle: React.CSSProperties = {
 const aiInfoStyle: React.CSSProperties = {
   marginTop: 20,
   padding: 16,
-  background: "#f5f3ff",
-  border: "1px solid #ddd6fe",
-  borderRadius: 8,
+  background: "#f4f4f4",
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
   fontSize: 14,
-  color: "#5b21b6",
+  color: "#393939",
 };

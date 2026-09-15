@@ -21,15 +21,15 @@ interface Props {
 type FilterType = "all" | "unread" | "meeting" | "voting" | "task" | "message";
 
 const TYPE_ICONS: Record<string, string> = {
-  task_assigned: "📋",
-  task_status_changed: "🔄",
-  task_comment: "💬",
-  personal_message: "✉️",
-  group_message: "👥",
-  meeting_invitation: "📅",
-  ns_meeting_invited: "📅",
-  meeting_video_conference_activated: "🎥",
-  voting_reminder: "🗳️",
+  task_assigned: "",
+  task_status_changed: "",
+  task_comment: "",
+  personal_message: "",
+  group_message: "",
+  meeting_invitation: "",
+  ns_meeting_invited: "",
+  meeting_video_conference_activated: "",
+  voting_reminder: "",
 };
 
 // Fallback titles per notification type — used when DB/auto-translation has no translation yet
@@ -156,7 +156,7 @@ export default function NotificationsPage({ profile }: Props) {
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  if (loading) return <div style={{ color: "#9CA3AF", padding: 40 }}>{t("common.loading")}</div>;
+  if (loading) return <div style={{ color: "#8d8d8d", padding: 40 }}>{t("common.loading")}</div>;
 
   const FILTERS: { key: FilterType; label: string }[] = [
     { key: "all", label: t("notifications.filterAll") },
@@ -177,7 +177,7 @@ export default function NotificationsPage({ profile }: Props) {
           </button>
         )}
       </div>
-      <p style={{ color: "#6B7280", fontSize: 14, marginBottom: 24 }}>
+      <p style={{ color: "#525252", fontSize: 14, marginBottom: 24 }}>
         {t("notifications.subtitle")}
       </p>
 
@@ -189,8 +189,8 @@ export default function NotificationsPage({ profile }: Props) {
             onClick={() => setFilter(f.key)}
             style={{
               ...filterBtnStyle,
-              background: filter === f.key ? "#2563EB" : "#F3F4F6",
-              color: filter === f.key ? "#fff" : "#374151",
+              background: filter === f.key ? "#0f62fe" : "#f4f4f4",
+              color: filter === f.key ? "#fff" : "#393939",
             }}
           >
             {f.label}
@@ -203,16 +203,16 @@ export default function NotificationsPage({ profile }: Props) {
 
       {/* Auto-translate indicator */}
       {translating && (
-        <div style={{ fontSize: 12, color: "#9CA3AF", marginBottom: 12 }}>
-          ✦ {t("notifications.translating", "Переводим уведомления...")}
+        <div style={{ fontSize: 12, color: "#8d8d8d", marginBottom: 12 }}>
+          {t("notifications.translating", "Переводим уведомления...")}
         </div>
       )}
 
       {/* List */}
       {filtered.length === 0 ? (
         <div style={emptyStyle}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🔔</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: "#374151" }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}></div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: "#393939" }}>
             {filter === "unread" ? t("notifications.noUnread") : t("notifications.empty")}
           </div>
         </div>
@@ -232,28 +232,28 @@ export default function NotificationsPage({ profile }: Props) {
                 onClick={() => handleClick(n)}
                 style={{
                   ...itemStyle,
-                  background: n.is_read ? "#FFFFFF" : "#EFF6FF",
-                  borderLeft: n.is_read ? "3px solid transparent" : "3px solid #3B82F6",
+                  background: n.is_read ? "#FFFFFF" : "#edf5ff",
+                  borderLeft: n.is_read ? "3px solid transparent" : "3px solid #0f62fe",
                 }}
               >
                 <div style={iconStyle}>
-                  {TYPE_ICONS[n.type] || "🔔"}
+                  {TYPE_ICONS[n.type] || ""}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                    <div style={{ fontWeight: n.is_read ? 400 : 600, fontSize: 15, color: "#111827" }}>
+                    <div style={{ fontWeight: n.is_read ? 400 : 600, fontSize: 15, color: "#161616" }}>
                       {title}
                     </div>
-                    <div style={{ fontSize: 12, color: "#9CA3AF", whiteSpace: "nowrap", flexShrink: 0 }}>
+                    <div style={{ fontSize: 12, color: "#8d8d8d", whiteSpace: "nowrap", flexShrink: 0 }}>
                       {formatTime(n.created_at, t)}
                     </div>
                   </div>
                   {body && (
-                    <div style={{ fontSize: 13, color: "#6B7280", marginTop: 4, lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 13, color: "#525252", marginTop: 4, lineHeight: 1.4 }}>
                       {body}
                     </div>
                   )}
-                  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>
+                  <div style={{ fontSize: 12, color: "#8d8d8d", marginTop: 4 }}>
                     {t(`notifications.type_${n.type}`, n.type)}
                   </div>
                 </div>
@@ -280,33 +280,33 @@ function formatTime(dateStr: string, t: (key: string) => string): string {
 
 // Styles
 const markAllBtnStyle: React.CSSProperties = {
-  padding: "8px 16px", fontSize: 14, fontWeight: 500, borderRadius: 8,
-  border: "1px solid #D1D5DB", background: "#fff", color: "#374151", cursor: "pointer",
+  padding: "8px 16px", fontSize: 14, fontWeight: 500, borderRadius: 0,
+  border: "1px solid #c6c6c6", background: "#fff", color: "#393939", cursor: "pointer",
 };
 const filterBarStyle: React.CSSProperties = {
   display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap",
 };
 const filterBtnStyle: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: 6, padding: "6px 14px",
-  fontSize: 13, fontWeight: 500, borderRadius: 20, border: "none", cursor: "pointer",
+  fontSize: 13, fontWeight: 500, borderRadius: 0, border: "none", cursor: "pointer",
 };
 const filterBadgeStyle: React.CSSProperties = {
-  background: "#DC2626", color: "#fff", borderRadius: 10, padding: "0 6px",
+  background: "#da1e28", color: "#fff", borderRadius: 0, padding: "0 6px",
   fontSize: 11, fontWeight: 600, minWidth: 18, textAlign: "center",
 };
 const emptyStyle: React.CSSProperties = {
-  padding: "48px 32px", textAlign: "center", background: "#F9FAFB",
-  border: "1px solid #E5E7EB", borderRadius: 12,
+  padding: "48px 32px", textAlign: "center", background: "#f4f4f4",
+  border: "1px solid #e0e0e0", borderRadius: 0,
 };
 const itemStyle: React.CSSProperties = {
   display: "flex", gap: 12, padding: "16px 20px", cursor: "pointer",
-  borderBottom: "1px solid #F3F4F6", transition: "background 0.15s", alignItems: "flex-start",
+  borderBottom: "1px solid #f4f4f4", transition: "background 0.15s", alignItems: "flex-start",
 };
 const iconStyle: React.CSSProperties = {
   fontSize: 20, width: 36, height: 36, display: "flex", alignItems: "center",
-  justifyContent: "center", flexShrink: 0, background: "#F3F4F6", borderRadius: 10,
+  justifyContent: "center", flexShrink: 0, background: "#f4f4f4", borderRadius: 0,
 };
 const dotStyle: React.CSSProperties = {
-  width: 8, height: 8, borderRadius: "50%", background: "#3B82F6",
+  width: 8, height: 8, borderRadius: "50%", background: "#0f62fe",
   flexShrink: 0, marginTop: 6,
 };

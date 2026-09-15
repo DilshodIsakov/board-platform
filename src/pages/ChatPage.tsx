@@ -60,8 +60,8 @@ function getInitials(name: string): string {
 }
 
 const AVATAR_COLORS = [
-  "#3B82F6", "#8B5CF6", "#EC4899", "#10B981",
-  "#F59E0B", "#EF4444", "#6366F1", "#0EA5E9",
+  "#0f62fe", "#525252", "#EC4899", "#24a148",
+  "#f1c21b", "#da1e28", "#0f62fe", "#0EA5E9",
 ];
 
 function getAvatarColor(name: string): string {
@@ -300,7 +300,7 @@ export default function ChatPage({ profile, org }: Props) {
           return [...prev, msg];
         });
         // Update group's last message preview and bubble to top
-        const preview = msg.file_name ? `📎 ${msg.file_name}` : msg.body;
+        const preview = msg.file_name ? `${msg.file_name}` : msg.body;
         setGroups((prev) =>
           sortGroupsByLatest(
             prev.map((g) =>
@@ -341,7 +341,7 @@ export default function ChatPage({ profile, org }: Props) {
         })();
       } else {
         // Update thread preview and badge; or add new thread if first message
-        const preview = msg.file_name ? `📎 ${msg.file_name}` : msg.body;
+        const preview = msg.file_name ? `${msg.file_name}` : msg.body;
         setThreads((prev) => {
           const existing = prev.find((t) => t.id === msg.sender_id);
           if (existing) {
@@ -452,7 +452,7 @@ export default function ChatPage({ profile, org }: Props) {
 
       // Update / add thread and bubble to top
       const preview = fileInfo
-        ? `📎 ${fileInfo.file_name}`
+        ? `${fileInfo.file_name}`
         : newMessage.trim();
       const now = new Date().toISOString();
       setThreads((prev) => {
@@ -525,7 +525,7 @@ export default function ChatPage({ profile, org }: Props) {
       if (msg) setGroupMessages((prev) => [...prev, msg]);
 
       const preview = fileInfo
-        ? `📎 ${fileInfo.file_name}`
+        ? `${fileInfo.file_name}`
         : newGroupMessage.trim();
       const now = new Date().toISOString();
       setGroups((prev) =>
@@ -745,7 +745,7 @@ export default function ChatPage({ profile, org }: Props) {
         <div
           style={{
             fontSize: 12,
-            color: isMine ? "rgba(255,255,255,0.7)" : "#9ca3af",
+            color: isMine ? "rgba(255,255,255,0.7)" : "#8d8d8d",
           }}
         >
           {t("chat.loadingFile")}
@@ -766,7 +766,7 @@ export default function ChatPage({ profile, org }: Props) {
             style={{
               maxWidth: 240,
               maxHeight: 200,
-              borderRadius: 8,
+              borderRadius: 0,
               display: "block",
             }}
           />
@@ -784,14 +784,13 @@ export default function ChatPage({ profile, org }: Props) {
           alignItems: "center",
           gap: 8,
           padding: "8px 10px",
-          background: isMine ? "rgba(255,255,255,0.15)" : "#e5e7eb",
-          borderRadius: 8,
+          background: isMine ? "rgba(255,255,255,0.15)" : "#e0e0e0",
+          borderRadius: 0,
           marginTop: 4,
-          color: isMine ? "#fff" : "#111827",
+          color: isMine ? "#fff" : "#161616",
           cursor: "pointer",
         }}
       >
-        <span style={{ fontSize: 20 }}>📎</span>
         <div style={{ minWidth: 0 }}>
           <div
             style={{
@@ -807,7 +806,7 @@ export default function ChatPage({ profile, org }: Props) {
           <div
             style={{
               fontSize: 11,
-              color: isMine ? "rgba(255,255,255,0.6)" : "#6b7280",
+              color: isMine ? "rgba(255,255,255,0.6)" : "#525252",
             }}
           >
             {formatFileSize(fileSize)}
@@ -818,7 +817,7 @@ export default function ChatPage({ profile, org }: Props) {
   };
 
   if (!profile) {
-    return <div style={{ color: "#9CA3AF" }}>{t("chat.loadingProfile")}</div>;
+    return <div style={{ color: "#8d8d8d" }}>{t("chat.loadingProfile")}</div>;
   }
 
   // ─── filtered lists ────────────────────────────────────────────────────────
@@ -867,9 +866,9 @@ export default function ChatPage({ profile, org }: Props) {
             onClick={() => switchTab("personal")}
             style={{
               ...tabBtnStyle,
-              color: sidebarTab === "personal" ? "#2563eb" : "#6b7280",
+              color: sidebarTab === "personal" ? "#0f62fe" : "#525252",
               borderBottomColor:
-                sidebarTab === "personal" ? "#2563eb" : "transparent",
+                sidebarTab === "personal" ? "#0f62fe" : "transparent",
               fontWeight: sidebarTab === "personal" ? 600 : 400,
             }}
           >
@@ -879,9 +878,9 @@ export default function ChatPage({ profile, org }: Props) {
             onClick={() => switchTab("groups")}
             style={{
               ...tabBtnStyle,
-              color: sidebarTab === "groups" ? "#2563eb" : "#6b7280",
+              color: sidebarTab === "groups" ? "#0f62fe" : "#525252",
               borderBottomColor:
-                sidebarTab === "groups" ? "#2563eb" : "transparent",
+                sidebarTab === "groups" ? "#0f62fe" : "transparent",
               fontWeight: sidebarTab === "groups" ? 600 : 400,
             }}
           >
@@ -938,7 +937,7 @@ export default function ChatPage({ profile, org }: Props) {
               <div style={emptyListStyle}>
                 {threads.length === 0 ? (
                   <>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}></div>
                     <div style={{ marginBottom: 12, fontSize: 14 }}>
                       {t("chat.noPersonalChats", "У вас пока нет личных переписок")}
                     </div>
@@ -968,7 +967,7 @@ export default function ChatPage({ profile, org }: Props) {
                     }}
                     style={{
                       ...threadRowStyle,
-                      background: isActive ? "#DBEAFE" : "transparent",
+                      background: isActive ? "#d0e2ff" : "transparent",
                     }}
                   >
                     <UserAvatar name={dn(c)} avatarUrl={c.avatar_url} size={44} />
@@ -1004,7 +1003,7 @@ export default function ChatPage({ profile, org }: Props) {
             <div style={emptyListStyle}>
               {groups.length === 0 ? (
                 <>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
+                  <div style={{ fontSize: 32, marginBottom: 8 }}></div>
                   <div style={{ fontSize: 14 }}>
                     {t("chat.noGroupsYet", "Вы не состоите ни в одной группе")}
                   </div>
@@ -1025,11 +1024,11 @@ export default function ChatPage({ profile, org }: Props) {
                   }}
                   style={{
                     ...threadRowStyle,
-                    background: isActive ? "#DBEAFE" : "transparent",
+                    background: isActive ? "#d0e2ff" : "transparent",
                   }}
                 >
                   {/* Group avatar: icon */}
-                  <div style={{ ...avatarStyle, background: "#6366F1", fontSize: 18 }}>
+                  <div style={{ ...avatarStyle, background: "#0f62fe", fontSize: 18 }}>
                     #
                   </div>
                   <div style={threadContentStyle}>
@@ -1078,11 +1077,11 @@ export default function ChatPage({ profile, org }: Props) {
         {/* ── Personal: no selection ── */}
         {sidebarTab === "personal" && !selectedContact && (
           <div style={emptyStateStyle}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>💬</div>
-            <div style={{ fontSize: 16, color: "#6b7280", marginBottom: 6 }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}></div>
+            <div style={{ fontSize: 16, color: "#525252", marginBottom: 6 }}>
               {t("chat.selectContact")}
             </div>
-            <div style={{ fontSize: 13, color: "#9ca3af" }}>
+            <div style={{ fontSize: 13, color: "#8d8d8d" }}>
               {t("chat.selectContactHint", "Выберите чат слева или начните новый")}
             </div>
           </div>
@@ -1107,7 +1106,7 @@ export default function ChatPage({ profile, org }: Props) {
                 <div style={{ fontWeight: 600, fontSize: 15 }}>
                   {dn(selectedContact) || t("chat.noName")}
                 </div>
-                <div style={{ color: "#6b7280", fontSize: 12 }}>
+                <div style={{ color: "#525252", fontSize: 12 }}>
                   {t(`chat.roles.${selectedContact.role}`, selectedContact.role)}
                 </div>
               </div>
@@ -1115,11 +1114,11 @@ export default function ChatPage({ profile, org }: Props) {
 
             <div style={messagesAreaStyle}>
               {loadingMessages ? (
-                <p style={{ color: "#888", textAlign: "center" }}>
+                <p style={{ color: "#8d8d8d", textAlign: "center" }}>
                   {t("common.loading")}
                 </p>
               ) : messages.length === 0 ? (
-                <p style={{ color: "#888", textAlign: "center" }}>
+                <p style={{ color: "#8d8d8d", textAlign: "center" }}>
                   {t("chat.noMessages")}
                 </p>
               ) : (
@@ -1147,19 +1146,17 @@ export default function ChatPage({ profile, org }: Props) {
                             style={editMsgBtnStyle}
                             title="Редактировать сообщение"
                           >
-                            ✏️
-                          </button>
+                                                      </button>
                           <button
                             onClick={() => handleDeleteMessage(m.id)}
                             style={deleteMsgBtnStyle}
                             title="Удалить сообщение"
                           >
-                            🗑
-                          </button>
+                                                      </button>
                         </div>
                       )}
                       {editingMsgId === m.id ? (
-                        <div style={{ ...bubbleBaseStyle, background: isMine ? "#2563eb" : "#f3f4f6", color: isMine ? "#fff" : "#111827", minWidth: 220 }}>
+                        <div style={{ ...bubbleBaseStyle, background: isMine ? "#0f62fe" : "#f4f4f4", color: isMine ? "#fff" : "#161616", minWidth: 220 }}>
                           <textarea
                             value={editingContent}
                             onChange={(e) => setEditingContent(e.target.value)}
@@ -1173,7 +1170,7 @@ export default function ChatPage({ profile, org }: Props) {
                               width: "100%",
                               background: "rgba(255,255,255,0.15)",
                               border: "1px solid rgba(255,255,255,0.3)",
-                              borderRadius: 6,
+                              borderRadius: 0,
                               color: "inherit",
                               fontSize: 14,
                               padding: "4px 6px",
@@ -1183,8 +1180,8 @@ export default function ChatPage({ profile, org }: Props) {
                             }}
                           />
                           <div style={{ display: "flex", gap: 6, marginTop: 6, justifyContent: "flex-end" }}>
-                            <button onClick={handleCancelEdit} style={editCancelBtnStyle}>✕</button>
-                            <button onClick={() => handleSaveEditMessage(m.id)} style={editSaveBtnStyle}>✓</button>
+                            <button onClick={handleCancelEdit} style={editCancelBtnStyle}></button>
+                            <button onClick={() => handleSaveEditMessage(m.id)} style={editSaveBtnStyle}></button>
                           </div>
                         </div>
                       ) : (
@@ -1194,8 +1191,8 @@ export default function ChatPage({ profile, org }: Props) {
                               ? deletedBubbleStyle
                               : {
                                   ...bubbleBaseStyle,
-                                  background: isMine ? "#2563eb" : "#f3f4f6",
-                                  color: isMine ? "#fff" : "#111827",
+                                  background: isMine ? "#0f62fe" : "#f4f4f4",
+                                  color: isMine ? "#fff" : "#161616",
                                 }
                           }
                         >
@@ -1222,10 +1219,10 @@ export default function ChatPage({ profile, org }: Props) {
                               fontSize: 11,
                               marginTop: 4,
                               color: m.is_deleted
-                                ? "#9ca3af"
+                                ? "#8d8d8d"
                                 : isMine
                                 ? "rgba(255,255,255,0.7)"
-                                : "#9ca3af",
+                                : "#8d8d8d",
                               textAlign: "right",
                             }}
                           >
@@ -1252,8 +1249,8 @@ export default function ChatPage({ profile, org }: Props) {
               <div
                 style={{
                   padding: "8px 20px",
-                  background: "#FEE2E2",
-                  color: "#991B1B",
+                  background: "#fff1f1",
+                  color: "#a2191f",
                   fontSize: 13,
                 }}
               >
@@ -1265,7 +1262,7 @@ export default function ChatPage({ profile, org }: Props) {
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: "#991B1B",
+                    color: "#a2191f",
                   }}
                 >
                   &times;
@@ -1275,7 +1272,7 @@ export default function ChatPage({ profile, org }: Props) {
             {pendingFile && (
               <div style={pendingFileBarStyle}>
                 <span style={{ fontSize: 14 }}>
-                  📎 {pendingFile.name} ({formatFileSize(pendingFile.size)})
+                  {pendingFile.name} ({formatFileSize(pendingFile.size)})
                 </span>
                 <button
                   onClick={() => {
@@ -1337,8 +1334,8 @@ export default function ChatPage({ profile, org }: Props) {
         {/* ── Group: no selection ── */}
         {sidebarTab === "groups" && !selectedGroup && (
           <div style={emptyStateStyle}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>👥</div>
-            <div style={{ fontSize: 16, color: "#6b7280" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}></div>
+            <div style={{ fontSize: 16, color: "#525252" }}>
               {t("chat.selectGroup")}
             </div>
           </div>
@@ -1360,7 +1357,7 @@ export default function ChatPage({ profile, org }: Props) {
                     width: 36,
                     height: 36,
                     fontSize: 16,
-                    background: "#6366F1",
+                    background: "#0f62fe",
                     flexShrink: 0,
                   }}
                 >
@@ -1370,7 +1367,7 @@ export default function ChatPage({ profile, org }: Props) {
                   <div style={{ fontWeight: 600, fontSize: 15 }}>
                     {selectedGroup.name}
                   </div>
-                  <div style={{ color: "#6b7280", fontSize: 12 }}>
+                  <div style={{ color: "#525252", fontSize: 12 }}>
                     {groupMembers.length} {t("chat.members")}
                   </div>
                 </div>
@@ -1385,11 +1382,11 @@ export default function ChatPage({ profile, org }: Props) {
 
             <div style={messagesAreaStyle}>
               {loadingGroupMessages ? (
-                <p style={{ color: "#888", textAlign: "center" }}>
+                <p style={{ color: "#8d8d8d", textAlign: "center" }}>
                   {t("common.loading")}
                 </p>
               ) : groupMessages.length === 0 ? (
-                <p style={{ color: "#888", textAlign: "center" }}>
+                <p style={{ color: "#8d8d8d", textAlign: "center" }}>
                   {t("chat.noGroupMessages")}
                 </p>
               ) : (
@@ -1418,19 +1415,17 @@ export default function ChatPage({ profile, org }: Props) {
                             style={editMsgBtnStyle}
                             title="Редактировать сообщение"
                           >
-                            ✏️
-                          </button>
+                                                      </button>
                           <button
                             onClick={() => handleDeleteGroupMessage(m.id)}
                             style={deleteMsgBtnStyle}
                             title="Удалить сообщение"
                           >
-                            🗑
-                          </button>
+                                                      </button>
                         </div>
                       )}
                       {editingMsgId === m.id ? (
-                        <div style={{ ...bubbleBaseStyle, background: isMine ? "#2563eb" : "#f3f4f6", color: isMine ? "#fff" : "#111827", minWidth: 220 }}>
+                        <div style={{ ...bubbleBaseStyle, background: isMine ? "#0f62fe" : "#f4f4f4", color: isMine ? "#fff" : "#161616", minWidth: 220 }}>
                           <textarea
                             value={editingContent}
                             onChange={(e) => setEditingContent(e.target.value)}
@@ -1444,7 +1439,7 @@ export default function ChatPage({ profile, org }: Props) {
                               width: "100%",
                               background: "rgba(255,255,255,0.15)",
                               border: "1px solid rgba(255,255,255,0.3)",
-                              borderRadius: 6,
+                              borderRadius: 0,
                               color: "inherit",
                               fontSize: 14,
                               padding: "4px 6px",
@@ -1454,8 +1449,8 @@ export default function ChatPage({ profile, org }: Props) {
                             }}
                           />
                           <div style={{ display: "flex", gap: 6, marginTop: 6, justifyContent: "flex-end" }}>
-                            <button onClick={handleCancelEdit} style={editCancelBtnStyle}>✕</button>
-                            <button onClick={() => handleSaveEditGroupMessage(m.id)} style={editSaveBtnStyle}>✓</button>
+                            <button onClick={handleCancelEdit} style={editCancelBtnStyle}></button>
+                            <button onClick={() => handleSaveEditGroupMessage(m.id)} style={editSaveBtnStyle}></button>
                           </div>
                         </div>
                       ) : (
@@ -1465,8 +1460,8 @@ export default function ChatPage({ profile, org }: Props) {
                               ? deletedBubbleStyle
                               : {
                                   ...bubbleBaseStyle,
-                                  background: isMine ? "#2563eb" : "#f3f4f6",
-                                  color: isMine ? "#fff" : "#111827",
+                                  background: isMine ? "#0f62fe" : "#f4f4f4",
+                                  color: isMine ? "#fff" : "#161616",
                                 }
                           }
                         >
@@ -1482,7 +1477,7 @@ export default function ChatPage({ profile, org }: Props) {
                                     fontSize: 12,
                                     fontWeight: 600,
                                     marginBottom: 2,
-                                    color: "#3B82F6",
+                                    color: "#0f62fe",
                                   }}
                                 >
                                   {senderName}
@@ -1505,10 +1500,10 @@ export default function ChatPage({ profile, org }: Props) {
                               fontSize: 11,
                               marginTop: 4,
                               color: m.is_deleted
-                                ? "#9ca3af"
+                                ? "#8d8d8d"
                                 : isMine
                                 ? "rgba(255,255,255,0.7)"
-                                : "#9ca3af",
+                                : "#8d8d8d",
                               textAlign: "right",
                             }}
                           >
@@ -1535,8 +1530,8 @@ export default function ChatPage({ profile, org }: Props) {
               <div
                 style={{
                   padding: "8px 20px",
-                  background: "#FEE2E2",
-                  color: "#991B1B",
+                  background: "#fff1f1",
+                  color: "#a2191f",
                   fontSize: 13,
                 }}
               >
@@ -1548,7 +1543,7 @@ export default function ChatPage({ profile, org }: Props) {
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: "#991B1B",
+                    color: "#a2191f",
                   }}
                 >
                   &times;
@@ -1558,7 +1553,7 @@ export default function ChatPage({ profile, org }: Props) {
             {pendingGroupFile && (
               <div style={pendingFileBarStyle}>
                 <span style={{ fontSize: 14 }}>
-                  📎 {pendingGroupFile.name} ({formatFileSize(pendingGroupFile.size)})
+                  {pendingGroupFile.name} ({formatFileSize(pendingGroupFile.size)})
                 </span>
                 <button
                   onClick={() => {
@@ -1655,11 +1650,11 @@ export default function ChatPage({ profile, org }: Props) {
             />
             <div style={{ maxHeight: 320, overflowY: "auto" }}>
               {allUsersLoading ? (
-                <p style={{ color: "#888", fontSize: 14, padding: "8px 0" }}>
+                <p style={{ color: "#8d8d8d", fontSize: 14, padding: "8px 0" }}>
                   {t("common.loading")}
                 </p>
               ) : filteredNewChatUsers.length === 0 ? (
-                <p style={{ color: "#888", fontSize: 14, padding: "8px 0" }}>
+                <p style={{ color: "#8d8d8d", fontSize: 14, padding: "8px 0" }}>
                   {t("chat.noOneFound")}
                 </p>
               ) : (
@@ -1674,7 +1669,7 @@ export default function ChatPage({ profile, org }: Props) {
                       <div style={{ fontWeight: 500, fontSize: 14 }}>
                         {dn(u)}
                       </div>
-                      <div style={{ fontSize: 12, color: "#6b7280" }}>
+                      <div style={{ fontSize: 12, color: "#525252" }}>
                         {t(`chat.roles.${u.role}`, u.role)}
                       </div>
                     </div>
@@ -1728,7 +1723,7 @@ export default function ChatPage({ profile, org }: Props) {
                     <span>{dn(c)}</span>
                     <span
                       style={{
-                        color: "#9CA3AF",
+                        color: "#8d8d8d",
                         fontSize: 12,
                         marginLeft: 6,
                       }}
@@ -1802,7 +1797,7 @@ export default function ChatPage({ profile, org }: Props) {
                       alignItems: "center",
                       justifyContent: "space-between",
                       padding: "6px 0",
-                      borderBottom: "1px solid #f3f4f6",
+                      borderBottom: "1px solid #f4f4f4",
                     }}
                   >
                     <div>
@@ -1812,7 +1807,7 @@ export default function ChatPage({ profile, org }: Props) {
                       <span
                         style={{
                           fontSize: 12,
-                          color: "#9CA3AF",
+                          color: "#8d8d8d",
                           marginLeft: 8,
                         }}
                       >
@@ -1853,7 +1848,7 @@ export default function ChatPage({ profile, org }: Props) {
                         {dn(c)}
                         <span
                           style={{
-                            color: "#9CA3AF",
+                            color: "#8d8d8d",
                             fontSize: 12,
                             marginLeft: 6,
                           }}
@@ -1885,20 +1880,20 @@ export default function ChatPage({ profile, org }: Props) {
 
 const sidebarStyle: React.CSSProperties = {
   width: 320,
-  borderRight: "1px solid #e5e7eb",
+  borderRight: "1px solid #e0e0e0",
   display: "flex",
   flexDirection: "column",
-  background: "#fafafa",
+  background: "#f4f4f4",
 };
 
 const sidebarHeaderStyle: React.CSSProperties = {
   padding: "14px 16px",
-  borderBottom: "1px solid #e5e7eb",
+  borderBottom: "1px solid #e0e0e0",
 };
 
 const tabBarStyle: React.CSSProperties = {
   display: "flex",
-  borderBottom: "1px solid #e5e7eb",
+  borderBottom: "1px solid #e0e0e0",
 };
 
 const tabBtnStyle: React.CSSProperties = {
@@ -1916,11 +1911,11 @@ const searchInputStyle: React.CSSProperties = {
   width: "100%",
   padding: "8px 10px",
   fontSize: 14,
-  border: "1px solid #d1d5db",
-  borderRadius: 8,
+  border: "1px solid #c6c6c6",
+  borderRadius: 0,
   boxSizing: "border-box",
   outline: "none",
-  background: "#f3f4f6",
+  background: "#f4f4f4",
 };
 
 const actionBtnStyle: React.CSSProperties = {
@@ -1928,10 +1923,10 @@ const actionBtnStyle: React.CSSProperties = {
   padding: "7px 0",
   fontSize: 13,
   fontWeight: 500,
-  background: "#EFF6FF",
-  color: "#2563EB",
-  border: "1px solid #BFDBFE",
-  borderRadius: 8,
+  background: "#edf5ff",
+  color: "#0f62fe",
+  border: "1px solid #d0e2ff",
+  borderRadius: 0,
   cursor: "pointer",
 };
 
@@ -1942,7 +1937,7 @@ const threadRowStyle: React.CSSProperties = {
   gap: 12,
   padding: "10px 14px",
   cursor: "pointer",
-  borderBottom: "1px solid #f3f4f6",
+  borderBottom: "1px solid #f4f4f4",
   transition: "background 0.12s",
 };
 
@@ -1976,7 +1971,7 @@ const threadTopRowStyle: React.CSSProperties = {
 const threadNameStyle: React.CSSProperties = {
   fontSize: 14,
   fontWeight: 600,
-  color: "#111827",
+  color: "#161616",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
@@ -1986,7 +1981,7 @@ const threadNameStyle: React.CSSProperties = {
 
 const threadTimeStyle: React.CSSProperties = {
   fontSize: 11,
-  color: "#9ca3af",
+  color: "#8d8d8d",
   whiteSpace: "nowrap",
   flexShrink: 0,
 };
@@ -2000,7 +1995,7 @@ const threadBottomRowStyle: React.CSSProperties = {
 
 const threadPreviewStyle: React.CSSProperties = {
   fontSize: 13,
-  color: "#6b7280",
+  color: "#525252",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
@@ -2009,9 +2004,9 @@ const threadPreviewStyle: React.CSSProperties = {
 };
 
 const badgeStyle: React.CSSProperties = {
-  background: "#EF4444",
+  background: "#da1e28",
   color: "#fff",
-  borderRadius: 10,
+  borderRadius: 0,
   minWidth: 18,
   height: 18,
   display: "flex",
@@ -2025,7 +2020,7 @@ const badgeStyle: React.CSSProperties = {
 
 const listPlaceholderStyle: React.CSSProperties = {
   padding: 16,
-  color: "#888",
+  color: "#8d8d8d",
   fontSize: 14,
 };
 
@@ -2035,16 +2030,16 @@ const emptyListStyle: React.CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   padding: "40px 20px",
-  color: "#9ca3af",
+  color: "#8d8d8d",
   textAlign: "center",
 };
 
 const startChatBtnStyle: React.CSSProperties = {
   padding: "8px 20px",
-  background: "#2563EB",
+  background: "#0f62fe",
   color: "#fff",
   border: "none",
-  borderRadius: 8,
+  borderRadius: 0,
   fontSize: 14,
   cursor: "pointer",
 };
@@ -2052,7 +2047,7 @@ const startChatBtnStyle: React.CSSProperties = {
 const deleteGroupBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "#9ca3af",
+  color: "#8d8d8d",
   cursor: "pointer",
   fontSize: 16,
   padding: "0 2px",
@@ -2073,12 +2068,12 @@ const emptyStateStyle: React.CSSProperties = {
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  color: "#9ca3af",
+  color: "#8d8d8d",
 };
 
 const chatHeaderStyle: React.CSSProperties = {
   padding: "12px 20px",
-  borderBottom: "1px solid #e5e7eb",
+  borderBottom: "1px solid #e0e0e0",
   display: "flex",
   alignItems: "center",
   gap: 12,
@@ -2089,13 +2084,13 @@ const messagesAreaStyle: React.CSSProperties = {
   flex: 1,
   overflowY: "auto",
   padding: 20,
-  background: "#f9fafb",
+  background: "#f4f4f4",
 };
 
 const bubbleBaseStyle: React.CSSProperties = {
   maxWidth: "70%",
   padding: "10px 14px",
-  borderRadius: 12,
+  borderRadius: 0,
   fontSize: 15,
   lineHeight: 1.4,
   wordBreak: "break-word",
@@ -2103,7 +2098,7 @@ const bubbleBaseStyle: React.CSSProperties = {
 
 const inputAreaStyle: React.CSSProperties = {
   padding: "12px 16px",
-  borderTop: "1px solid #e5e7eb",
+  borderTop: "1px solid #e0e0e0",
   display: "flex",
   gap: 10,
   background: "#fff",
@@ -2113,18 +2108,18 @@ const inputStyle: React.CSSProperties = {
   flex: 1,
   padding: "10px 14px",
   fontSize: 15,
-  border: "1px solid #d1d5db",
-  borderRadius: 24,
+  border: "1px solid #c6c6c6",
+  borderRadius: 0,
   outline: "none",
-  background: "#f3f4f6",
+  background: "#f4f4f4",
 };
 
 const sendBtnStyle: React.CSSProperties = {
   padding: "10px 20px",
   fontSize: 14,
-  borderRadius: 20,
+  borderRadius: 0,
   border: "none",
-  background: "#2563eb",
+  background: "#0f62fe",
   color: "#fff",
   cursor: "pointer",
   whiteSpace: "nowrap",
@@ -2134,17 +2129,17 @@ const sendBtnStyle: React.CSSProperties = {
 const membersBtnStyle: React.CSSProperties = {
   padding: "6px 14px",
   fontSize: 13,
-  borderRadius: 8,
-  border: "1px solid #d1d5db",
+  borderRadius: 0,
+  border: "1px solid #c6c6c6",
   background: "#fff",
   cursor: "pointer",
-  color: "#374151",
+  color: "#393939",
 };
 
 const deleteBtnSmall: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "#DC2626",
+  color: "#da1e28",
   cursor: "pointer",
   fontSize: 16,
   padding: "2px 6px",
@@ -2155,11 +2150,11 @@ const addMemberBtnStyle: React.CSSProperties = {
   width: 28,
   height: 28,
   borderRadius: "50%",
-  border: "1px solid #d1d5db",
+  border: "1px solid #c6c6c6",
   background: "#fff",
   cursor: "pointer",
   fontSize: 16,
-  color: "#3B82F6",
+  color: "#0f62fe",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -2177,21 +2172,20 @@ const overlayStyle: React.CSSProperties = {
 
 const modalStyle: React.CSSProperties = {
   background: "#fff",
-  borderRadius: 14,
+  borderRadius: 0,
   padding: "24px 28px",
   width: "100%",
   maxWidth: 460,
   maxHeight: "80vh",
   overflowY: "auto",
-  boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
-};
+  boxShadow: "var(--shadow-overlay)", };
 
 const closeBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
   fontSize: 24,
   cursor: "pointer",
-  color: "#9CA3AF",
+  color: "#8d8d8d",
   padding: 0,
   lineHeight: 1,
 };
@@ -2200,7 +2194,7 @@ const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 14,
   fontWeight: 500,
-  color: "#374151",
+  color: "#393939",
   marginBottom: 6,
   marginTop: 14,
 };
@@ -2208,8 +2202,8 @@ const labelStyle: React.CSSProperties = {
 const modalInputStyle: React.CSSProperties = {
   width: "100%",
   padding: "9px 12px",
-  border: "1px solid #d1d5db",
-  borderRadius: 8,
+  border: "1px solid #c6c6c6",
+  borderRadius: 0,
   fontSize: 14,
   boxSizing: "border-box",
   outline: "none",
@@ -2218,8 +2212,8 @@ const modalInputStyle: React.CSSProperties = {
 const memberListStyle: React.CSSProperties = {
   maxHeight: 200,
   overflowY: "auto",
-  border: "1px solid #e5e7eb",
-  borderRadius: 8,
+  border: "1px solid #e0e0e0",
+  borderRadius: 0,
   padding: 8,
 };
 
@@ -2234,19 +2228,19 @@ const memberItemStyle: React.CSSProperties = {
 const cancelBtnStyle: React.CSSProperties = {
   padding: "9px 20px",
   background: "#fff",
-  border: "1px solid #d1d5db",
-  borderRadius: 8,
+  border: "1px solid #c6c6c6",
+  borderRadius: 0,
   fontSize: 14,
   cursor: "pointer",
-  color: "#374151",
+  color: "#393939",
 };
 
 const submitBtnStyle: React.CSSProperties = {
   padding: "9px 24px",
-  background: "#3B82F6",
+  background: "#0f62fe",
   color: "#fff",
   border: "none",
-  borderRadius: 8,
+  borderRadius: 0,
   fontSize: 14,
   fontWeight: 500,
   cursor: "pointer",
@@ -2256,19 +2250,19 @@ const attachBtnStyle: React.CSSProperties = {
   background: "none",
   border: "none",
   cursor: "pointer",
-  color: "#6b7280",
+  color: "#525252",
   padding: 6,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  borderRadius: 8,
+  borderRadius: 0,
   flexShrink: 0,
 };
 
 const pendingFileBarStyle: React.CSSProperties = {
   padding: "8px 16px",
-  background: "#EFF6FF",
-  borderTop: "1px solid #e5e7eb",
+  background: "#edf5ff",
+  borderTop: "1px solid #e0e0e0",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
@@ -2280,7 +2274,7 @@ const removePendingBtnStyle: React.CSSProperties = {
   border: "none",
   fontSize: 18,
   cursor: "pointer",
-  color: "#DC2626",
+  color: "#da1e28",
   padding: "2px 6px",
   lineHeight: 1,
 };
@@ -2291,8 +2285,8 @@ const newChatUserRowStyle: React.CSSProperties = {
   gap: 12,
   padding: "8px 4px",
   cursor: "pointer",
-  borderRadius: 8,
-  borderBottom: "1px solid #f3f4f6",
+  borderRadius: 0,
+  borderBottom: "1px solid #f4f4f4",
   transition: "background 0.1s",
 };
 
@@ -2302,8 +2296,8 @@ const deleteMsgBtnStyle: React.CSSProperties = {
   cursor: "pointer",
   fontSize: 14,
   padding: "4px 7px",
-  borderRadius: 6,
-  color: "#EF4444",
+  borderRadius: 0,
+  color: "#da1e28",
   flexShrink: 0,
   lineHeight: 1,
 };
@@ -2314,20 +2308,20 @@ const editMsgBtnStyle: React.CSSProperties = {
   cursor: "pointer",
   fontSize: 14,
   padding: "4px 7px",
-  borderRadius: 6,
-  color: "#2563eb",
+  borderRadius: 0,
+  color: "#0f62fe",
   flexShrink: 0,
   lineHeight: 1,
 };
 
 const editSaveBtnStyle: React.CSSProperties = {
-  background: "#2563eb",
+  background: "#0f62fe",
   border: "none",
   cursor: "pointer",
   fontSize: 13,
   fontWeight: 600,
   padding: "3px 10px",
-  borderRadius: 6,
+  borderRadius: 0,
   color: "#fff",
   lineHeight: 1,
 };
@@ -2338,7 +2332,7 @@ const editCancelBtnStyle: React.CSSProperties = {
   cursor: "pointer",
   fontSize: 13,
   padding: "3px 8px",
-  borderRadius: 6,
+  borderRadius: 0,
   color: "inherit",
   lineHeight: 1,
 };
@@ -2346,9 +2340,9 @@ const editCancelBtnStyle: React.CSSProperties = {
 const deletedBubbleStyle: React.CSSProperties = {
   maxWidth: "70%",
   padding: "8px 12px",
-  borderRadius: 12,
+  borderRadius: 0,
   fontSize: 14,
-  background: "#f3f4f6",
-  color: "#9ca3af",
-  border: "1px solid #e5e7eb",
+  background: "#f4f4f4",
+  color: "#8d8d8d",
+  border: "1px solid #e0e0e0",
 };
